@@ -17,9 +17,9 @@ A diferència de les [avaluacions automàtiques basades en mètriques](https://w
 
 Estem **arrencant el projecte** i necessitem reforços. Concretament, busquem:
 
-- **Aprenentatge automàtic / IA** — per crear les canonades d'avaluació: executar la inferència dels models, gestionar els *prompts* i preparar les dades que veuran els avaluadors humans.
-- **Estadística** — per dimensionar el volum d'avaluacions, validar la metodologia (Bradley-Terry / Elo) i garantir la robustesa dels rànquings.
-- **Python** — per construir la canonada d'inferència, el *backend* (FastAPI + PostgreSQL) i la integració amb la web de Softcatalà.
+- 🤖 **Aprenentatge automàtic / IA** — per crear les canonades d'avaluació: executar la inferència dels models, gestionar els *prompts* i preparar les dades que veuran els avaluadors humans.
+- 📊 **Estadística** — per dimensionar el volum d'avaluacions, validar la metodologia (Bradley-Terry / Elo) i garantir la robustesa dels rànquings.
+- ⚙️ **Python** — per construir la canonada d'inferència, el *backend* (FastAPI + PostgreSQL) i la integració amb la web de Softcatalà.
 
 No cal que dominis les tres àrees: si t'hi veus en alguna, **escriu-nos**. També ens interessa la teva opinió per definir bé les tasques d'avaluació.
 
