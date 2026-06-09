@@ -90,7 +90,7 @@ Demanem a l'usuari que valori quina parella de models ho fa millor per a una tas
 
 # Què cal avaluar
 
-El volum d'avaluacions necessari surt de combinar tres factors:
+El volum d'avaluacions necessari s'obté de tres factors:
 
 - Els **models** que volem comparar
 - Les **tasques** en què els posem a prova
@@ -109,7 +109,7 @@ El volum d'avaluacions necessari surt de combinar tres factors:
 
 ## Reducció amb rànquing global
 
-Si fem servir un sistema de rànquing global tipus **Bradley-Terry** o **Elo** (com fa LMSYS Chatbot Arena), el sistema aprofita la transitivitat: si sabem que A > B i B > C, ja tenim informació indirecta sobre A vs C.
+Si fem servir un sistema de rànquing global tipus **[Bradley-Terry](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model)** o **[Elo](https://ca.wikipedia.org/wiki/Sistema_de_puntuaci%C3%B3_Elo)** (com fa LMSYS Chatbot Arena), el sistema aprofita la transitivitat: si sabem que A > B i B > C, ja tenim informació indirecta sobre A vs C.
 
 Això:
 
