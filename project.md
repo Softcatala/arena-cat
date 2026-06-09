@@ -11,7 +11,7 @@ A diferència de les avaluacions automàtiques basades en mètriques, aquí són
 - **Què**: rànquing de models LLM segons preferència humana en tasques en català.
 - **Com**: comparació cega de parelles de respostes generades prèviament (no en temps real).
 - **Qui**: comunitat de Softcatalà, amb un test de qualificació previ.
-- **Resultat**: rànquing públic + conjunt de dades obertes de preferències per a RLHF en català.
+- **Resultat**: rànquing públic més un conjunt de dades obertes de preferències per a RLHF en català.
 
 ## Vols col·laborar-hi? T'estem buscant
 
@@ -39,7 +39,7 @@ El que succeeix és que l'obsessió actual dels laboratoris que creen els sistem
 
 - Les mètriques agregades poden amagar errors específics de la llengua (ortografia, registre, varietats dialectals, referències culturals).
 - L'experiència real dels usuaris catalanoparlants no està reflectida en els *benchmarks* globals.
-- No existeix encara un rànquing públic de models segons la preferència humana en català.
+- No existeix un rànquing públic de models segons la preferència humana en català.
 
 ---
 
@@ -119,7 +119,7 @@ El volum d'avaluacions necessari surt de combinar tres factors:
 
 ## Quantes comparacions calen?
 
-1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 5 models, surten **10 parelles**.
+1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 5 models, són **10 parelles**.
 2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, cultura, generació). Cada parella s'avalua en cada categoria, donant $10 \times 5 = 50$ combinacions úniques.
 3. **Variacions per categoria**: 10 prompts diferents per categoria, per capturar varietat de dificultat i estil. Això vol dir 50 prompts en total i $10 \times 50 = 500$ ítems d'avaluació únics (parella × prompt).
 4. **Repeticions per combinació**: amb un marge d'error del 5% i un 95% de confiança, calen **385 vots** per cada (parella × categoria) per poder afirmar amb solidesa quin model va millor en aquella tasca.
@@ -260,25 +260,4 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 
 > **Esforç**: punt mig realista — **~120 hores de desenvolupament**.
 
----
 
-# Referències
-
-## Sistemes d'avaluació humana
-
-- [LMSYS Chatbot Arena](https://lmarena.ai/) — sistema de referència en avaluació humana de LLMs.
-- [VoiceArena](https://voicearena.com/) — avaluació humana per a models de veu.
-
-## Avaluació de models en català
-
-- [la-leaderboard (Aina)](https://huggingface.co/spaces/la-leaderboard/la-leaderboard) — avaluació amb mètriques automàtiques.
-
-## Projectes col·laboratius de referència
-
-- [Common Voice](https://commonvoice.mozilla.org/) — model de contribució comunitària.
-
-## Conceptes tècnics
-
-- **Sobreajustament** als *benchmarks*: efecte pel qual els models s'optimitzen per a mètriques específiques i divergeixen de la utilitat real.
-- **Bradley-Terry / Elo**: sistemes de rànquing per a comparacions per parelles.
-- **RLHF** (*Reinforcement Learning from Human Feedback*): tècnica d'entrenament que aprofita preferències humanes.
