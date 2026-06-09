@@ -84,27 +84,6 @@ Demanem a l'usuari que valori quina parella de models ho fa millor per a una tas
 
 ![Exemple d'avaluació: prompt de traducció amb dues respostes (model A i model B) i les quatre opcions de vot](images/exemple-avaluacio.png)
 
-**Petició**: tradueix del castellà al català la següent frase:
-
-> Que les den a los holgazanes por lo poco que han trabajado mientras nosotros lavábamos la ropa con nuestros padres.
-
-**Model A**:
-
-> Que els donin als ganduls pel poc que han treballat mentre nosaltres rentàvem la roba amb els nostres pares.
-
-**Model B**:
-
-> Que els donin als ganduls pel poc que han treballat entre nosaltres ajudàvem els nostres pares rentant la roba.
-
-## Opcions de vot
-
-L'usuari pot triar:
-
-- La resposta del **model A** és millor
-- La resposta del **model B** és millor
-- La resposta dels dos models és **similar**
-- **Els dos ho fan malament**
-
 > **Avaluació cega**: els models s'avaluen de forma cega: l'usuari **no sap** quin model està avaluant en cada cas, per evitar biaixos.
 
 ---
