@@ -3,43 +3,43 @@
 
 ## Continguts
 
-- [0. Introducció](#0-introducció)
-    - [0.1. En poques paraules](#01-en-poques-paraules)
-    - [0.2. Vols col·laborar-hi? T'estem buscant](#02-vols-collaborar-hi-testem-buscant)
-- [1. Motivació](#1-motivació)
-    - [1.1. Per què cal una avaluació humana específica per al català](#11-per-què-cal-una-avaluació-humana-específica-per-al-català)
-- [2. Proposta](#2-proposta)
-    - [2.1. Objectiu inicial](#21-objectiu-inicial)
+- [1. Introducció](#1-introducció)
+    - [1.1. En poques paraules](#11-en-poques-paraules)
+    - [1.2. Vols col·laborar-hi? T'estem buscant](#12-vols-collaborar-hi-testem-buscant)
+- [2. Motivació](#2-motivació)
+    - [2.1. Per què cal una avaluació humana específica per al català](#21-per-què-cal-una-avaluació-humana-específica-per-al-català)
+- [3. Proposta](#3-proposta)
+    - [3.1. Objectiu inicial](#31-objectiu-inicial)
         - [Models a avaluar](#models-a-avaluar)
         - [Categories de tasques](#categories-de-tasques)
-- [3. Com funciona el procés d'avaluació](#3-com-funciona-el-procés-davaluació)
-    - [3.1. Exemple](#31-exemple)
-- [4. Què cal avaluar](#4-què-cal-avaluar)
-    - [4.1. Quantes comparacions calen?](#41-quantes-comparacions-calen)
-    - [4.2. Reducció amb rànquing global](#42-reducció-amb-rànquing-global)
-- [5. Qui fa l'avaluació](#5-qui-fa-lavaluació)
-    - [5.1. Test de qualificació](#51-test-de-qualificació)
-    - [5.2. Registre d'usuaris](#52-registre-dusuaris)
-- [6. Què cal fer](#6-què-cal-fer)
-    - [6.1. Tasques d'avaluació](#61-tasques-davaluació)
-    - [6.2. Plataforma](#62-plataforma)
-- [7. Resultats del projecte](#7-resultats-del-projecte)
-    - [7.1. Rànquing públic de models](#71-rànquing-públic-de-models)
-    - [7.2. Conjunt de dades obertes de preferències](#72-conjunt-de-dades-obertes-de-preferències)
-- [8. Full de ruta](#8-full-de-ruta)
-    - [8.1. Versions](#81-versions)
-- [9. Versió 1.0 — Validació del concepte](#9-versió-10--validació-del-concepte)
-    - [9.1. Abast](#91-abast)
+- [4. Com funciona el procés d'avaluació](#4-com-funciona-el-procés-davaluació)
+    - [4.1. Exemple](#41-exemple)
+- [5. Què cal avaluar](#5-què-cal-avaluar)
+    - [5.1. Quantes comparacions calen?](#51-quantes-comparacions-calen)
+    - [5.2. Reducció amb rànquing global](#52-reducció-amb-rànquing-global)
+- [6. Qui fa l'avaluació](#6-qui-fa-lavaluació)
+    - [6.1. Test de qualificació](#61-test-de-qualificació)
+    - [6.2. Registre d'usuaris](#62-registre-dusuaris)
+- [7. Què cal fer](#7-què-cal-fer)
+    - [7.1. Tasques d'avaluació](#71-tasques-davaluació)
+    - [7.2. Plataforma](#72-plataforma)
+- [8. Resultats del projecte](#8-resultats-del-projecte)
+    - [8.1. Rànquing públic de models](#81-rànquing-públic-de-models)
+    - [8.2. Conjunt de dades obertes de preferències](#82-conjunt-de-dades-obertes-de-preferències)
+- [9. Full de ruta](#9-full-de-ruta)
+    - [9.1. Versions](#91-versions)
+- [10. Versió 1.0 — Validació del concepte](#10-versió-10--validació-del-concepte)
+    - [10.1. Abast](#101-abast)
         - [Models (3)](#models-3)
         - [Categories (3)](#categories-3)
-    - [9.2. Components a desenvolupar](#92-components-a-desenvolupar)
+    - [10.2. Components a desenvolupar](#102-components-a-desenvolupar)
         - [Preparació de les dades](#preparació-de-les-dades)
         - [Gestió d'usuaris](#gestió-dusuaris)
         - [Interfície d'usuari](#interfície-dusuari)
         - [Backend](#backend)
     - [Estimació](#estimació)
     
-# 0. Introducció
+# 1. Introducció
     
     
 **Avaluació humana de models d'IA en català.**
@@ -49,14 +49,14 @@ Volem desenvolupar una plataforma participativa, inspirada en [LMSYS Chatbot Are
 A diferència de les [avaluacions automàtiques basades en mètriques](https://www.softcatala.org/la-intelligencia-artificial-al-vostre-ordinador-personal/models-dintelligencia-artificial-en-catala-per-usar-en-local/), aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor.
     
 
-## 0.1. En poques paraules
+## 1.1. En poques paraules
 
 - **Què**: rànquing de models LLM segons preferència humana en tasques en català.
 - **Com**: comparació cega de parelles de respostes generades prèviament (no en temps real).
 - **Qui**: comunitat de Softcatalà, amb un test de qualificació previ.
 - **Resultat**: rànquing públic més un conjunt de dades obertes de preferències per a RLHF en català.
 
-## 0.2. Vols col·laborar-hi? T'estem buscant
+## 1.2. Vols col·laborar-hi? T'estem buscant
 
 Estem **arrencant el projecte** i necessitem reforços. Concretament, busquem:
 
@@ -70,13 +70,13 @@ Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **
 
 ---
 
-# 1. Motivació
+# 2. Motivació
 
 Actualment podem [mesurar el rendiment](https://www.softcatala.org/la-intelligencia-artificial-al-vostre-ordinador-personal/models-dintelligencia-artificial-en-catala-per-usar-en-local/) dels models en català, però a part d'una valoració objectiva basada en mètriques d'IA, s'acostuma a donar també molta importància a com d'útils són els models en tasques reals avaluades per humans.
 
 El que succeeix és que l'obsessió actual dels laboratoris que creen els sistemes d'IA per lluir en les mètriques fa que hi hagi una desconnexió important entre el que mostren les mètriques i l'experiència real dels usuaris. Hi ha un **[sobreajustament](https://ca.wikipedia.org/wiki/Sobreajustament_(overfitting))** a les mètriques.
 
-## 1.1. Per què cal una avaluació humana específica per al català
+## 2.1. Per què cal una avaluació humana específica per al català
 
 - Les mètriques agregades poden amagar errors específics de la llengua (ortografia, registre, varietats dialectals, referències culturals).
 - L'experiència real dels usuaris catalanoparlants no està reflectida en els *benchmarks* globals.
@@ -84,7 +84,7 @@ El que succeeix és que l'obsessió actual dels laboratoris que creen els sistem
 
 ---
 
-# 2. Proposta
+# 3. Proposta
 
 Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre cas:
 
@@ -93,7 +93,7 @@ Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre 
     - Això no ho podem fer perquè ens representa molt cost.
     - En comptes d'això, **generem prèviament les tasques i les respostes** dels models.
 
-## 2.1. Objectiu inicial
+## 3.1. Objectiu inicial
 
 Començaríem amb un objectiu modest:
 
@@ -119,11 +119,11 @@ Generem sintèticament 5 tasques representatives:
 
 ---
 
-# 3. Com funciona el procés d'avaluació
+# 4. Com funciona el procés d'avaluació
 
 Demanem a l'usuari que valori quina parella de models ho fa millor per a una tasca concreta.
 
-## 3.1. Exemple
+## 4.1. Exemple
 
 ![Exemple d'avaluació: prompt de traducció amb dues respostes (model A i model B) i les quatre opcions de vot](images/exemple-avaluacio.png)
 
@@ -131,7 +131,7 @@ Demanem a l'usuari que valori quina parella de models ho fa millor per a una tas
 
 ---
 
-# 4. Què cal avaluar
+# 5. Què cal avaluar
 
 El volum d'avaluacions necessari s'obté de tres factors:
 
@@ -139,7 +139,7 @@ El volum d'avaluacions necessari s'obté de tres factors:
 - Les **tasques** en què els posem a prova
 - La **robustesa estadística** que volem assolir
 
-## 4.1. Quantes comparacions calen?
+## 5.1. Quantes comparacions calen?
 
 1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 5 models, són **10 parelles**.
 2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, cultura, generació). Cada parella s'avalua en cada categoria, donant $10 \times 5 = 50$ combinacions úniques.
@@ -150,7 +150,7 @@ El volum d'avaluacions necessari s'obté de tres factors:
 >
 > Si cada parella requereix uns 2 minuts: $19.250 \times 2 / 60 \approx 641$ hores.
 
-## 4.2. Reducció amb rànquing global
+## 5.2. Reducció amb rànquing global
 
 Si fem servir un sistema de rànquing global tipus **[Bradley-Terry](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model)** o **[Elo](https://ca.wikipedia.org/wiki/Sistema_de_puntuaci%C3%B3_Elo)** (com fa LMSYS Chatbot Arena), el sistema aprofita la transitivitat: si sabem que A > B i B > C, ja tenim informació indirecta sobre A vs C.
 
@@ -161,15 +161,15 @@ Això:
 
 ---
 
-# 5. Qui fa l'avaluació
+# 6. Qui fa l'avaluació
 
 La idea és muntar una **web participativa** dins del lloc de Softcatalà on els usuaris ens ajudin a fer aquest procés. Seria similar al que vam fer amb [Common Voice](https://commonvoice.mozilla.org/), on la gent contribuïa una estona a fer tasques.
 
-## 5.1. Test de qualificació
+## 6.1. Test de qualificació
 
 Abans que un usuari pugui començar a contribuir, la primera vegada haurà de fer un **petit test de 5 preguntes** per comprovar que té criteri per fer l'avaluació.
 
-## 5.2. Registre d'usuaris
+## 6.2. Registre d'usuaris
 
 Per evitar el vandalisme i garantir la qualitat, mantindrem un **registre d'usuaris** amb nom i contrasenya.
 
@@ -177,11 +177,11 @@ Per evitar el vandalisme i garantir la qualitat, mantindrem un **registre d'usua
 
 ---
 
-# 6. Què cal fer
+# 7. Què cal fer
 
 Llista de feines necessàries per posar en marxa el projecte.
 
-## 6.1. Tasques d'avaluació
+## 7.1. Tasques d'avaluació
 
 - [ ] **Crear les tasques a avaluar**
     - Han de representar tasques **reals** i tenir **diferents nivells de complexitat**.
