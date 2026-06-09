@@ -33,8 +33,6 @@ Actualment podem [mesurar el rendiment](https://www.softcatala.org/la-intelligen
 
 El que succeeix és que l'obsessió actual dels laboratoris que creen els sistemes d'IA per lluir en les mètriques fa que hi hagi una desconnexió important entre el que mostren les mètriques i l'experiència real dels usuaris. Hi ha un **[sobreajustament](https://ca.wikipedia.org/wiki/Sobreajustament_(overfitting))** a les mètriques.
 
-> **Referència del sector**: el sistema més usat en la indústria és [LMSYS Chatbot Arena](https://lmarena.ai/). Els humans hi posen el seu propi *prompt* i valoren la resposta de dos models. Amb la col·laboració de molta gent es pot determinar quin model prefereixen els humans.
-
 ## Per què cal una avaluació humana específica per al català
 
 - Les mètriques agregades poden amagar errors específics de la llengua (ortografia, registre, varietats dialectals, referències culturals).
@@ -47,7 +45,7 @@ El que succeeix és que l'obsessió actual dels laboratoris que creen els sistem
 
 Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre cas:
 
-- Chatbot Arena avalua moltes dimensions; nosaltres volem focalitzar-nos només en la **competència dels models en llengua catalana**.
+- Chatbot Arena avalua els *prompts* que els usuaris volen; nosaltres volem focalitzar-nos només en la **competència dels models en llengua catalana**.
 - Aquests sistemes funcionen en temps real: l'usuari proposa una pregunta i dos LLMs responen al moment.
     - Això no ho podem fer perquè ens representa molt cost.
     - En comptes d'això, **generem prèviament les tasques i les respostes** dels models.
@@ -56,7 +54,7 @@ Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre 
 
 Començaríem amb un objectiu modest:
 
-### Models avaluats
+### Models a avaluar
 
 - Llama 3.1 9B
 - Gemma 3 12B
@@ -83,6 +81,8 @@ Generem sintèticament 5 tasques representatives:
 Demanem a l'usuari que valori quina parella de models ho fa millor per a una tasca concreta.
 
 ## Exemple
+
+![Exemple d'avaluació: prompt de traducció amb dues respostes (model A i model B) i les quatre opcions de vot](images/exemple-avaluacio.png)
 
 **Petició**: tradueix del castellà al català la següent frase:
 
