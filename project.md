@@ -39,7 +39,7 @@
         - [Backend](#backend)
     - [Estimació](#estimació)
     
-## Introducció
+# 0. Introducció
     
     
 **Avaluació humana de models d'IA en català.**
@@ -49,14 +49,14 @@ Volem desenvolupar una plataforma participativa, inspirada en [LMSYS Chatbot Are
 A diferència de les [avaluacions automàtiques basades en mètriques](https://www.softcatala.org/la-intelligencia-artificial-al-vostre-ordinador-personal/models-dintelligencia-artificial-en-catala-per-usar-en-local/), aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor.
     
 
-## En poques paraules
+## 0.1. En poques paraules
 
 - **Què**: rànquing de models LLM segons preferència humana en tasques en català.
 - **Com**: comparació cega de parelles de respostes generades prèviament (no en temps real).
 - **Qui**: comunitat de Softcatalà, amb un test de qualificació previ.
 - **Resultat**: rànquing públic més un conjunt de dades obertes de preferències per a RLHF en català.
 
-## Vols col·laborar-hi? T'estem buscant
+## 0.2. Vols col·laborar-hi? T'estem buscant
 
 Estem **arrencant el projecte** i necessitem reforços. Concretament, busquem:
 
