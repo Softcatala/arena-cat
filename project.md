@@ -1,13 +1,9 @@
 # Arena Cat — Explicació del projecte
 
-**Avaluació humana de models d'IA en català.**
-
-Volem desenvolupar una plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/), centrada exclusivament a mesurar la **competència en llengua catalana** dels models de llenguatge gran (LLMs).
-
-A diferència de les [avaluacions automàtiques basades en mètriques](https://www.softcatala.org/la-intelligencia-artificial-al-vostre-ordinador-personal/models-dintelligencia-artificial-en-catala-per-usar-en-local/), aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor.
 
 ## Continguts
 
+- [Introducció](#introducció)
 - [En poques paraules](#en-poques-paraules)
 - [Vols col·laborar-hi? T'estem buscant](#vols-collaborar-hi-testem-buscant)
 - [1. Motivació](#1-motivació)
@@ -41,7 +37,17 @@ A diferència de les [avaluacions automàtiques basades en mètriques](https://w
         - [Gestió d'usuaris](#gestió-dusuaris)
         - [Interfície d'usuari](#interfície-dusuari)
         - [Backend](#backend)
-    - [9.3. Estimació](#93-estimació)
+    - [Estimació](#estimació)
+    
+## Introducció
+    
+    
+**Avaluació humana de models d'IA en català.**
+
+Volem desenvolupar una plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/), centrada exclusivament a mesurar la **competència en llengua catalana** dels models de llenguatge gran (LLMs).
+
+A diferència de les [avaluacions automàtiques basades en mètriques](https://www.softcatala.org/la-intelligencia-artificial-al-vostre-ordinador-personal/models-dintelligencia-artificial-en-catala-per-usar-en-local/), aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor.
+    
 
 ## En poques paraules
 
@@ -64,13 +70,13 @@ Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **
 
 ---
 
-# Motivació
+# 1. Motivació
 
 Actualment podem [mesurar el rendiment](https://www.softcatala.org/la-intelligencia-artificial-al-vostre-ordinador-personal/models-dintelligencia-artificial-en-catala-per-usar-en-local/) dels models en català, però a part d'una valoració objectiva basada en mètriques d'IA, s'acostuma a donar també molta importància a com d'útils són els models en tasques reals avaluades per humans.
 
 El que succeeix és que l'obsessió actual dels laboratoris que creen els sistemes d'IA per lluir en les mètriques fa que hi hagi una desconnexió important entre el que mostren les mètriques i l'experiència real dels usuaris. Hi ha un **[sobreajustament](https://ca.wikipedia.org/wiki/Sobreajustament_(overfitting))** a les mètriques.
 
-## Per què cal una avaluació humana específica per al català
+## 1.1. Per què cal una avaluació humana específica per al català
 
 - Les mètriques agregades poden amagar errors específics de la llengua (ortografia, registre, varietats dialectals, referències culturals).
 - L'experiència real dels usuaris catalanoparlants no està reflectida en els *benchmarks* globals.
@@ -78,7 +84,7 @@ El que succeeix és que l'obsessió actual dels laboratoris que creen els sistem
 
 ---
 
-# Proposta
+# 2. Proposta
 
 Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre cas:
 
@@ -87,7 +93,7 @@ Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre 
     - Això no ho podem fer perquè ens representa molt cost.
     - En comptes d'això, **generem prèviament les tasques i les respostes** dels models.
 
-## Objectiu inicial
+## 2.1. Objectiu inicial
 
 Començaríem amb un objectiu modest:
 
@@ -113,11 +119,11 @@ Generem sintèticament 5 tasques representatives:
 
 ---
 
-# Com funciona el procés d'avaluació
+# 3. Com funciona el procés d'avaluació
 
 Demanem a l'usuari que valori quina parella de models ho fa millor per a una tasca concreta.
 
-## Exemple
+## 3.1. Exemple
 
 ![Exemple d'avaluació: prompt de traducció amb dues respostes (model A i model B) i les quatre opcions de vot](images/exemple-avaluacio.png)
 
@@ -125,7 +131,7 @@ Demanem a l'usuari que valori quina parella de models ho fa millor per a una tas
 
 ---
 
-# Què cal avaluar
+# 4. Què cal avaluar
 
 El volum d'avaluacions necessari s'obté de tres factors:
 
@@ -133,7 +139,7 @@ El volum d'avaluacions necessari s'obté de tres factors:
 - Les **tasques** en què els posem a prova
 - La **robustesa estadística** que volem assolir
 
-## Quantes comparacions calen?
+## 4.1. Quantes comparacions calen?
 
 1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 5 models, són **10 parelles**.
 2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, cultura, generació). Cada parella s'avalua en cada categoria, donant $10 \times 5 = 50$ combinacions úniques.
@@ -144,7 +150,7 @@ El volum d'avaluacions necessari s'obté de tres factors:
 >
 > Si cada parella requereix uns 2 minuts: $19.250 \times 2 / 60 \approx 641$ hores.
 
-## Reducció amb rànquing global
+## 4.2. Reducció amb rànquing global
 
 Si fem servir un sistema de rànquing global tipus **[Bradley-Terry](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model)** o **[Elo](https://ca.wikipedia.org/wiki/Sistema_de_puntuaci%C3%B3_Elo)** (com fa LMSYS Chatbot Arena), el sistema aprofita la transitivitat: si sabem que A > B i B > C, ja tenim informació indirecta sobre A vs C.
 
@@ -155,15 +161,15 @@ Això:
 
 ---
 
-# Qui fa l'avaluació
+# 5. Qui fa l'avaluació
 
 La idea és muntar una **web participativa** dins del lloc de Softcatalà on els usuaris ens ajudin a fer aquest procés. Seria similar al que vam fer amb [Common Voice](https://commonvoice.mozilla.org/), on la gent contribuïa una estona a fer tasques.
 
-## Test de qualificació
+## 5.1. Test de qualificació
 
 Abans que un usuari pugui començar a contribuir, la primera vegada haurà de fer un **petit test de 5 preguntes** per comprovar que té criteri per fer l'avaluació.
 
-## Registre d'usuaris
+## 5.2. Registre d'usuaris
 
 Per evitar el vandalisme i garantir la qualitat, mantindrem un **registre d'usuaris** amb nom i contrasenya.
 
@@ -171,17 +177,17 @@ Per evitar el vandalisme i garantir la qualitat, mantindrem un **registre d'usua
 
 ---
 
-# Què cal fer
+# 6. Què cal fer
 
 Llista de feines necessàries per posar en marxa el projecte.
 
-## Tasques d'avaluació
+## 6.1. Tasques d'avaluació
 
 - [ ] **Crear les tasques a avaluar**
     - Han de representar tasques **reals** i tenir **diferents nivells de complexitat**.
     - No és senzill: estaria bé demanar *feedback* públicament abans de tancar-les.
 
-## Plataforma
+## 6.2. Plataforma
 
 - [ ] **Desenvolupar l'aplicació** d'avaluació o adaptar-ne alguna d'existent.
 - [ ] **Llançar el procés internament** dins de Softcatalà.
@@ -189,15 +195,15 @@ Llista de feines necessàries per posar en marxa el projecte.
 
 ---
 
-# Resultats del projecte
+# 7. Resultats del projecte
 
 El projecte generaria dos resultats principals:
 
-## 1. Rànquing públic de models
+## 7.1. Rànquing públic de models
 
 Mantenir un **rànquing dels millors models per al català** segons preferència humana, actualitzat a mesura que arriben nous vots i nous models.
 
-## 2. Conjunt de dades obertes de preferències
+## 7.2. Conjunt de dades obertes de preferències
 
 Un cop acabat el procés, es publicarà en obert el **conjunt de dades de preferències** amb l'estructura:
 
@@ -209,22 +215,22 @@ Prompt + Resposta A + Resposta B + Guanyador
 
 ---
 
-# Full de ruta
+# 8. Full de ruta
 
 El projecte avançarà per versions, començant per una validació de concepte abans d'escalar a tots els models i totes les categories.
 
-## Versions
+## 8.1. Versions
 
 - **Versió 1.0 — Validació del concepte** (a sota): abast reduït (3 models, 3 categories) per provar la mecànica i la interfície.
 - *Versions futures*: ampliar models, categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
 
 ---
 
-# Versió 1.0 — Validació del concepte
+# 9. Versió 1.0 — Validació del concepte
 
 **Objectiu d'ús**: 40 hores de contribucions humanes.
 
-## Abast
+## 9.1. Abast
 
 ### Models (3)
 
@@ -240,7 +246,7 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 
 > **Compromís**: sacrifiquem **amplitud** per **profunditat** en aquesta primera versió.
 
-## Components a desenvolupar
+## 9.2. Components a desenvolupar
 
 ### Preparació de les dades
 
