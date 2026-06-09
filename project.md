@@ -6,6 +6,20 @@ Volem desenvolupar una plataforma participativa, inspirada en [LMSYS Chatbot Are
 
 A diferència de les [avaluacions automàtiques basades en mètriques](https://www.softcatala.org/la-intelligencia-artificial-al-vostre-ordinador-personal/models-dintelligencia-artificial-en-catala-per-usar-en-local/), aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor.
 
+## Continguts
+
+- [En poques paraules](#en-poques-paraules)
+- [Vols col·laborar-hi? T'estem buscant](#vols-collaborar-hi-testem-buscant)
+- [Motivació](#motivació)
+- [Proposta](#proposta)
+- [Com funciona el procés d'avaluació](#com-funciona-el-procés-davaluació)
+- [Què cal avaluar](#què-cal-avaluar)
+- [Qui fa l'avaluació](#qui-fa-lavaluació)
+- [Què cal fer](#què-cal-fer)
+- [Resultats del projecte](#resultats-del-projecte)
+- [Full de ruta](#full-de-ruta)
+- [Versió 1.0 — Validació del concepte](#versió-10--validació-del-concepte)
+
 ## En poques paraules
 
 - **Què**: rànquing de models LLM segons preferència humana en tasques en català.
