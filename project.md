@@ -3,9 +3,9 @@
 
 ## Continguts
 
-- [Introducció](#introducció)
-- [En poques paraules](#en-poques-paraules)
-- [Vols col·laborar-hi? T'estem buscant](#vols-collaborar-hi-testem-buscant)
+- [0. Introducció](#0-introducció)
+    - [0.1. En poques paraules](#01-en-poques-paraules)
+    - [0.2. Vols col·laborar-hi? T'estem buscant](#02-vols-collaborar-hi-testem-buscant)
 - [1. Motivació](#1-motivació)
     - [1.1. Per què cal una avaluació humana específica per al català](#11-per-què-cal-una-avaluació-humana-específica-per-al-català)
 - [2. Proposta](#2-proposta)
