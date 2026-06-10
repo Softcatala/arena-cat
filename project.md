@@ -5,7 +5,6 @@
 
 - [1. Introducció](#1-introducció)
     - [1.1. En poques paraules](#11-en-poques-paraules)
-    - [1.2. Vols col·laborar-hi? T'estem buscant](#12-vols-collaborar-hi-testem-buscant)
 - [2. Motivació](#2-motivació)
     - [2.1. Per què cal una avaluació humana específica per al català](#21-per-què-cal-una-avaluació-humana-específica-per-al-català)
 - [3. Proposta](#3-proposta)
@@ -55,20 +54,6 @@ A diferència de les [avaluacions automàtiques basades en mètriques](https://w
 - **Com**: comparació cega de parelles de respostes generades prèviament (no en temps real).
 - **Qui**: comunitat de Softcatalà, amb un test de qualificació previ.
 - **Resultat**: rànquing públic més un conjunt de dades obertes de preferències per a RLHF en català.
-
-## 1.2. Vols col·laborar-hi? T'estem buscant
-
-Estem **arrencant el projecte** i necessitem reforços. Concretament, busquem:
-
-- 🤖 **Aprenentatge automàtic / IA** — per crear les canonades d'avaluació: executar la inferència dels models, gestionar els *prompts* i preparar les dades que veuran els avaluadors humans.
-- 📊 **Estadística** — per dimensionar el volum d'avaluacions, validar la metodologia (Bradley-Terry / Elo) i garantir la robustesa dels rànquings.
-- ⚙️ **Python** — per construir la canonada d'inferència, el *backend* (FastAPI + PostgreSQL) i la integració amb la web de Softcatalà.
-
-No cal que dominis les tres àrees: si t'hi veus en alguna, **escriu-nos**. També ens interessa la teva opinió per definir bé les tasques d'avaluació.
-
-Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **com pots col·laborar** i el teu **identificador de Telegram**.
-
----
 
 # 2. Motivació
 
@@ -187,7 +172,7 @@ Llista de feines necessàries per posar en marxa el projecte.
     - Han de representar tasques **reals** i tenir **diferents nivells de complexitat**.
     - No és senzill: estaria bé demanar *feedback* públicament abans de tancar-les.
 
-## 6.2. Plataforma
+## 7.2. Plataforma
 
 - [ ] **Desenvolupar l'aplicació** d'avaluació o adaptar-ne alguna d'existent.
 - [ ] **Llançar el procés internament** dins de Softcatalà.
@@ -195,15 +180,15 @@ Llista de feines necessàries per posar en marxa el projecte.
 
 ---
 
-# 7. Resultats del projecte
+# 8. Resultats del projecte
 
 El projecte generaria dos resultats principals:
 
-## 7.1. Rànquing públic de models
+## 8.1. Rànquing públic de models
 
 Mantenir un **rànquing dels millors models per al català** segons preferència humana, actualitzat a mesura que arriben nous vots i nous models.
 
-## 7.2. Conjunt de dades obertes de preferències
+## 8.2. Conjunt de dades obertes de preferències
 
 Un cop acabat el procés, es publicarà en obert el **conjunt de dades de preferències** amb l'estructura:
 
@@ -215,22 +200,22 @@ Prompt + Resposta A + Resposta B + Guanyador
 
 ---
 
-# 8. Full de ruta
+# 9. Full de ruta
 
 El projecte avançarà per versions, començant per una validació de concepte abans d'escalar a tots els models i totes les categories.
 
-## 8.1. Versions
+## 9.1. Versions
 
 - **Versió 1.0 — Validació del concepte** (a sota): abast reduït (3 models, 3 categories) per provar la mecànica i la interfície.
 - *Versions futures*: ampliar models, categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
 
 ---
 
-# 9. Versió 1.0 — Validació del concepte
+# 10. Versió 1.0 — Validació del concepte
 
 **Objectiu d'ús**: 40 hores de contribucions humanes.
 
-## 9.1. Abast
+## 10.1. Abast
 
 ### Models (3)
 
@@ -246,7 +231,7 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 
 > **Compromís**: sacrifiquem **amplitud** per **profunditat** en aquesta primera versió.
 
-## 9.2. Components a desenvolupar
+## 10.2. Components a desenvolupar
 
 ### Preparació de les dades
 
