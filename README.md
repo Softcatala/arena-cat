@@ -6,6 +6,8 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 Per a una explicació detallada del projecte (motivació, metodologia, full de ruta i abast de la versió 1.0), consulta **[project.md](project.md)**.
 
+🧮 **[Simulador de dimensionament](https://softcatala.github.io/arena-cat/simulador/)** — calcula quants vots i hores humanes calen segons el nombre de models, categories, marge d'error i mètode d'agregació (parelles independents o Bradley-Terry / Elo).
+
 ## Vols col·laborar-hi? T'estem buscant
 
 Estem **arrencant el projecte** i necessitem reforços. Concretament, busquem:
