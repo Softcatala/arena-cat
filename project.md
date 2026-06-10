@@ -77,6 +77,7 @@ Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre 
 - Aquests sistemes funcionen en temps real: l'usuari proposa una pregunta i dos LLMs responen al moment.
     - Això no ho podem fer perquè ens representa molt cost.
     - En comptes d'això, **generem prèviament les tasques i les respostes** dels models.
+    - **Limitació**: cada model genera una sola resposta per *prompt* (una passada d'inferència). No mostregem múltiples respostes per a una mateixa entrada, per la qual cosa no captem la variabilitat estocàstica del model.
 
 ## 3.1. Objectiu inicial
 
@@ -84,11 +85,9 @@ Començaríem amb un objectiu modest:
 
 ### Models a avaluar
 
-- Llama 3.1 9B
-- Gemma 3 12B
-- Qwen 3.5
+- Qwen 3.5 9B
 - Salamandra 7B
-- Gemma 4
+- Gemma 4 26B A4B
 
 ### Categories de tasques
 
@@ -126,14 +125,16 @@ El volum d'avaluacions necessari s'obté de tres factors:
 
 ## 5.1. Quantes comparacions calen?
 
-1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 5 models, són **10 parelles**.
-2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, cultura, generació). Cada parella s'avalua en cada categoria, donant $10 \times 5 = 50$ combinacions úniques.
-3. **Variacions per categoria**: 10 prompts diferents per categoria, per capturar varietat de dificultat i estil. Això vol dir 50 prompts en total i $10 \times 50 = 500$ ítems d'avaluació únics (parella × prompt).
+1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 3 models, són **3 parelles**.
+2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, cultura, generació). Cada parella s'avalua en cada categoria, donant $3 \times 5 = 15$ combinacions úniques.
+3. **Variacions per categoria**: 10 prompts diferents per categoria, per capturar varietat de dificultat i estil. Això vol dir 50 prompts en total i $3 \times 50 = 150$ ítems d'avaluació únics (parella × prompt).
 4. **Repeticions per combinació**: amb un marge d'error del 5% i un 95% de confiança, calen **385 vots** per cada (parella × categoria) per poder afirmar amb solidesa quin model va millor en aquella tasca.
 
-> **Total**: 50 × 385 = 19.250 avaluacions humanes. Cada *prompt* individual rebrà ~38 vots de mitjana, repartits entre les diferents parelles que el toquin.
+> **Sostre conservador (cel·les independents)**: 15 × 385 = 5.775 avaluacions humanes. Cada *prompt* individual rebrà ~38 vots de mitjana, repartits entre les diferents parelles que el toquin.
 >
-> Si cada parella requereix uns 2 minuts: $19.250 \times 2 / 60 \approx 641$ hores.
+> Si cada vot requereix uns 2 minuts: $5.775 \times 2 / 60 \approx 192$ hores.
+>
+> Aquest càlcul tracta cada (parella × categoria) com a independent. A la pràctica utilitzarem un model de rànquing global (vegeu [§5.2](#52-reducció-amb-rànquing-global)) que redueix considerablement aquest pressupost.
 
 ## 5.2. Reducció amb rànquing global
 
@@ -141,7 +142,7 @@ Si fem servir un sistema de rànquing global tipus **[Bradley-Terry](https://en.
 
 Això:
 
-- Redueix significativament els vots necessaris per obtenir un rànquing estable.
+- Redueix significativament els vots necessaris per obtenir un rànquing estable: com a regla heurística, l'estalvi escala amb $\log_2(n)/(n-1)$ respecte al sostre de 5.1. Per a 3 models, això redueix el total de **5.775 → ~4.575 vots** (~152 h). Vegeu el [simulador](https://softcatala.github.io/arena-cat/simulador/) per ajustar els paràmetres.
 - Permet treballar amb dades **desbalancejades** — no cal que totes les parelles tinguin el mateix nombre de votacions.
 
 ---
@@ -219,8 +220,8 @@ El projecte avançarà per versions, començant per una validació de concepte a
 
 ### Models (3)
 
-- Gemma 3 12B
 - Qwen 3.5 9B
+- Salamandra 7B
 - **Gemma 4 26B A4B**
 
 ### Categories (3)
