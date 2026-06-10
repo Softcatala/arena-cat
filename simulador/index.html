@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador d'avaluacions — Arena Cat</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --accent: #c8102e;
+    --border: #ddd;
+    --card: #fff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding: 1.5rem;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 0.25rem;
+  }
+  .lead {
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card h2 {
+    font-size: 1.05rem;
+    margin: 0 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  input[type="number"], select {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: white;
+  }
+  input[type="range"] { width: 100%; }
+  .range-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .range-row .val {
+    min-width: 3.2rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  .results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .stat .label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+  }
+  .stat .num {
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+  .stat.highlight { border-color: var(--accent); }
+  .stat.highlight .num { color: var(--accent); }
+  details {
+    margin-top: 1rem;
+  }
+  details summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  details .body {
+    padding: 0.75rem 0;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  footer {
+    margin-top: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Simulador d'avaluacions</h1>
+  <p class="lead">
+    Estima el nombre de vots humans que calen per obtenir un rànquing fiable de models LLM en català,
+    segons l'enfocament clàssic (parelles independents) o un model de rànquing global (Bradley-Terry / Elo).
+  </p>
+
+  <div class="card">
+    <h2>Paràmetres</h2>
+    <div class="grid">
+      <div>
+        <label for="models">Nombre de models</label>
+        <input type="number" id="models" min="2" max="50" value="3">
+      </div>
+      <div>
+        <label for="categories">Categories de tasca</label>
+        <input type="number" id="categories" min="1" max="20" value="3">
+      </div>
+      <div>
+        <label for="prompts">Prompts per categoria</label>
+        <input type="number" id="prompts" min="1" max="100" value="10">
+      </div>
+      <div>
+        <label for="method">Mètode d'agregació</label>
+        <select id="method">
+          <option value="pairwise">Parelles independents</option>
+          <option value="bt" selected>Bradley-Terry / Elo</option>
+        </select>
+      </div>
+      <div>
+        <label for="confidence">Nivell de confiança</label>
+        <select id="confidence">
+          <option value="1.645">90%</option>
+          <option value="1.96" selected>95%</option>
+          <option value="2.576">99%</option>
+        </select>
+      </div>
+      <div>
+        <label for="margin">
+          Marge d'error
+          <span class="val" id="marginVal">8,5%</span>
+        </label>
+        <div class="range-row">
+          <input type="range" id="margin" min="1" max="15" step="0.5" value="8.5">
+        </div>
+      </div>
+      <div>
+        <label for="minutes">Minuts per vot</label>
+        <input type="number" id="minutes" min="0.1" max="10" step="0.1" value="2">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Resultats</h2>
+    <div class="results">
+      <div class="stat">
+        <div class="label">Parelles de models</div>
+        <div class="num" id="pairs">—</div>
+        <div class="sub" id="pairsSub"></div>
+      </div>
+      <div class="stat">
+        <div class="label">Cel·les a omplir</div>
+        <div class="num" id="cells">—</div>
+        <div class="sub" id="cellsSub"></div>
+      </div>
+      <div class="stat">
+        <div class="label">Vots per cel·la</div>
+        <div class="num" id="perCell">—</div>
+        <div class="sub" id="perCellSub"></div>
+      </div>
+      <div class="stat highlight">
+        <div class="label">Vots totals</div>
+        <div class="num" id="total">—</div>
+        <div class="sub" id="totalSub"></div>
+      </div>
+      <div class="stat">
+        <div class="label">Hores humanes</div>
+        <div class="num" id="hours">—</div>
+        <div class="sub" id="hoursSub"></div>
+      </div>
+      <div class="stat">
+        <div class="label">Vots per prompt</div>
+        <div class="num" id="perPrompt">—</div>
+        <div class="sub" id="perPromptSub"></div>
+      </div>
+    </div>
+
+    <details>
+      <summary>Com es calcula?</summary>
+      <div class="body">
+        <p><strong>Parelles de models:</strong> C(n,2) = n·(n−1)/2.</p>
+        <p><strong>Cel·les:</strong> cada (parella × categoria) és una decisió
+          estadística independent — vol dir que volem poder afirmar quin model va
+          millor en cada categoria, no només globalment.</p>
+        <p><strong>Vots per cel·la (parelles independents):</strong>
+          mida mostral per a una proporció binomial amb p=0,5 (cas pitjor):
+          v = (z/m)²·0,25.</p>
+        <p><strong>Bradley-Terry / Elo:</strong> el model global aprofita la transitivitat
+          (si A&gt;B i B&gt;C, hi ha informació indirecta sobre A vs C), de manera que el
+          nombre efectiu de vots per parella es redueix aproximadament en un factor
+          log₂(n)/(n−1) respecte a l'enfocament clàssic. És una heurística per a un
+          dimensionament inicial, no un mètode estadístic formal.</p>
+        <p><strong>Repartiment per prompt:</strong> els vots d'una cel·la es reparteixen
+          entre els prompts d'aquella categoria. Augmentar el nombre de prompts no canvia
+          el total, però redueix els vots per prompt individual (millor cobertura de
+          varietat).</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Comparativa de mètodes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Mètode</th>
+          <th class="num">Vots/cel·la</th>
+          <th class="num">Vots totals</th>
+          <th class="num">Hores</th>
+        </tr>
+      </thead>
+      <tbody id="comparison"></tbody>
+    </table>
+    <p style="font-size:0.85rem;color:var(--muted);margin-top:0.75rem">
+      L'enfocament clàssic tracta cada (parella × categoria) com una decisió binomial
+      independent. Bradley-Terry/Elo aprofita totes les comparacions per estimar les
+      forces dels models conjuntament, reduint la mostra necessària a mesura que creix
+      el nombre de models.
+    </p>
+  </div>
+
+  <footer>
+    Eina de dimensionament — <a href="https://github.com/Softcatala/arena-cat">Arena Cat</a> · Softcatalà
+  </footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function fmtCa(n, decimals = 0) {
+    if (!isFinite(n)) return '—';
+    return n.toLocaleString('ca-ES', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+  }
+
+  function votesPerCellPairwise(z, m) {
+    return Math.ceil((z * z * 0.25) / (m * m));
+  }
+
+  function btReductionFactor(n) {
+    if (n <= 2) return 1;
+    return Math.log2(n) / (n - 1);
+  }
+
+  function compute() {
+    const n = Math.max(2, parseInt($('models').value) || 2);
+    const c = Math.max(1, parseInt($('categories').value) || 1);
+    const p = Math.max(1, parseInt($('prompts').value) || 1);
+    const z = parseFloat($('confidence').value);
+    const m = parseFloat($('margin').value) / 100;
+    const minutes = parseFloat($('minutes').value) || 2;
+    const method = $('method').value;
+
+    $('marginVal').textContent = fmtCa(m * 100, 1) + '%';
+
+    const pairs = n * (n - 1) / 2;
+    const cells = pairs * c;
+    const votesPair = votesPerCellPairwise(z, m);
+    const factor = btReductionFactor(n);
+    const votesBT = Math.ceil(votesPair * factor);
+
+    const votesPerCell = method === 'bt' ? votesBT : votesPair;
+    const total = votesPerCell * cells;
+    const hours = total * minutes / 60;
+    const perPrompt = total / (c * p);
+
+    $('pairs').textContent = fmtCa(pairs);
+    $('pairsSub').textContent = `${n} models × (${n}−1) / 2`;
+
+    $('cells').textContent = fmtCa(cells);
+    $('cellsSub').textContent = `${fmtCa(pairs)} parelles × ${c} categories`;
+
+    $('perCell').textContent = fmtCa(votesPerCell);
+    $('perCellSub').textContent = method === 'bt'
+      ? `reducció BT: ×${fmtCa(factor, 2)} sobre ${fmtCa(votesPair)}`
+      : `mostra binomial p=0,5`;
+
+    $('total').textContent = fmtCa(total);
+    $('totalSub').textContent = `${fmtCa(votesPerCell)} × ${fmtCa(cells)}`;
+
+    $('hours').textContent = fmtCa(hours, hours < 100 ? 1 : 0);
+    $('hoursSub').textContent = `a ${fmtCa(minutes, 1)} min/vot`;
+
+    $('perPrompt').textContent = fmtCa(perPrompt, perPrompt < 100 ? 1 : 0);
+    $('perPromptSub').textContent = `total / ${fmtCa(c * p)} prompts`;
+
+    const totalPair = votesPair * cells;
+    const totalBT = votesBT * cells;
+    const rows = [
+      ['Parelles independents', votesPair, totalPair, totalPair * minutes / 60],
+      ['Bradley-Terry / Elo', votesBT, totalBT, totalBT * minutes / 60],
+    ];
+    $('comparison').innerHTML = rows.map(([name, vc, t, h]) => `
+      <tr>
+        <td>${name}</td>
+        <td class="num">${fmtCa(vc)}</td>
+        <td class="num">${fmtCa(t)}</td>
+        <td class="num">${fmtCa(h, h < 100 ? 1 : 0)}</td>
+      </tr>
+    `).join('');
+  }
+
+  ['models', 'categories', 'prompts', 'method', 'confidence', 'margin', 'minutes']
+    .forEach(id => {
+      $(id).addEventListener('input', compute);
+      $(id).addEventListener('change', compute);
+    });
+
+  compute();
+</script>
+</body>
+</html>
