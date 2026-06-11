@@ -48,7 +48,7 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 
 **Preparació de les dades**
 
-- 50 tasques: 10 exemples per cadascuna de les 5 categories.
+- 30 tasques: 10 exemples per cadascuna de les 3 categories.
 
 **Canonada de pre-processament**
 
