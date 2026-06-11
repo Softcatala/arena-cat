@@ -46,29 +46,14 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 
 #### Components a desenvolupar
 
-**Preparació de les dades**
-
-- 30 tasques: 10 exemples per cadascuna de les 3 categories.
-
-**Canonada de pre-processament**
-
-- Inferència dels models seleccionats i desat en fitxers de metadades.
-
-**Gestió d'usuaris**
-
-- Test de qualificació
-- Persistència de dades
-
-**Interfície d'usuari**
-
-- Pàgina a la web de Softcatalà que permet **registrar-se** i **avaluar**.
-- Mostra l'**objectiu** i com estem respecte a ell.
-
-**Backend**
-
-FastAPI amb tres endpoints: obtenir una tasca aleatòria, registrar un vot i consultar estadístiques.
-
-**Persistència**: PostgreSQL + model de dades.
+| Component | Detall |
+|---|---|
+| Preparació de les dades | 30 tasques: 10 exemples per cadascuna de les 3 categories. |
+| Canonada de pre-processament | Inferència dels models seleccionats i desat en fitxers de metadades. |
+| Gestió d'usuaris | Test de qualificació i persistència de dades. |
+| Interfície d'usuari | Pàgina a la web de Softcatalà per **registrar-se** i **avaluar**, amb indicador de l'**objectiu** i del progrés. |
+| Backend | FastAPI amb tres endpoints: obtenir una tasca aleatòria, registrar un vot i consultar estadístiques. |
+| Persistència | PostgreSQL + model de dades. |
 
 #### Estimació
 
