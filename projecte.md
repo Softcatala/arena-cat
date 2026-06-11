@@ -1,4 +1,4 @@
-# Arena Cat — Explicació del projecte
+# Arena Cat: explicació del projecte
 
 
 ## Continguts
@@ -133,7 +133,7 @@ Si fem servir un sistema de rànquing global tipus **[Bradley-Terry](https://en.
 Això:
 
 - Redueix significativament els vots necessaris per obtenir un rànquing estable: com a regla heurística, l'estalvi escala amb $\log_2(n)/(n-1)$ respecte al sostre de 5.1. Per a 3 models, això redueix el total de **5.775 → ~4.575 vots** (~152 h). Vegeu el [simulador](https://softcatala.github.io/arena-cat/simulador/) per ajustar els paràmetres.
-- Permet treballar amb dades **desbalancejades** — no cal que totes les parelles tinguin el mateix nombre de votacions.
+- Permet treballar amb dades **desbalancejades**: no cal que totes les parelles tinguin el mateix nombre de votacions.
 
 ---
 
@@ -149,7 +149,7 @@ Abans que un usuari pugui començar a contribuir, la primera vegada haurà de fe
 
 Per evitar el vandalisme i garantir la qualitat, mantindrem un **registre d'usuaris** amb nom i contrasenya.
 
-> **Inspiració**: l'enfocament participatiu segueix la línia de [Common Voice](https://commonvoice.mozilla.org/) i [VoiceArena](https://voicearena.com/) — contribucions petites i acumulables d'una comunitat àmplia.
+> **Inspiració**: l'enfocament participatiu segueix la línia de [Common Voice](https://commonvoice.mozilla.org/) i [VoiceArena](https://voicearena.com/): contribucions petites i acumulables d'una comunitat àmplia.
 
 ---
 
