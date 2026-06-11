@@ -17,18 +17,19 @@ El projecte té **dues fases** i necessitem persones per a totes dues.
 - 🤖 **Aprenentatge automàtic / IA**: per crear les canonades d'avaluació: executar la inferència dels models, gestionar els *prompts* i preparar les dades que veuran els avaluadors humans.
 - 📊 **Estadística**: per dimensionar el volum d'avaluacions, validar la metodologia (Bradley-Terry / Elo) i garantir la robustesa dels rànquings.
 - ⚙️ **Python**: per construir la canonada d'inferència, el *backend* (FastAPI + PostgreSQL) i la integració amb la web de Softcatalà.
+- 📚 **Lingüística**: per definir els *prompts* d'avaluació de manera que cobreixin bé les dificultats reals del català (ortografia, registre, varietats dialectals, referències culturals) i fixar criteris clars per als avaluadors.
 
-No cal que dominis les tres àrees: si t'hi veus en alguna, **escriu-nos**. També ens interessa la teva opinió per definir bé les tasques d'avaluació.
+No cal que dominis totes les àrees: si t'hi veus en alguna, **escriu-nos**.
 
-**Fase 2: avaluadors voluntaris.** Un cop la plataforma estigui en marxa, **caldran moltes persones catalanoparlants** per fer les avaluacions: comparar respostes a cegues i votar quina és millor. Cada vot dura uns 2 minuts i, només per a la versió 1.0, en calen al voltant de 1.200 (vegeu el [full de ruta](#full-de-ruta)). Si tens criteri lingüístic en català i vols ajudar-nos amb una estoneta, també et volem.
+**Fase 2: avaluadors voluntaris.** Un cop la plataforma estigui en marxa, **caldran moltes persones catalanoparlants** per fer les avaluacions: comparar respostes a cegues i votar quina és millor. Cada vot dura uns 2 minuts i, només per a la fita 1.0, en calen al voltant de 1.200 (vegeu el [full de ruta](#full-de-ruta)). Si tens criteri lingüístic en català i vols ajudar-nos amb una estoneta, també et volem.
 
 Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **com pots col·laborar** i el teu **identificador de Telegram**.
 
 ## Full de ruta
 
-El projecte avançarà per versions. La **Versió 1.0: Validació del concepte** (a sota) té un abast reduït (3 models, 3 categories) per provar la mecànica i la interfície. En *versions futures* ampliarem models, categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
+El projecte avançarà per fites. La **Fita 1.0: Validació del concepte** (a sota) té un abast reduït (3 models, 3 categories) per provar la mecànica i la interfície. En *fites posteriors* ampliarem models, categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
 
-### Versió 1.0: Validació del concepte
+### Fita 1.0: Validació del concepte
 
 **Objectiu d'ús**: 40 hores de contribucions humanes.
 
@@ -38,7 +39,7 @@ El projecte avançarà per versions. La **Versió 1.0: Validació del concepte**
 
 - Qwen 3.5 9B
 - Salamandra 7B
-- **Gemma 4 26B A4B**
+- Gemma 4 26B A4B
 
 **Categories (3)**
 
@@ -46,7 +47,7 @@ El projecte avançarà per versions. La **Versió 1.0: Validació del concepte**
 
 Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Marge ≈ **8,5%**.
 
-> **Compromís**: sacrifiquem **amplitud** per **profunditat** en aquesta primera versió.
+> **Compromís**: sacrifiquem **amplitud** per **profunditat** en aquesta primera fita.
 
 #### Components a desenvolupar
 
