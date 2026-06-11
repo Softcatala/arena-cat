@@ -21,35 +21,35 @@ El projecte té **dues fases** i necessitem persones per a totes dues.
 
 No cal que dominis totes les àrees: si t'hi veus en alguna, **escriu-nos**.
 
-**Fase 2: avaluadors voluntaris.** Un cop la plataforma estigui en marxa, **caldran moltes persones catalanoparlants** per fer les avaluacions: comparar respostes a cegues i votar quina és millor. Cada vot dura uns 2 minuts i, només per a la fita 1.0, en calen al voltant de 1.200 (vegeu el [full de ruta](#full-de-ruta)). Si tens criteri lingüístic en català i vols ajudar-nos amb una estoneta, també et volem.
+**Fase 2: avaluadors voluntaris.** Un cop la plataforma estigui en marxa, **caldran moltes persones catalanoparlants** per fer les avaluacions: comparar respostes a cegues i votar quina és millor. Cada vot dura uns 2 minuts i, només per a la fita 1, en calen al voltant de 1.200 (vegeu el [full de ruta](#full-de-ruta)). Si tens criteri lingüístic en català i vols ajudar-nos amb una estoneta, també et volem.
 
 Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **com pots col·laborar** i el teu **identificador de Telegram**.
 
 ## Full de ruta
 
-El projecte avançarà per fites. La **Fita 1.0: Validació del concepte** (a sota) té un abast reduït (3 models, 3 categories) per provar la mecànica i la interfície. En *fites posteriors* ampliarem models, categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
+El projecte avançarà per fites. La **Fita 1: Validació del concepte** (a sota) té un abast reduït (3 models, 3 categories) per provar la mecànica i la interfície. La **Fita 2: Expansió del concepte** ampliarà el nombre de models avaluats, i fites posteriors creixeran també en categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
 
-### Fita 1.0: Validació del concepte
+### Fita 1: Validació del concepte
 
-**Objectiu d'ús**: 40 hores de contribucions humanes.
+La fita té **dues parts**: primer construir la plataforma i, tot seguit, demanar a voluntaris que facin les avaluacions.
 
-#### Abast
+#### Part 1: Construcció de la plataforma
 
-**Models (3)**
+**Abast**
+
+Models (3):
 
 - Qwen 3.5 9B
 - Salamandra 7B
 - Gemma 4 26B A4B
 
-**Categories (3)**
-
-3 models × 3 categories prioritàries (**correcció**, **cultura** i **traducció**), les més específiques de català, on els models globals tendeixen a fallar més, × 10 *prompts* = **30 prompts**.
+Categories (3): 3 models × 3 categories prioritàries (**correcció**, **cultura** i **traducció**), les més específiques de català, on els models globals tendeixen a fallar més, × 10 *prompts* = **30 prompts**.
 
 Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Marge ≈ **8,5%**.
 
 > **Compromís**: sacrifiquem **amplitud** per **profunditat** en aquesta primera fita.
 
-#### Components a desenvolupar
+**Components a desenvolupar**
 
 | Component | Detall |
 |---|---|
@@ -60,9 +60,21 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 | Backend | FastAPI amb tres endpoints: obtenir una tasca aleatòria, registrar un vot i consultar estadístiques. |
 | Persistència | PostgreSQL + model de dades. |
 
-#### Estimació
+**Estimació**
 
 > **Esforç**: punt mig realista, **~120 hores de desenvolupament**.
+
+#### Part 2: Avaluació amb voluntaris
+
+Un cop la plataforma estigui en marxa, obrirem la convocatòria a la comunitat de Softcatalà i a les xarxes per recollir els vots necessaris.
+
+- **Objectiu d'ús**: 40 hores de contribucions humanes (~1.200 vots a uns 2 minuts cadascun).
+- **Difusió**: llançament intern dins de Softcatalà i creixement a través de xarxes socials i la web.
+- **Resultat**: rànquing públic de la fita 1 i primer lot del conjunt de dades obert de preferències.
+
+### Fita 2: Expansió del concepte
+
+Un cop validada la mecànica amb la fita 1, ampliarem l'abast incorporant **més models** a l'avaluació, mantenint la mateixa plataforma i metodologia.
 
 ## Llicència
 
