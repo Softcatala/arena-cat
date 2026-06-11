@@ -10,9 +10,9 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 
 ## Vols col·laborar-hi? T'estem buscant
 
-El projecte té **dues fases** i necessitem persones per a totes dues.
+La primera fita del projecte, **Prova de concepte**, té **dues parts** i necessitem persones per a totes dues.
 
-**Fase 1: construcció de la plataforma.** Estem **arrencant el projecte** i busquem perfils tècnics per posar-la en marxa:
+**Part 1: construcció de la plataforma.** Estem **arrencant el projecte** i busquem perfils tècnics per posar-la en marxa:
 
 - 🤖 **Aprenentatge automàtic / IA**: per crear les canonades d'avaluació: executar la inferència dels models, gestionar els *prompts* i preparar les dades que veuran els avaluadors humans.
 - 📊 **Estadística**: per dimensionar el volum d'avaluacions, validar la metodologia (Bradley-Terry / Elo) i garantir la robustesa dels rànquings.
@@ -21,7 +21,7 @@ El projecte té **dues fases** i necessitem persones per a totes dues.
 
 No cal que dominis totes les àrees: si t'hi veus en alguna, **escriu-nos**.
 
-**Fase 2: avaluadors voluntaris.** Un cop la plataforma estigui en marxa, **caldran moltes persones catalanoparlants** per fer les avaluacions: comparar respostes a cegues i votar quina és millor. Cada vot dura uns 2 minuts i, només per a la fita 1, en calen al voltant de 1.200 (vegeu el [full de ruta](#full-de-ruta)). Si tens criteri lingüístic en català i vols ajudar-nos amb una estoneta, també et volem.
+**Part 2: avaluadors voluntaris.** Un cop la plataforma estigui en marxa, **caldran moltes persones catalanoparlants** per fer les avaluacions: comparar respostes a cegues i votar quina és millor. Cada vot dura uns 2 minuts i, només per a la prova de concepte, en calen al voltant de 1.200 (vegeu el [full de ruta](#full-de-ruta)). Si tens criteri lingüístic en català i vols ajudar-nos amb una estoneta, també et volem.
 
 Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **com pots col·laborar** i el teu **identificador de Telegram**.
 
