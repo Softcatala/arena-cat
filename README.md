@@ -27,9 +27,9 @@ Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **
 
 ## Full de ruta
 
-El projecte avançarà per fites. La **Fita 1: Validació del concepte** (a sota) té un abast reduït (3 models, 3 categories) per provar la mecànica i la interfície. La **Fita 2: Expansió del concepte** ampliarà el nombre de models avaluats, i fites posteriors creixeran també en categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
+El projecte avançarà per fites. La **Fita 1: Prova de concepte** (a sota) té un abast reduït (3 models, 3 categories) per provar la mecànica i la interfície. La **Fita 2: Expansió del concepte** ampliarà el nombre de models avaluats, i fites posteriors creixeran també en categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
 
-### Fita 1: Validació del concepte
+### Fita 1: Prova de concepte
 
 La fita té **dues parts**: primer construir la plataforma i, tot seguit, demanar a voluntaris que facin les avaluacions.
 
@@ -70,11 +70,11 @@ Un cop la plataforma estigui en marxa, obrirem la convocatòria a la comunitat d
 
 - **Objectiu d'ús**: 40 hores de contribucions humanes (~1.200 vots a uns 2 minuts cadascun).
 - **Difusió**: llançament intern dins de Softcatalà i creixement a través de xarxes socials i la web.
-- **Resultat**: rànquing públic de la fita 1 i primer lot del conjunt de dades obert de preferències.
+- **Resultat**: rànquing públic de la prova de concepte i primer lot del conjunt de dades obert de preferències.
 
 ### Fita 2: Expansió del concepte
 
-Un cop validada la mecànica amb la fita 1, ampliarem l'abast incorporant **més models** a l'avaluació, mantenint la mateixa plataforma i metodologia.
+Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorporant **més models** a l'avaluació, mantenint la mateixa plataforma i metodologia.
 
 ## Llicència
 
