@@ -25,19 +25,9 @@
 - [8. Resultats del projecte](#8-resultats-del-projecte)
     - [8.1. Rànquing públic de models](#81-rànquing-públic-de-models)
     - [8.2. Conjunt de dades obertes de preferències](#82-conjunt-de-dades-obertes-de-preferències)
-- [9. Full de ruta](#9-full-de-ruta)
-    - [9.1. Versions](#91-versions)
-- [10. Versió 1.0 — Validació del concepte](#10-versió-10--validació-del-concepte)
-    - [10.1. Abast](#101-abast)
-        - [Models (3)](#models-3)
-        - [Categories (3)](#categories-3)
-    - [10.2. Components a desenvolupar](#102-components-a-desenvolupar)
-        - [Preparació de les dades](#preparació-de-les-dades)
-        - [Gestió d'usuaris](#gestió-dusuaris)
-        - [Interfície d'usuari](#interfície-dusuari)
-        - [Backend](#backend)
-    - [Estimació](#estimació)
-    
+
+> **Full de ruta i abast de la versió 1.0**: consulta el [README](README.md#full-de-ruta).
+
 # 1. Introducció
     
     
@@ -200,72 +190,5 @@ Prompt + Resposta A + Resposta B + Guanyador
 > **Per què importa**: aquest conjunt de dades permetria a altres investigadors fer **RLHF** (*Reinforcement Learning from Human Feedback*) específic per al català, contribuint a millorar la qualitat dels models de la llengua a llarg termini.
 
 ---
-
-# 9. Full de ruta
-
-El projecte avançarà per versions, començant per una validació de concepte abans d'escalar a tots els models i totes les categories.
-
-## 9.1. Versions
-
-- **Versió 1.0 — Validació del concepte** (a sota): abast reduït (3 models, 3 categories) per provar la mecànica i la interfície.
-- *Versions futures*: ampliar models, categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
-
----
-
-# 10. Versió 1.0 — Validació del concepte
-
-**Objectiu d'ús**: 40 hores de contribucions humanes.
-
-## 10.1. Abast
-
-### Models (3)
-
-- Qwen 3.5 9B
-- Salamandra 7B
-- **Gemma 4 26B A4B**
-
-### Categories (3)
-
-3 models × 3 categories prioritàries (**correcció**, **cultura** i **traducció**) — les més específiques de català, on els models globals tendeixen a fallar més — × 10 *prompts* = **30 prompts**.
-
-Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Marge ≈ **8,5%**.
-
-> **Compromís**: sacrifiquem **amplitud** per **profunditat** en aquesta primera versió.
-
-## 10.2. Components a desenvolupar
-
-### Preparació de les dades
-
-**Preparació de preguntes**
-
-- 50 tasques: 10 exemples per cadascuna de les 5 categories.
-
-**Canonada de pre-processament**
-
-- Inferència dels models seleccionats i desat en fitxers de metadades.
-
-### Gestió d'usuaris
-
-- Test de qualificació
-- Persistència de dades
-
-### Interfície d'usuari
-
-- Pàgina a la web de Softcatalà que permet **registrar-se** i **avaluar**.
-- Mostra l'**objectiu** i com estem respecte a ell.
-
-### Backend
-
-**FastAPI amb 3 endpoints:**
-
-- `GET` de tasca aleatòria
-- `POST` de vot
-- `GET` d'estadística senzilla
-
-**Persistència**: PostgreSQL + model de dades.
-
-## Estimació
-
-> **Esforç**: punt mig realista — **~120 hores de desenvolupament**.
 
 

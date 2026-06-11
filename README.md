@@ -4,7 +4,7 @@
 
 Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/), centrada exclusivament a mesurar la **competència en llengua catalana** dels models de llenguatge gran (LLMs). A diferència de les avaluacions automàtiques, aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor.
 
-Per a una explicació detallada del projecte (motivació, metodologia, full de ruta i abast de la versió 1.0), consulta **[project.md](project.md)**.
+Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](projecte.md)**.
 
 🧮 **[Simulador de dimensionament](https://softcatala.github.io/arena-cat/simulador/)** — calcula quants vots i hores humanes calen segons el nombre de models, categories, marge d'error i mètode d'agregació (parelles independents o Bradley-Terry / Elo).
 
@@ -19,6 +19,69 @@ Estem **arrencant el projecte** i necessitem reforços. Concretament, busquem:
 No cal que dominis les tres àrees: si t'hi veus en alguna, **escriu-nos**. També ens interessa la teva opinió per definir bé les tasques d'avaluació.
 
 Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **com pots col·laborar** i el teu **identificador de Telegram**.
+
+## Full de ruta
+
+El projecte avançarà per versions, començant per una validació de concepte abans d'escalar a tots els models i totes les categories.
+
+### Versions
+
+- **Versió 1.0 — Validació del concepte** (a sota): abast reduït (3 models, 3 categories) per provar la mecànica i la interfície.
+- *Versions futures*: ampliar models, categories, *prompts* per categoria i objectiu de vots fins a assolir robustesa estadística.
+
+### Versió 1.0 — Validació del concepte
+
+**Objectiu d'ús**: 40 hores de contribucions humanes.
+
+#### Abast
+
+**Models (3)**
+
+- Qwen 3.5 9B
+- Salamandra 7B
+- **Gemma 4 26B A4B**
+
+**Categories (3)**
+
+3 models × 3 categories prioritàries (**correcció**, **cultura** i **traducció**) — les més específiques de català, on els models globals tendeixen a fallar més — × 10 *prompts* = **30 prompts**.
+
+Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Marge ≈ **8,5%**.
+
+> **Compromís**: sacrifiquem **amplitud** per **profunditat** en aquesta primera versió.
+
+#### Components a desenvolupar
+
+**Preparació de les dades**
+
+- 50 tasques: 10 exemples per cadascuna de les 5 categories.
+
+**Canonada de pre-processament**
+
+- Inferència dels models seleccionats i desat en fitxers de metadades.
+
+**Gestió d'usuaris**
+
+- Test de qualificació
+- Persistència de dades
+
+**Interfície d'usuari**
+
+- Pàgina a la web de Softcatalà que permet **registrar-se** i **avaluar**.
+- Mostra l'**objectiu** i com estem respecte a ell.
+
+**Backend**
+
+FastAPI amb 3 endpoints:
+
+- `GET` de tasca aleatòria
+- `POST` de vot
+- `GET` d'estadística senzilla
+
+**Persistència**: PostgreSQL + model de dades.
+
+#### Estimació
+
+> **Esforç**: punt mig realista — **~120 hores de desenvolupament**.
 
 ## Llicència
 
