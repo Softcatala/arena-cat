@@ -137,3 +137,27 @@ Prompt + Resposta A + Resposta B + Guanyador
 ```
 
 > **Per què importa**: aquest conjunt de dades permetria a altres investigadors fer **RLHF** (*Reinforcement Learning from Human Feedback*) específic per al català, contribuint a millorar la qualitat dels models de la llengua a llarg termini.
+
+---
+
+# Referències
+
+## Articles
+
+1. Chiang, W.-L. et al. (2024). *Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference*. arXiv:2403.04132. <https://arxiv.org/abs/2403.04132>
+2. Zheng, L. et al. (2023). *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena*. NeurIPS 2023. arXiv:2306.05685. <https://arxiv.org/abs/2306.05685>
+3. Bradley, R. A. & Terry, M. E. (1952). *Rank Analysis of Incomplete Block Designs: I. The Method of Paired Comparisons*. Biometrika, 39(3/4), 324–345. <https://doi.org/10.2307/2334029>
+
+## Webs de projectes similars
+
+Plataformes col·laboratives on els usuaris contribueixen activament amb vots o dades:
+
+- **[LMSYS Chatbot Arena](https://lmarena.ai/)** — la referència directa: els usuaris voten a cegues entre dues respostes de LLMs i el rànquing es calcula amb Bradley-Terry/Elo.
+- **[VoiceArena](https://voicearena.com/)** — versió equivalent per a models de síntesi de veu; els usuaris comparen mostres d'àudio per parelles.
+- **[Common Voice](https://commonvoice.mozilla.org/)** — projecte de Mozilla on els voluntaris donen i validen mostres de veu per crear corpus oberts. Inspiració per al flux de contribució petita i acumulable.
+
+## Biblioteques rellevants
+
+- **[FastChat](https://github.com/lm-sys/FastChat)** — codi obert de LMSYS que implementa Chatbot Arena (interfície de votació, recollida de preferències, càlcul de rànquing). Punt de partida natural per no reinventar la roda.
+- **[choix](https://github.com/lucasmaystre/choix)** — biblioteca Python per a inferència en models de comparacions per parelles (Bradley-Terry, Plackett-Luce). Útil per al càlcul del rànquing global.
+- **[OpenSkill](https://github.com/vivekjoshy/openskill.py)** — alternativa moderna a Elo/TrueSkill amb implementació Python neta; valida resultats del Bradley-Terry.
