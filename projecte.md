@@ -19,6 +19,10 @@
 - [6. Resultats del projecte](#6-resultats-del-projecte)
     - [6.1. Rànquing públic de models](#61-rànquing-públic-de-models)
     - [6.2. Conjunt de dades obertes de preferències](#62-conjunt-de-dades-obertes-de-preferències)
+- [Referències](#referències)
+    - [Articles](#articles)
+    - [Webs de projectes similars](#webs-de-projectes-similars)
+    - [Biblioteques rellevants](#biblioteques-rellevants)
 
 # 1. Motivació
 
