@@ -161,5 +161,3 @@ Plataformes col·laboratives on els usuaris contribueixen activament amb vots o 
 - **[FastChat](https://github.com/lm-sys/FastChat)** — codi obert de LMSYS que implementa Chatbot Arena (interfície de votació, recollida de preferències, càlcul de rànquing). Punt de partida natural per no reinventar la roda.
 - **[choix](https://github.com/lucasmaystre/choix)** — biblioteca Python per a inferència en models de comparacions per parelles (Bradley-Terry, Plackett-Luce). Útil per al càlcul del rànquing global (§4.2).
 - **[OpenSkill](https://github.com/vivekjoshy/openskill.py)** — alternativa moderna a Elo/TrueSkill amb implementació Python neta; valida resultats del Bradley-Terry.
-- **[vLLM](https://github.com/vllm-project/vllm)** — motor d'inferència d'alt rendiment per generar les respostes dels models de manera eficient en lots (la canonada de pre-processament de la Fita 1).
-- **[lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness)** (EleutherAI) — marc estàndard per a avaluacions automàtiques de LLMs; útil com a baseline objectiu paral·lel a l'avaluació humana.
