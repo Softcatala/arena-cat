@@ -151,6 +151,8 @@ Prompt + Resposta A + Resposta B + Guanyador
 1. Chiang, W.-L. et al. (2024). *Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference*. arXiv:2403.04132. <https://arxiv.org/abs/2403.04132>
 2. Zheng, L. et al. (2023). *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena*. NeurIPS 2023. arXiv:2306.05685. <https://arxiv.org/abs/2306.05685>
 3. Bradley, R. A. & Terry, M. E. (1952). *Rank Analysis of Incomplete Block Designs: I. The Method of Paired Comparisons*. Biometrika, 39(3/4), 324–345. <https://doi.org/10.2307/2334029>
+4. Singh, S. et al. (2025). *The Leaderboard Illusion*. arXiv:2504.20879. <https://arxiv.org/abs/2504.20879> — crítica a Chatbot Arena que documenta proves privades no divulgades, taxes de mostreig desiguals i biaixos sistèmics en el rànquing.
+5. LMArena (2025). *Our Response to 'The Leaderboard Illusion' Writeup*. <https://arena.ai/blog/our-response/> — resposta oficial de l'equip de Chatbot Arena a la crítica anterior.
 
 ## Webs de projectes similars
 
