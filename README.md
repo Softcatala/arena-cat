@@ -35,6 +35,8 @@ La fita té **dues parts**: primer construir la plataforma i, tot seguit, demana
 
 #### Part 1: Construcció de la plataforma
 
+> Per al desglossament tècnic de les versions v1, v2 i v3, vegeu **[pla_detallat.md](pla_detallat.md)**.
+
 **Abast**
 
 Models (3):
