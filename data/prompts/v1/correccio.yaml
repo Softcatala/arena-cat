@@ -1,0 +1,136 @@
+- id: correccio_01
+  categoria: correccio
+  dificultat: baixa
+  registre: informal
+  tipus_error: castellanismes lèxics
+  prompt: |
+    Corregeix els errors del text següent:
+
+    Ahir vaig quedar amb la Maria per anar al cine, pero al final vam decidir quedar-nos
+    a casa seva i veure una peli. Pues resulta que la seva tele estava espenyada, entonces
+    vam acabar jugant a cartes fins a les dotze. O sea, va estar guai igualment. Li vaig
+    dir que a lo mejor quedàvem el cap de setmana que ve per fer algo diferent i ella va
+    dir que vale.
+
+- id: correccio_02
+  categoria: correccio
+  dificultat: mitjana
+  registre: formal
+  tipus_error: accents diacrítics
+  prompt: |
+    Corregeix els errors del text següent:
+
+    Estimada directora, se que el seu temps es molt valuós, per això he intentat ser
+    breu. El projecte que li presento si te tots els requisits que vostè va demanar en la
+    reunió anterior. L'equip ja esta treballant en les bases preliminars i la proposta
+    definitiva sera a les seves mans aviat. Nomes li demano que ho consideri amb l'atenció
+    que mereix. Moltes gracies per la seva disposició.
+
+- id: correccio_03
+  categoria: correccio
+  dificultat: baixa
+  registre: informal
+  tipus_error: apostrofació incorrecta
+  prompt: |
+    Corregeix els errors del text següent:
+
+    La Maria viu prop de la escola de música des de fa tres anys. Cada dia agafa el autobús
+    de les vuit i baixa a el parc de la Ciutadella per practicar. Porta sempre el àlbum de
+    fotos a la motxilla i diu que li dona molta sort. De aquí a l'estiu pensa matricular-se
+    a la Escola Superior de Música per continuar avançant en els seus estudis.
+
+- id: correccio_04
+  categoria: correccio
+  dificultat: baixa
+  registre: col·loquial
+  tipus_error: ús incorrecte de "lo"
+  prompt: |
+    Corregeix els errors del text següent:
+
+    Lo que més m'ha sorprès del viatge ha estat lo ben organitzat que estava tot. Lo millor
+    va ser la visita al mercat local, on vam poder tastar lo típic de la zona. El guia ens
+    va explicar lo important que és per als habitants conservar les tradicions populars. Al
+    final, lo que et queda és una sensació de calma i de connexió amb un lloc i una cultura.
+
+- id: correccio_05
+  categoria: correccio
+  dificultat: alta
+  registre: formal
+  tipus_error: subjuntiu requerit (indicatiu per interferència)
+  prompt: |
+    Corregeix els errors del text següent:
+
+    El departament ha establert que tot el personal presenta la documentació completa abans
+    que el mes finalitza. És necessari que cadascú aporta els originals i que no oblida cap
+    dels annexos requerits. La direcció espera que l'assistència supera el noranta per cent.
+    Quan el procés d'inscripció acabarà, es publicaran els resultats al tauler. Sol·licitem
+    que tothom compleix les instruccions al peu de la lletra.
+
+- id: correccio_06
+  categoria: correccio
+  dificultat: alta
+  registre: formal
+  tipus_error: preposicions (en/amb, per/per a, contraccions obligatòries)
+  prompt: |
+    Corregeix els errors del text següent:
+
+    Ahir vaig reunir-me en la directora per tractar el tema del nou contracte. Em va
+    explicar que el document havia estat aprovat per el consell directiu i que podem
+    signar-lo aviat. Hem decidit treballar en una solució que sigui beneficiosa per totes
+    les parts implicades. El projecte final serà presentat la setmana que ve i estem molt
+    satisfets en els avanços aconseguits fins ara.
+
+- id: correccio_07
+  categoria: correccio
+  dificultat: mitjana
+  registre: neutre
+  tipus_error: concordança de gènere i nombre
+  prompt: |
+    Corregeix els errors del text següent:
+
+    El problema principal de la situació actual és la manca de recursos adequats. La sistema
+    de gestió que hem implantat ha resultat ser molt eficient, tot i que ha generat algunes
+    dificultats inicial. El clima de treball és molt positiu i l'equip ha demostrat ser molt
+    compromesa amb els objectius marcats. En conjunt, hem rebut uns resultats molt positius
+    i confiem que la tendència es mantindrà.
+
+- id: correccio_08
+  categoria: correccio
+  dificultat: alta
+  registre: formal
+  tipus_error: registre inadequat en text formal
+  prompt: |
+    Corregeix els errors del text següent:
+
+    Benvolgut senyor Puig, li escric perquè hi ha un tema important que volem parlar amb
+    vostè. Resulta que el servei que ens oferiu no ha funcionat gaire bé últimament i no
+    n'estem gaire contents. Ens agradaria molt que ens truquéssiu el més aviat possible per
+    arreglar el tema. Hem tingut bastants problemes i volem solucionar-ho com més aviat
+    millor. Esperem notícies vostres. Atentament, la direcció comercial.
+
+- id: correccio_09
+  categoria: correccio
+  dificultat: mitjana
+  registre: neutre
+  tipus_error: ortografia específica del català (punt volat, accents)
+  prompt: |
+    Corregeix els errors del text següent:
+
+    El col.legi on estudia la meva filla ha organitzat una xerrada sobre intel.ligència
+    artificial. L'acte tindrà lloc al saló d'actes, que té una il.luminació excel.lent per
+    a aquest tipus d'esdeveniments culturals. La directora, que és una persona molt
+    intel.ligent i dinamica, ha preparat una presentació sobre les qüestions etiques
+    d'aquesta tecnologia. Esperem que generi un debat molt enriquidor per a tota la comunitat.
+
+- id: correccio_10
+  categoria: correccio
+  dificultat: alta
+  registre: informal
+  tipus_error: errors mixtos (castellanismes, ortografia, morfologia)
+  prompt: |
+    Corregeix els errors del text següent:
+
+    Ei, la setmana que ve tens ganes de venir a un concert que han montado al Palau? Es un
+    grup super chulo que toca musica catalana moderna amb influencies del rock. La entrada
+    val vint euros pero mereix la pena, te-m'ho crec. Si estas lliure el dissabte, apuntate,
+    que tens hasta el dijous per decidir-te. Jo ja he pagat la meva i estic mol emocionada.
