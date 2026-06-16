@@ -45,7 +45,7 @@ Models (3):
 - Salamandra 7B
 - Gemma 4 26B A4B
 
-Categories (3): 3 models × 3 categories prioritàries (**correcció**, **cultura** i **traducció**), les més específiques de català, on els models globals tendeixen a fallar més, × 10 *prompts* = **30 prompts**.
+Categories (3): 3 models × 3 categories prioritàries (**correcció**, **reformulació** i **traducció**), les més específiques de català, on els models globals tendeixen a fallar més, × 10 *prompts* = **30 prompts**.
 
 Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Marge ≈ **8,5%**.
 
