@@ -57,10 +57,10 @@ Generem sintèticament 5 tasques representatives:
 | Correcció | Corregeix aquest text |
 | Traducció | Tradueix aquest text |
 | Resum | Resumeix aquest text |
-| Cultura | Contesta una pregunta de cultura catalana |
+| Reformulació | Reformula aquest text |
 | Generació | Genera un text |
 
-> A la fita 1 només cobrim 3 d'aquestes categories (correcció, cultura i traducció). Vegeu el [full de ruta](README.md#full-de-ruta).
+> A la fita 1 només cobrim 3 d'aquestes categories (correcció, reformulació i traducció). Vegeu el [full de ruta](README.md#full-de-ruta).
 
 ---
 
@@ -87,7 +87,7 @@ El volum d'avaluacions necessari s'obté de tres factors:
 ## 4.1. Quantes comparacions calen?
 
 1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 3 models, són **3 parelles**.
-2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, cultura, generació). Cada parella s'avalua en cada categoria, donant $3 \times 5 = 15$ combinacions úniques.
+2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, reformulació, generació). Cada parella s'avalua en cada categoria, donant $3 \times 5 = 15$ combinacions úniques.
 3. **Variacions per categoria**: 10 prompts diferents per categoria, per capturar varietat de dificultat i estil. Això vol dir 50 prompts en total i $3 \times 50 = 150$ ítems d'avaluació únics (parella × prompt).
 4. **Repeticions per combinació**: amb un marge d'error del 5% i un 95% de confiança, calen **385 vots** per cada (parella × categoria) per poder afirmar amb solidesa quin model va millor en aquella tasca.
 
