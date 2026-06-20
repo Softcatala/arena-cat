@@ -13,6 +13,7 @@ Arena Cat és una plataforma d'avaluació humana de models d'IA en català.
 - `infra/` — scripts d'inicialització de la base de dades.
 - `docker-compose.yml` — PostgreSQL local.
 - `simulador/` — simulador de dimensionament (web estàtica).
+- `docs/` — documentació del projecte (diagrama ER, etc.).
 
 ## Posada en marxa
 
