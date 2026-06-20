@@ -12,8 +12,9 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Les migracions s'executen amb el superusuari (database_admin_url).
-config.set_main_option("sqlalchemy.url", get_settings().database_admin_url)
+# Les migracions usen el superusuari, tret que ja s'hagi fixat una URL explícita.
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", get_settings().database_admin_url)
 
 target_metadata = Base.metadata
 
