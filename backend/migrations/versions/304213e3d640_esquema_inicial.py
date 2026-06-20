@@ -1,8 +1,8 @@
 """esquema inicial
 
-Revision ID: f159ca3d2c6c
+Revision ID: 304213e3d640
 Revises:
-Create Date: 2026-06-20 16:20:10.041226
+Create Date: 2026-06-20 21:28:56.126520
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "f159ca3d2c6c"
+revision: str = "304213e3d640"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -54,6 +54,7 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(["prompt_id"], ["prompts.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("prompt_id", "id", name="uq_respostes_prompt_id_id"),
         sa.UniqueConstraint("prompt_id", "model", name="uq_respostes_prompt_model"),
     )
     op.create_table(
@@ -76,9 +77,17 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.CheckConstraint("resposta_a_id <> resposta_b_id", name="ck_vots_respostes_diferents"),
+        sa.ForeignKeyConstraint(
+            ["prompt_id", "resposta_a_id"],
+            ["respostes.prompt_id", "respostes.id"],
+            name="fk_vots_resposta_a",
+        ),
+        sa.ForeignKeyConstraint(
+            ["prompt_id", "resposta_b_id"],
+            ["respostes.prompt_id", "respostes.id"],
+            name="fk_vots_resposta_b",
+        ),
         sa.ForeignKeyConstraint(["prompt_id"], ["prompts.id"]),
-        sa.ForeignKeyConstraint(["resposta_a_id"], ["respostes.id"]),
-        sa.ForeignKeyConstraint(["resposta_b_id"], ["respostes.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("ix_vots_creat_a", "vots", ["creat_a"], unique=False)

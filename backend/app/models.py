@@ -16,6 +16,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     Numeric,
@@ -79,7 +80,11 @@ class Resposta(Base):
     """Resposta d'un model concret a un prompt. Única per parella (prompt, model)."""
 
     __tablename__ = "respostes"
-    __table_args__ = (UniqueConstraint("prompt_id", "model", name="uq_respostes_prompt_model"),)
+    __table_args__ = (
+        UniqueConstraint("prompt_id", "model", name="uq_respostes_prompt_model"),
+        # Permet que vots referenciï (prompt_id, id) amb una FK composta.
+        UniqueConstraint("prompt_id", "id", name="uq_respostes_prompt_id_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     prompt_id: Mapped[int] = mapped_column(
@@ -101,6 +106,17 @@ class Vot(Base):
 
     __tablename__ = "vots"
     __table_args__ = (
+        # Garanteix que les dues respostes pertanyen al prompt_id del vot.
+        ForeignKeyConstraint(
+            ["prompt_id", "resposta_a_id"],
+            ["respostes.prompt_id", "respostes.id"],
+            name="fk_vots_resposta_a",
+        ),
+        ForeignKeyConstraint(
+            ["prompt_id", "resposta_b_id"],
+            ["respostes.prompt_id", "respostes.id"],
+            name="fk_vots_resposta_b",
+        ),
         CheckConstraint("resposta_a_id <> resposta_b_id", name="ck_vots_respostes_diferents"),
         Index("ix_vots_prompt_id", "prompt_id"),
         Index("ix_vots_creat_a", "creat_a"),
@@ -108,8 +124,8 @@ class Vot(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.id"), nullable=False)
-    resposta_a_id: Mapped[int] = mapped_column(ForeignKey("respostes.id"), nullable=False)
-    resposta_b_id: Mapped[int] = mapped_column(ForeignKey("respostes.id"), nullable=False)
+    resposta_a_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    resposta_b_id: Mapped[int] = mapped_column(Integer, nullable=False)
     guanyador: Mapped[Guanyador] = mapped_column(
         Enum(Guanyador, name="guanyador", values_callable=_valors_enum),
         nullable=False,

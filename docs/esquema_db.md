@@ -47,11 +47,12 @@ erDiagram
 |-------|-------|-----|-----------|
 | prompts | UNIQUE | `uq_prompts_versio_codi` | `(versio, codi)` |
 | respostes | UNIQUE | `uq_respostes_prompt_model` | `(prompt_id, model)` |
+| respostes | UNIQUE | `uq_respostes_prompt_id_id` | `(prompt_id, id)` |
 | respostes | FK | — | `prompt_id → prompts.id` `ON DELETE CASCADE` |
 | vots | CHECK | `ck_vots_respostes_diferents` | `resposta_a_id <> resposta_b_id` |
 | vots | FK | — | `prompt_id → prompts.id` |
-| vots | FK | — | `resposta_a_id → respostes.id` |
-| vots | FK | — | `resposta_b_id → respostes.id` |
+| vots | FK | `fk_vots_resposta_a` | `(prompt_id, resposta_a_id) → respostes(prompt_id, id)` |
+| vots | FK | `fk_vots_resposta_b` | `(prompt_id, resposta_b_id) → respostes(prompt_id, id)` |
 | vots | INDEX | `ix_vots_prompt_id` | `prompt_id` |
 | vots | INDEX | `ix_vots_creat_a` | `creat_a` |
 

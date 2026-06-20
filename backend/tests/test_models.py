@@ -128,6 +128,32 @@ def test_vot_amb_respostes_iguals_es_rebutjat(session):
         session.flush()
 
 
+def test_vot_amb_resposta_d_un_altre_prompt_es_rebutjat(session):
+    prompt_a, resposta_a, _ = _prompt_amb_respostes(session)
+    prompt_b = Prompt(
+        versio="v1",
+        codi="traduccio-02",
+        categoria=CategoriaTasca.traduccio,
+        text="Un altre prompt.",
+    )
+    resposta_altra = Resposta(
+        prompt=prompt_b, model="gemma-4-26b", text="Resposta d'un altre prompt"
+    )
+    session.add(prompt_b)
+    session.flush()
+
+    # resposta_b és d'un altre prompt → viola la FK composta de vots.
+    vot = Vot(
+        prompt_id=prompt_a.id,
+        resposta_a_id=resposta_a.id,
+        resposta_b_id=resposta_altra.id,
+        guanyador=Guanyador.a,
+    )
+    session.add(vot)
+    with pytest.raises(IntegrityError):
+        session.flush()
+
+
 def test_indexs_de_vots(engine):
     noms = {idx["name"] for idx in inspect(engine).get_indexes("vots")}
     assert "ix_vots_prompt_id" in noms
