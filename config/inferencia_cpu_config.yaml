@@ -1,0 +1,20 @@
+configuracio_global:
+  seed: 42
+  backend_preferit: "transformers"
+  dir_prompts: "data/prompts/v1"
+  dir_sortida: "data/inferencies/v1"
+
+parametres_generacio:
+  temperature: 0
+  top_p: 1.0
+  max_new_tokens: 128
+  system_prompt: "Ets un assistent d'intel.ligencia artificial util, precis i que respon exclusivament en catala."
+
+models:
+  - id: "qwen2.5-0.5b-instruct-cpu"
+    model_name: "Qwen/Qwen2.5-0.5B-Instruct"
+    revision: "main"
+    torch_dtype: "float32"
+    device_map: "cpu"
+    quantization: "none"
+    es_reasoning_model: false

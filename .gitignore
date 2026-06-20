@@ -1,0 +1,7 @@
+.venv/
+.uv-cache/
+.hf-cache/
+.env
+__pycache__/
+*.py[cod]
+arena_cat.egg-info
