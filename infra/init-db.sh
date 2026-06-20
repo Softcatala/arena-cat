@@ -5,10 +5,10 @@
 # Crea:
 #   - El rol d'aplicació (APP_DB_USER) amb permisos limitats: només DML sobre les
 #     taules de l'esquema public, sense capacitat d'alterar l'esquema.
-#   - La base de dades de tests arena_cat_test.
+#   - La base de dades de tests (${POSTGRES_DB}_test).
 #
 # El superusuari POSTGRES_USER és el propietari de l'esquema i qui executa les
-# migracions d'Alembic; el rol d'aplicació en consumeix les taules resultants.
+# migracions d'Alembic. El rol d'aplicació en consumeix les taules resultants.
 set -euo pipefail
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
@@ -28,4 +28,4 @@ EOSQL
 
 # La base de dades de tests: CREATE DATABASE no pot anar dins d'un bloc transaccional.
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
-    -c "CREATE DATABASE arena_cat_test OWNER \"${POSTGRES_USER}\";"
+    -c "CREATE DATABASE \"${POSTGRES_DB}_test\" OWNER \"${POSTGRES_USER}\";"

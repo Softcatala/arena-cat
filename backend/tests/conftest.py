@@ -1,4 +1,4 @@
-"""Configuració dels tests: motor cap a arena_cat_test i sessió aïllada per test.
+"""Configuració dels tests: motor cap a la base de dades de tests i sessió aïllada per test.
 
 Cada test s'executa dins d'una transacció que es desfà al final (rollback),
 de manera que queden aïllats entre si.

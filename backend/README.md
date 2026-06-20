@@ -43,7 +43,7 @@ Diagrama ER de l'esquema: [docs/esquema_db.md](../docs/esquema_db.md).
 `docker compose` provisiona, a la primera arrencada:
 
 - **arena_cat** — base de dades de l'aplicació.
-- **arena_cat_test** — base de dades per als tests.
+- **arena_cat_test** — base de dades per als tests, derivada de `POSTGRES_DB` (`${POSTGRES_DB}_test`).
 - **arena_app** — rol d'aplicació amb permisos limitats (només DML). Les migracions
   s'executen amb el superusuari.
 
