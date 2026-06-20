@@ -34,6 +34,10 @@ migrations/     # migracions d'Alembic
 tests/          # tests del model
 ```
 
+## Model de dades
+
+Diagrama ER de l'esquema: [docs/esquema_db.md](../docs/esquema_db.md).
+
 ## Bases de dades i rols
 
 `docker compose` provisiona, a la primera arrencada:
