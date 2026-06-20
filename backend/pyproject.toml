@@ -1,0 +1,38 @@
+[project]
+name = "arena-cat-backend"
+version = "0.1.0"
+description = "Backend d'Arena Cat."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.1",
+    "pydantic-settings>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.uv]
+# És una aplicació, no una biblioteca a publicar: no cal construir cap paquet.
+package = false
+
+[tool.pytest.ini_options]
+# Permet importar el paquet `app` executant pytest des de backend/.
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: isort, UP: pyupgrade, B: bugbear, SIM: simplify.
+select = ["E", "W", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
