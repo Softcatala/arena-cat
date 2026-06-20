@@ -116,6 +116,12 @@ def test_categoria_inexistent_es_rebutjada(session):
         session.flush()
 
 
+def test_categoria_codi_duplicat_es_rebutjat(session):
+    session.add(Categoria(codi="traduccio", nom="Traducció", descripcio="Una altra"))
+    with pytest.raises(IntegrityError):
+        session.flush()
+
+
 def test_vot_amb_respostes_iguals_es_rebutjat(session):
     prompt, resposta_a, _ = _prompt_amb_respostes(session)
     vot = Vot(
