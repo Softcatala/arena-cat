@@ -2,7 +2,7 @@
 
 Diagrama ER de l'esquema de dades d'Arena Cat.
 
-> Font: [`backend/app/models.py`](../backend/app/models.py) — sincronitzeu el diagrama quan canviï l'esquema.
+> Font: [`backend/app/models.py`](../backend/app/models.py).
 
 ```mermaid
 erDiagram

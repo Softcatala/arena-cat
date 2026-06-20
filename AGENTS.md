@@ -39,5 +39,5 @@ cd backend && uv sync && uv run alembic upgrade head
   comparar eines, sense lligar la documentació a una issue concreta (ha de poder
   créixer amb el projecte).
 - **Entorn**: gestionat amb `uv` (no cal activar venv ni pyenv). No versionis `.env`.
-- **Esquema**: tot canvi a la base de dades passa per una migració d'Alembic; revisa
-  sempre els fitxers autogenerats.
+- **Esquema**: tot canvi a la base de dades passa per una migració d'Alembic. Revisa
+  sempre els fitxers autogenerats i actualitza el diagrama a `docs/esquema_db.md`.
