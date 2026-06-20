@@ -8,9 +8,10 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from app import models  # noqa: F401  -- registra els models al metadata de Base
+from app import models
 from app.config import get_settings
 from app.db import Base
+from app.seeds import CATEGORIES_INICIALS
 
 
 @pytest.fixture(scope="session")
@@ -20,6 +21,9 @@ def engine():
     eng = create_engine(settings.database_test_url, future=True)
     Base.metadata.drop_all(eng)
     Base.metadata.create_all(eng)
+    with Session(eng) as seed_session:
+        seed_session.add_all([models.Categoria(**c) for c in CATEGORIES_INICIALS])
+        seed_session.commit()
     yield eng
     Base.metadata.drop_all(eng)
     eng.dispose()

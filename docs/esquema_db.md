@@ -6,11 +6,18 @@ Diagrama ER de l'esquema de dades d'Arena Cat.
 
 ```mermaid
 erDiagram
+    categories {
+        integer id PK
+        varchar(64) codi
+        varchar(128) nom
+        text descripcio
+    }
+
     prompts {
         integer id PK
         varchar(32) versio
         varchar(64) codi
-        categoria_tasca categoria
+        integer categoria_id FK
         text text
         timestamptz creat_a
     }
@@ -35,6 +42,7 @@ erDiagram
         timestamptz creat_a
     }
 
+    categories ||--o{ prompts : "categoria_id"
     prompts ||--o{ respostes : "prompt_id"
     prompts ||--o{ vots : "prompt_id"
     respostes ||--o{ vots : "resposta_a_id"
@@ -45,7 +53,9 @@ erDiagram
 
 | Taula | Tipus | Nom | Definició |
 |-------|-------|-----|-----------|
+| categories | UNIQUE | — | `(codi)` |
 | prompts | UNIQUE | `uq_prompts_versio_codi` | `(versio, codi)` |
+| prompts | FK | — | `categoria_id → categories.id` |
 | respostes | UNIQUE | `uq_respostes_prompt_model` | `(prompt_id, model)` |
 | respostes | UNIQUE | `uq_respostes_prompt_id_id` | `(prompt_id, id)` |
 | respostes | FK | — | `prompt_id → prompts.id` `ON DELETE CASCADE` |
@@ -58,5 +68,4 @@ erDiagram
 
 ## Enums
 
-- **`categoria_tasca`**: `correccio`, `reformulacio`, `traduccio`
 - **`guanyador`**: `a`, `b`, `empat`, `cap`

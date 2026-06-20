@@ -1,9 +1,10 @@
 """Model de dades d'Arena Cat.
 
-Tres taules:
-    - prompts:   les tasques d'avaluació.
-    - respostes: la resposta d'un model a un prompt.
-    - vots:      el vot d'un usuari anònim comparant dues respostes d'un prompt.
+Taules:
+    - categories: les categories de tasca.
+    - prompts:    les tasques d'avaluació.
+    - respostes:  la resposta d'un model a un prompt.
+    - vots:       el vot d'un usuari anònim comparant dues respostes d'un prompt.
 """
 
 import enum
@@ -31,14 +32,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base
 
 
-class CategoriaTasca(enum.Enum):
-    """Categories de tasca."""
-
-    correccio = "correccio"
-    reformulacio = "reformulacio"
-    traduccio = "traduccio"
-
-
 class Guanyador(enum.Enum):
     """Resultat d'un vot: guanya A, guanya B, empat o cap de les dues."""
 
@@ -53,6 +46,17 @@ def _valors_enum(enum_cls: type[enum.Enum]) -> list[str]:
     return [membre.value for membre in enum_cls]
 
 
+class Categoria(Base):
+    """Categoria de tasca d'avaluació."""
+
+    __tablename__ = "categories"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    codi: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    nom: Mapped[str] = mapped_column(String(128), nullable=False)
+    descripcio: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
 class Prompt(Base):
     """Tasca d'avaluació que es mostra a l'usuari."""
 
@@ -62,15 +66,13 @@ class Prompt(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     versio: Mapped[str] = mapped_column(String(32), nullable=False)
     codi: Mapped[str] = mapped_column(String(64), nullable=False)
-    categoria: Mapped[CategoriaTasca] = mapped_column(
-        Enum(CategoriaTasca, name="categoria_tasca", values_callable=_valors_enum),
-        nullable=False,
-    )
+    categoria_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     creat_a: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    categoria: Mapped["Categoria"] = relationship()
     respostes: Mapped[list["Resposta"]] = relationship(
         back_populates="prompt", cascade="all, delete-orphan"
     )

@@ -1,8 +1,8 @@
 """esquema inicial
 
-Revision ID: 304213e3d640
+Revision ID: 94019e30371a
 Revises:
-Create Date: 2026-06-20 21:28:56.126520
+Create Date: 2026-06-20 22:10:03.518083
 
 """
 
@@ -12,7 +12,9 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "304213e3d640"
+from app.seeds import CATEGORIES_INICIALS
+
+revision: str = "94019e30371a"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -20,15 +22,20 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     op.create_table(
+        "categories",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("codi", sa.String(length=64), nullable=False),
+        sa.Column("nom", sa.String(length=128), nullable=False),
+        sa.Column("descripcio", sa.Text(), nullable=True),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("codi"),
+    )
+    op.create_table(
         "prompts",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("versio", sa.String(length=32), nullable=False),
         sa.Column("codi", sa.String(length=64), nullable=False),
-        sa.Column(
-            "categoria",
-            sa.Enum("correccio", "reformulacio", "traduccio", name="categoria_tasca"),
-            nullable=False,
-        ),
+        sa.Column("categoria_id", sa.Integer(), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column(
             "creat_a",
@@ -36,6 +43,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
+        sa.ForeignKeyConstraint(["categoria_id"], ["categories.id"]),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("versio", "codi", name="uq_prompts_versio_codi"),
     )
@@ -93,6 +101,16 @@ def upgrade() -> None:
     op.create_index("ix_vots_creat_a", "vots", ["creat_a"], unique=False)
     op.create_index("ix_vots_prompt_id", "vots", ["prompt_id"], unique=False)
 
+    op.bulk_insert(
+        sa.table(
+            "categories",
+            sa.column("codi", sa.String),
+            sa.column("nom", sa.String),
+            sa.column("descripcio", sa.Text),
+        ),
+        CATEGORIES_INICIALS,
+    )
+
 
 def downgrade() -> None:
     op.drop_index("ix_vots_prompt_id", table_name="vots")
@@ -100,5 +118,5 @@ def downgrade() -> None:
     op.drop_table("vots")
     op.drop_table("respostes")
     op.drop_table("prompts")
+    op.drop_table("categories")
     sa.Enum(name="guanyador").drop(op.get_bind())
-    sa.Enum(name="categoria_tasca").drop(op.get_bind())

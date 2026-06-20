@@ -12,8 +12,8 @@ from sqlalchemy.engine import make_url
 from app.config import get_settings
 
 _BACKEND = Path(__file__).resolve().parents[1]
-TAULES = {"prompts", "respostes", "vots"}
-ENUMS = {"categoria_tasca", "guanyador"}
+TAULES = {"categories", "prompts", "respostes", "vots"}
+ENUMS = {"guanyador"}
 
 
 @pytest.fixture

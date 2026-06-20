@@ -1,10 +1,14 @@
 """Tests del model de dades: relacions, unicitat, enums, restricció CHECK i índexs."""
 
 import pytest
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, select, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
-from app.models import CategoriaTasca, Guanyador, Prompt, Resposta, Vot
+from app.models import Categoria, Guanyador, Prompt, Resposta, Vot
+
+
+def _categoria(session, codi="traduccio"):
+    return session.scalar(select(Categoria).where(Categoria.codi == codi))
 
 
 def _prompt_amb_respostes(session):
@@ -12,7 +16,7 @@ def _prompt_amb_respostes(session):
     prompt = Prompt(
         versio="v1",
         codi="traduccio-01",
-        categoria=CategoriaTasca.traduccio,
+        categoria_id=_categoria(session).id,
         text="Tradueix aquest text al català en registre col·loquial.",
     )
     resposta_a = Resposta(prompt=prompt, model="salamandra-7b", text="Resposta del model A")
@@ -70,7 +74,7 @@ def test_prompt_unic_per_versio_i_codi(session):
         Prompt(
             versio="v1",
             codi="traduccio-01",
-            categoria=CategoriaTasca.correccio,
+            categoria_id=_categoria(session, "correccio").id,
             text="Un altre text amb el mateix codi i versió",
         )
     )
@@ -105,14 +109,11 @@ def test_guanyador_rebutja_valor_invalid(session):
         )
 
 
-def test_categoria_rebutja_valor_invalid(session):
-    with pytest.raises(DBAPIError):
-        session.execute(
-            text(
-                "INSERT INTO prompts (versio, codi, categoria, text) "
-                "VALUES ('v1', 'x-01', 'categoria_inexistent', 'text')"
-            )
-        )
+def test_categoria_inexistent_es_rebutjada(session):
+    prompt = Prompt(versio="v1", codi="x-01", categoria_id=999999, text="text")
+    session.add(prompt)
+    with pytest.raises(IntegrityError):
+        session.flush()
 
 
 def test_vot_amb_respostes_iguals_es_rebutjat(session):
@@ -133,7 +134,7 @@ def test_vot_amb_resposta_d_un_altre_prompt_es_rebutjat(session):
     prompt_b = Prompt(
         versio="v1",
         codi="traduccio-02",
-        categoria=CategoriaTasca.traduccio,
+        categoria_id=_categoria(session).id,
         text="Un altre prompt.",
     )
     resposta_altra = Resposta(
