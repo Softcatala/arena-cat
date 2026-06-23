@@ -1,5 +1,6 @@
 # La canonada (pipeline) d'inferència amb Hugging Face
 
+import argparse
 from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
 import hashlib
@@ -98,6 +99,20 @@ def load_config(root: Path = REPO_ROOT) -> ConfigDict:
 
     with config_path.open("r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def apply_device_map_override(
+    config: ConfigDict,
+    device_map: str | None,
+) -> ConfigDict:
+    """Sobreescriu el device_map de tots els models si s'ha indicat per CLI."""
+    if device_map is None:
+        return config
+
+    for model_entry in config["models"]:
+        model_entry["device_map"] = device_map
+
+    return config
 
 
 def resolve_config_dir(
@@ -443,11 +458,12 @@ def run_model(
 
 def run_pipeline(
     root: Path = REPO_ROOT,
+    device_map: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
 ) -> None:
     """Executa la canonada completa d'inferència."""
-    config = load_config(root)
+    config = apply_device_map_override(load_config(root), device_map)
     global_config = config["configuracio_global"]
     generation_params = config["parametres_generacio"]
     hf_token = os.getenv("HF_TOKEN")
@@ -482,5 +498,22 @@ def run_pipeline(
         )
 
 
+def parse_args() -> argparse.Namespace:
+    """Llegeix els paràmetres CLI de la canonada d'inferència."""
+    parser = argparse.ArgumentParser(
+        description="Executa la canonada d'inferència d'Arena Cat.",
+    )
+    parser.add_argument(
+        "--device-map",
+        choices=("auto", "cpu"),
+        help=(
+            "Sobreescriu el device_map de tots els models. "
+            "Si cal més control en el futur, es poden afegir nous paràmetres CLI."
+        ),
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    run_pipeline()
+    args = parse_args()
+    run_pipeline(device_map=args.device_map)

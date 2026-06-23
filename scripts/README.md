@@ -53,6 +53,16 @@ Abans d'executar-la, revisa `config/inferencia/inferencia_config.yaml` i comprov
 uv run python scripts/inferencia.py
 ```
 
+Per sobreescriure el dispositiu definit a la configuració:
+
+```bash
+uv run python scripts/inferencia.py --device-map cpu
+```
+
+Actualment el CLI només controla `device_map`. Si més endavant cal controlar
+altres opcions, com el dtype o la quantització, es poden afegir nous paràmetres
+específics.
+
 Els resultats es desen a `data/inferencies/v1/<model_id>/`.
 
 ### 6. Prova local amb un model molt petit

@@ -139,6 +139,30 @@ class TestInferencia(unittest.TestCase):
         self.assertIs(quant_config.bnb_4bit_compute_dtype, inferencia.torch.bfloat16)
         self.assertEqual(quant_config.bnb_4bit_quant_type, "nf4")
 
+    def test_apply_device_map_override_updates_all_models(self):
+        config = {
+            "models": [
+                {"id": "model-1", "device_map": "auto"},
+                {"id": "model-2", "device_map": "cpu"},
+            ]
+        }
+
+        result = inferencia.apply_device_map_override(config, "cpu")
+
+        self.assertIs(result, config)
+        self.assertEqual(
+            [model["device_map"] for model in result["models"]],
+            ["cpu", "cpu"],
+        )
+
+    def test_apply_device_map_override_keeps_config_when_missing(self):
+        config = {"models": [{"id": "model-1", "device_map": "auto"}]}
+
+        result = inferencia.apply_device_map_override(config, None)
+
+        self.assertIs(result, config)
+        self.assertEqual(result["models"][0]["device_map"], "auto")
+
     def test_build_messages_adds_system_prompt_when_present(self):
         messages = inferencia.build_messages(
             "Hola",
@@ -288,6 +312,7 @@ class TestInferencia(unittest.TestCase):
                  patch("builtins.print"):
                 inferencia.run_pipeline(
                     root=root,
+                    device_map="cpu",
                     tokenizer_loader=lambda *args, **kwargs: FakeTokenizer(),
                     model_loader=lambda *args, **kwargs: FakeModel(),
                 )
