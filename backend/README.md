@@ -36,7 +36,7 @@ tests/          # model tests
 
 ## Data model
 
-ER diagram of the schema: [docs/esquema_db.md](../docs/esquema_db.md).
+ER diagram of the schema: [docs/db_schema.md](../docs/db_schema.md).
 
 ## Databases and roles
 
