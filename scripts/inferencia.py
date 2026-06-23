@@ -9,43 +9,22 @@ from pathlib import Path
 import subprocess
 from typing import Any
 
+import torch
+import transformers
 import yaml
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
-
-def load_env(path: Path) -> None:
-    """Carrega variables d'entorn des d'un fitxer .env local."""
-    if not path.exists():
-        return
-
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-
-        if key and key not in os.environ:
-            os.environ[key] = value
-
-
-load_env(REPO_ROOT / ".env")
-
-import torch  # noqa: E402
-import transformers  # noqa: E402
-from transformers import (  # noqa: E402
+from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
 )
 
-
+REPO_ROOT = Path(__file__).resolve().parents[1]
 ConfigDict = dict[str, Any]
 Prompt = dict[str, Any]
 Loader = Callable[..., Any]
+ENV_HF_TOKEN = "HF_TOKEN"
+ENV_INFERENCIA_CONFIG = "INFERENCIA_CONFIG"
+DEFAULT_INFERENCIA_CONFIG = "config/inferencia/inferencia_config.yaml"
 
 
 def get_git_commit() -> str:
@@ -89,10 +68,7 @@ def split_reasoning(text: str) -> tuple[str | None, str]:
 def load_config(root: Path = REPO_ROOT) -> ConfigDict:
     """Llegeix la configuració d'inferència activa."""
     config_path = Path(
-        os.getenv(
-            "INFERENCIA_CONFIG",
-            "config/inferencia/inferencia_config.yaml",
-        )
+        os.getenv(ENV_INFERENCIA_CONFIG, DEFAULT_INFERENCIA_CONFIG)
     )
     if not config_path.is_absolute():
         config_path = root / config_path
@@ -466,7 +442,7 @@ def run_pipeline(
     config = apply_device_map_override(load_config(root), device_map)
     global_config = config["configuracio_global"]
     generation_params = config["parametres_generacio"]
-    hf_token = os.getenv("HF_TOKEN")
+    hf_token = os.getenv(ENV_HF_TOKEN, None)
     run_context = {
         "git_commit": get_git_commit(),
         "timestamp": timestamp_utc(),

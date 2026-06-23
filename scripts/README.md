@@ -23,19 +23,21 @@ Això crea l'entorn virtual `.venv/` i instal·la les dependències definides a 
 
 ### 3. Configurar el token de Hugging Face
 
-Crea un fitxer local `.env` a partir de l'exemple:
+L'script llegeix el token des de la variable d'entorn `HF_TOKEN`. Exporta-la
+amb el mecanisme que prefereixis per al teu entorn:
+
+```bash
+export HF_TOKEN=hf_el_teu_token
+```
+
+També pots carregar-la amb eines externes com `dotenv`, `direnv`, el teu shell,
+CI o Docker. Si fas servir un fitxer `.env`, mantén-lo local i no el versionis.
+
+El fitxer `.env.example` documenta les variables d'entorn esperades:
 
 ```bash
 cp .env.example .env
 ```
-
-Edita `.env` i afegeix-hi el teu token:
-
-```env
-HF_TOKEN=hf_el_teu_token
-```
-
-El fitxer `.env` és local i no s'ha de versionar.
 
 ### 4. Executar els tests
 
