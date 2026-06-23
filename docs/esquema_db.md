@@ -1,8 +1,8 @@
-# Esquema de la base de dades
+# Database schema
 
-Diagrama ER de l'esquema de dades d'Arena Cat.
+ER diagram of the Arena Cat data schema.
 
-> Font: [`backend/app/models.py`](../backend/app/models.py).
+> Source: [`backend/app/models.py`](../backend/app/models.py).
 
 ```mermaid
 erDiagram
@@ -49,10 +49,10 @@ erDiagram
     responses ||--o{ votes : "response_b_id"
 ```
 
-## Restriccions i índexs
+## Constraints and indexes
 
-| Taula | Tipus | Nom | Definició |
-|-------|-------|-----|-----------|
+| Table | Type | Name | Definition |
+|-------|------|------|------------|
 | categories | UNIQUE | — | `(code)` |
 | prompts | UNIQUE | `uq_prompts_version_code` | `(version, code)` |
 | prompts | FK | — | `category_id → categories.id` |

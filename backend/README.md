@@ -1,51 +1,51 @@
-# Backend d'Arena Cat
+# Arena Cat backend
 
-Servidor PostgreSQL, model de dades (SQLAlchemy) i migracions (Alembic) d'Arena Cat.
+PostgreSQL server, data model (SQLAlchemy) and migrations (Alembic) for Arena Cat.
 
-## Requisits
+## Requirements
 
-- [Docker](https://www.docker.com/) i Docker Compose
+- [Docker](https://www.docker.com/) and Docker Compose
 - [uv](https://docs.astral.sh/uv/)
 
-## Posada en marxa
+## Getting started
 
-Des de l'arrel del repositori:
-
-```bash
-cp .env.example .env              # ajusta les contrasenyes
-docker compose up -d --wait       # aixeca PostgreSQL i provisiona rols i BD
-```
-
-Des de `backend/`:
+From the repository root:
 
 ```bash
-uv sync                       # instal·la les dependències
-uv run alembic upgrade head   # crea l'esquema a arena_cat
+cp .env.example .env              # adjust the passwords
+docker compose up -d --wait       # start PostgreSQL and provision roles and DB
 ```
 
-## Estructura
+From `backend/`:
+
+```bash
+uv sync                       # install the dependencies
+uv run alembic upgrade head   # create the schema in arena_cat
+```
+
+## Structure
 
 ```
 app/
-  config.py     # paràmetres de connexió (.env)
-  db.py         # motor i classe base de SQLAlchemy
-  models.py     # models de dades
-migrations/     # migracions d'Alembic
-tests/          # tests del model
+  config.py     # connection settings (.env)
+  db.py         # SQLAlchemy engine and base class
+  models.py     # data models
+migrations/     # Alembic migrations
+tests/          # model tests
 ```
 
-## Model de dades
+## Data model
 
-Diagrama ER de l'esquema: [docs/esquema_db.md](../docs/esquema_db.md).
+ER diagram of the schema: [docs/esquema_db.md](../docs/esquema_db.md).
 
-## Bases de dades i rols
+## Databases and roles
 
-`docker compose` provisiona, a la primera arrencada:
+On first startup, `docker compose` provisions:
 
-- **arena_cat** — base de dades de l'aplicació.
-- **arena_cat_test** — base de dades per als tests, derivada de `POSTGRES_DB` (`${POSTGRES_DB}_test`).
-- **arena_app** — rol d'aplicació amb permisos limitats (només DML). Les migracions
-  s'executen amb el superusuari.
+- **arena_cat** — application database.
+- **arena_cat_test** — test database, derived from `POSTGRES_DB` (`${POSTGRES_DB}_test`).
+- **arena_app** — application role with limited permissions (DML only). Migrations run
+  with the superuser.
 
 ## Tests
 
@@ -53,40 +53,39 @@ Diagrama ER de l'esquema: [docs/esquema_db.md](../docs/esquema_db.md).
 uv run pytest -v
 ```
 
-Els tests necessiten el contenidor de PostgreSQL en marxa i corren contra
-`arena_cat_test`.
+The tests need the PostgreSQL container running and run against `arena_cat_test`.
 
-## Migracions
+## Migrations
 
-Per evolucionar l'esquema:
+To evolve the schema:
 
-1. Edita els models a `app/models.py`.
-2. Amb la base de dades a `head`, genera la migració:
+1. Edit the models in `app/models.py`.
+2. With the database at `head`, generate the migration:
    ```bash
-   uv run alembic revision --autogenerate -m "descripció del canvi"
+   uv run alembic revision --autogenerate -m "description of the change"
    ```
-3. **Revisa** el fitxer generat a `migrations/versions/`. L'autogeneració no ho
-   detecta tot: els reanomenaments els veu com a esborrar + crear, i els canvis
-   d'enum o de `CHECK` se li escapen. Tampoc no esborra els tipus `ENUM` quan
-   esborra taules, així que afegeix-ho a mà al `downgrade` si en crees de nous.
-4. Aplica la migració i comprova que es pot desfer:
+3. **Review** the generated file in `migrations/versions/`. Autogeneration does not detect
+   everything: renames show up as drop + create, and enum or `CHECK` changes are missed.
+   It also does not drop `ENUM` types when dropping tables, so add that to `downgrade` by
+   hand if you create new ones.
+4. Apply the migration and check it can be reverted:
    ```bash
    uv run alembic upgrade head
-   uv run alembic downgrade -1   # i torna a 'upgrade head'
+   uv run alembic downgrade -1   # then go back to 'upgrade head'
    ```
-5. Executa els tests.
+5. Run the tests.
 
-Ordres útils:
+Useful commands:
 
 ```bash
-uv run alembic current         # revisió aplicada actualment
-uv run alembic history         # historial de migracions
-uv run alembic downgrade base  # desfà totes les migracions
+uv run alembic current         # currently applied revision
+uv run alembic history         # migration history
+uv run alembic downgrade base  # undo all migrations
 ```
 
-## Eines
+## Tooling
 
 ```bash
 uv run ruff check .       # linting
-uv run ruff format .      # formatat
+uv run ruff format .      # formatting
 ```
