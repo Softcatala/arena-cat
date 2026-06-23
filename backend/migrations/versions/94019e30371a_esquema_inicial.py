@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-from app.seeds import CATEGORIES_INICIALS
+from app.seeds import INITIAL_CATEGORIES
 
 revision: str = "94019e30371a"
 down_revision: str | Sequence[str] | None = None
@@ -24,99 +24,99 @@ def upgrade() -> None:
     op.create_table(
         "categories",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("codi", sa.String(length=64), nullable=False),
-        sa.Column("nom", sa.String(length=128), nullable=False),
-        sa.Column("descripcio", sa.Text(), nullable=True),
+        sa.Column("code", sa.String(length=64), nullable=False),
+        sa.Column("name", sa.String(length=128), nullable=False),
+        sa.Column("description", sa.Text(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("codi"),
+        sa.UniqueConstraint("code"),
     )
     op.create_table(
         "prompts",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("versio", sa.String(length=32), nullable=False),
-        sa.Column("codi", sa.String(length=64), nullable=False),
-        sa.Column("categoria_id", sa.Integer(), nullable=False),
+        sa.Column("version", sa.String(length=32), nullable=False),
+        sa.Column("code", sa.String(length=64), nullable=False),
+        sa.Column("category_id", sa.Integer(), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column(
-            "creat_a",
+            "created_at",
             sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.ForeignKeyConstraint(["categoria_id"], ["categories.id"]),
+        sa.ForeignKeyConstraint(["category_id"], ["categories.id"]),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("versio", "codi", name="uq_prompts_versio_codi"),
+        sa.UniqueConstraint("version", "code", name="uq_prompts_version_code"),
     )
     op.create_table(
-        "respostes",
+        "responses",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("prompt_id", sa.Integer(), nullable=False),
         sa.Column("model", sa.String(length=128), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
-        sa.Column("metadades", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("inference_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column(
-            "creat_a",
+            "created_at",
             sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(["prompt_id"], ["prompts.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("prompt_id", "id", name="uq_respostes_prompt_id_id"),
-        sa.UniqueConstraint("prompt_id", "model", name="uq_respostes_prompt_model"),
+        sa.UniqueConstraint("prompt_id", "id", name="uq_responses_prompt_id_id"),
+        sa.UniqueConstraint("prompt_id", "model", name="uq_responses_prompt_model"),
     )
     op.create_table(
-        "vots",
+        "votes",
         sa.Column("id", sa.BigInteger(), nullable=False),
         sa.Column("prompt_id", sa.Integer(), nullable=False),
-        sa.Column("resposta_a_id", sa.Integer(), nullable=False),
-        sa.Column("resposta_b_id", sa.Integer(), nullable=False),
+        sa.Column("response_a_id", sa.Integer(), nullable=False),
+        sa.Column("response_b_id", sa.Integer(), nullable=False),
         sa.Column(
-            "guanyador",
-            sa.Enum("a", "b", "empat", "cap", name="guanyador"),
+            "winner",
+            sa.Enum("a", "b", "tie", "neither", name="winner"),
             nullable=False,
         ),
-        sa.Column("sessio_id", sa.String(length=128), nullable=True),
-        sa.Column("temps_resposta_s", sa.Numeric(precision=6, scale=2), nullable=True),
+        sa.Column("session_id", sa.String(length=128), nullable=True),
+        sa.Column("response_time_s", sa.Numeric(precision=6, scale=2), nullable=True),
         sa.Column(
-            "creat_a",
+            "created_at",
             sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.CheckConstraint("resposta_a_id <> resposta_b_id", name="ck_vots_respostes_diferents"),
+        sa.CheckConstraint("response_a_id <> response_b_id", name="ck_votes_responses_different"),
         sa.ForeignKeyConstraint(
-            ["prompt_id", "resposta_a_id"],
-            ["respostes.prompt_id", "respostes.id"],
-            name="fk_vots_resposta_a",
+            ["prompt_id", "response_a_id"],
+            ["responses.prompt_id", "responses.id"],
+            name="fk_votes_response_a",
         ),
         sa.ForeignKeyConstraint(
-            ["prompt_id", "resposta_b_id"],
-            ["respostes.prompt_id", "respostes.id"],
-            name="fk_vots_resposta_b",
+            ["prompt_id", "response_b_id"],
+            ["responses.prompt_id", "responses.id"],
+            name="fk_votes_response_b",
         ),
         sa.ForeignKeyConstraint(["prompt_id"], ["prompts.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_vots_creat_a", "vots", ["creat_a"], unique=False)
-    op.create_index("ix_vots_prompt_id", "vots", ["prompt_id"], unique=False)
+    op.create_index("ix_votes_created_at", "votes", ["created_at"], unique=False)
+    op.create_index("ix_votes_prompt_id", "votes", ["prompt_id"], unique=False)
 
     op.bulk_insert(
         sa.table(
             "categories",
-            sa.column("codi", sa.String),
-            sa.column("nom", sa.String),
-            sa.column("descripcio", sa.Text),
+            sa.column("code", sa.String),
+            sa.column("name", sa.String),
+            sa.column("description", sa.Text),
         ),
-        CATEGORIES_INICIALS,
+        INITIAL_CATEGORIES,
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_vots_prompt_id", table_name="vots")
-    op.drop_index("ix_vots_creat_a", table_name="vots")
-    op.drop_table("vots")
-    op.drop_table("respostes")
+    op.drop_index("ix_votes_prompt_id", table_name="votes")
+    op.drop_index("ix_votes_created_at", table_name="votes")
+    op.drop_table("votes")
+    op.drop_table("responses")
     op.drop_table("prompts")
     op.drop_table("categories")
-    sa.Enum(name="guanyador").drop(op.get_bind())
+    sa.Enum(name="winner").drop(op.get_bind())
