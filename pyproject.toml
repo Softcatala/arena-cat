@@ -1,7 +1,7 @@
 [project]
 name = "arena-cat"
 version = "0.1.0"
-description = "Avaluacio humana de models d'IA en catala."
+description = "Canonada d'inferència: processa prompts i desa els resultats generats"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

@@ -24,7 +24,7 @@ class FakeTokenizer:
 
     def __init__(self):
         self.messages = None
-        self.prompt_formatat = None
+        self.formatted_prompt = None
         self.decode_args = None
 
     def apply_chat_template(self, messages, tokenize, add_generation_prompt):
@@ -33,8 +33,8 @@ class FakeTokenizer:
         assert add_generation_prompt is True
         return "PROMPT"
 
-    def __call__(self, prompt_formatat, return_tensors):
-        self.prompt_formatat = prompt_formatat
+    def __call__(self, formatted_prompt, return_tensors):
+        self.formatted_prompt = formatted_prompt
         assert return_tensors == "pt"
         return FakeInputs()
 
@@ -55,7 +55,7 @@ class FakeModel:
 
 
 class TestInferencia(unittest.TestCase):
-    def test_carregar_prompts_accepta_text_dict_i_llista(self):
+    def test_load_prompts_accepts_text_dict_and_list(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             prompt_dir = root / "data" / "prompts" / "v1"
@@ -71,8 +71,8 @@ class TestInferencia(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            prompts = inferencia.carregar_prompts(
-                inferencia.descobrir_prompt_files(root),
+            prompts = inferencia.load_prompts(
+                inferencia.discover_prompt_files(root),
                 root=root,
             )
 
@@ -80,15 +80,15 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(prompts[2]["text"], "Un prompt simple")
         self.assertEqual(prompts[2]["_path_origen"], "data/prompts/v1/text.yaml")
 
-    def test_obtenir_dtype_accepta_tipus_suportats(self):
-        self.assertIs(inferencia.obtenir_dtype("float16"), inferencia.torch.float16)
-        self.assertIs(inferencia.obtenir_dtype("bfloat16"), inferencia.torch.bfloat16)
-        self.assertIs(inferencia.obtenir_dtype("float32"), inferencia.torch.float32)
+    def test_get_dtype_accepts_supported_types(self):
+        self.assertIs(inferencia.get_dtype("float16"), inferencia.torch.float16)
+        self.assertIs(inferencia.get_dtype("bfloat16"), inferencia.torch.bfloat16)
+        self.assertIs(inferencia.get_dtype("float32"), inferencia.torch.float32)
 
         with self.assertRaises(ValueError):
-            inferencia.obtenir_dtype("int8")
+            inferencia.get_dtype("int8")
 
-    def test_carregar_model_passa_parametres_mockejables(self):
+    def test_load_model_passes_mockable_parameters(self):
         calls = []
 
         def fake_loader(*args, **kwargs):
@@ -103,7 +103,7 @@ class TestInferencia(unittest.TestCase):
             "device_map": "auto",
         }
 
-        model = inferencia.carregar_model(
+        model = inferencia.load_model(
             entry_model,
             hf_token="hf_test",
             model_loader=fake_loader,
@@ -116,7 +116,7 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(calls[0][1]["device_map"], "auto")
         self.assertEqual(calls[0][1]["token"], "hf_test")
 
-    def test_carregar_model_configura_quantitzacio_4bit(self):
+    def test_load_model_configures_4bit_quantization(self):
         calls = []
 
         def fake_loader(*args, **kwargs):
@@ -132,41 +132,43 @@ class TestInferencia(unittest.TestCase):
             "quantization": "4bit",
         }
 
-        inferencia.carregar_model(entry_model, model_loader=fake_loader)
+        inferencia.load_model(entry_model, model_loader=fake_loader)
 
         quant_config = calls[0][1]["quantization_config"]
         self.assertTrue(quant_config.load_in_4bit)
         self.assertIs(quant_config.bnb_4bit_compute_dtype, inferencia.torch.bfloat16)
         self.assertEqual(quant_config.bnb_4bit_quant_type, "nf4")
 
-    def test_construir_missatges_afegeix_system_prompt_si_existeix(self):
-        missatges = inferencia.construir_missatges(
+    def test_build_messages_adds_system_prompt_when_present(self):
+        messages = inferencia.build_messages(
             "Hola",
             {"system_prompt": "Respon en catala"},
         )
 
         self.assertEqual(
-            missatges,
+            messages,
             [
                 {"role": "system", "content": "Respon en catala"},
                 {"role": "user", "content": "Hola"},
             ],
         )
 
-    def test_generar_text_usa_tokenizer_i_model_sense_hf(self):
+    def test_generate_text_uses_tokenizer_and_model_without_hf(self):
         tokenizer = FakeTokenizer()
         model = FakeModel()
-        params_gen = {
+        generation_params = {
             "system_prompt": "Sistema",
             "max_new_tokens": 12,
             "temperature": 0,
             "top_p": 0.9,
         }
 
-        text = inferencia.generar_text(tokenizer, model, "Usuari", params_gen)
+        text = inferencia.generate_text(
+            tokenizer, model, "Usuari", generation_params
+        )
 
         self.assertEqual(text, "Resposta final")
-        self.assertEqual(tokenizer.prompt_formatat, "PROMPT")
+        self.assertEqual(tokenizer.formatted_prompt, "PROMPT")
         self.assertEqual(
             tokenizer.messages,
             [
@@ -181,68 +183,71 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(model.generate_kwargs["max_new_tokens"], 12)
         self.assertEqual(tokenizer.decode_args, ([7, 8], True))
 
-    def test_generar_text_passa_parametres_sampling_quan_temperature_positiva(self):
+    def test_generate_text_passes_sampling_parameters_when_temperature_is_positive(self):
         tokenizer = FakeTokenizer()
         model = FakeModel()
-        params_gen = {
+        generation_params = {
             "max_new_tokens": 12,
             "temperature": 0.7,
             "top_p": 0.9,
         }
 
-        inferencia.generar_text(tokenizer, model, "Usuari", params_gen)
+        inferencia.generate_text(tokenizer, model, "Usuari", generation_params)
 
         self.assertTrue(model.generate_kwargs["do_sample"])
         self.assertEqual(model.generate_kwargs["temperature"], 0.7)
         self.assertEqual(model.generate_kwargs["top_p"], 0.9)
 
-    def test_construir_resultat_separa_raonament_i_metadades(self):
-        resultat = inferencia.construir_resultat(
+    def test_build_result_splits_reasoning_and_metadata(self):
+        resultat = inferencia.build_result(
             prompt={
                 "id": "prompt-1",
                 "text": "Text prompt",
                 "_path_origen": "data/prompts/v1/prompt-1.yaml",
             },
-            entry_model={
+            model_entry={
                 "id": "model-1",
                 "model_name": "org/model",
                 "revision": "abc",
             },
-            params_gen={
+            generation_params={
                 "temperature": 0.7,
                 "top_p": 0.9,
                 "max_new_tokens": 128,
             },
-            cfg_global={
+            global_config={
                 "seed": 42,
                 "backend_preferit": "transformers",
             },
-            text_generat="<think>raons</think>Resposta",
-            timestamp_actual="2026-06-20T10:00:00Z",
+            generated_text="<think>raons</think>Resposta",
+            current_timestamp="2026-06-20T10:00:00Z",
             git_commit="abc123",
         )
 
         self.assertEqual(resultat["output"]["answer"], "Resposta")
         self.assertEqual(resultat["reasoning"]["content"], "raons")
-        self.assertEqual(resultat["prompt"]["sha256"], inferencia.calcular_sha256("Text prompt"))
+        self.assertEqual(
+            resultat["prompt"]["sha256"],
+            inferencia.calculate_sha256("Text prompt"),
+        )
         self.assertEqual(resultat["model"]["model_name"], "org/model")
 
-    def test_executar_pipeline_no_carrega_models_si_no_hi_ha_prompts(self):
+    def test_run_pipeline_does_not_load_models_when_there_are_no_prompts(self):
         config = {
             "configuracio_global": {"seed": 42, "backend_preferit": "transformers"},
             "parametres_generacio": {},
             "models": [{"id": "model-id", "model_name": "org/model"}],
         }
 
-        with patch.object(inferencia, "carregar_config", return_value=config), \
-             patch.object(inferencia, "descobrir_prompt_files", return_value=[]), \
-             patch.object(inferencia, "executar_model") as executar_model, \
+        with patch.object(inferencia, "load_config", return_value=config), \
+             patch.object(inferencia, "discover_prompt_files", return_value=[]), \
+             patch.object(inferencia, "run_model") as run_model, \
              patch("builtins.print"):
-            inferencia.executar_pipeline(root=Path("/tmp/no-prompts"))
+            inferencia.run_pipeline(root=Path("/tmp/no-prompts"))
 
-        executar_model.assert_not_called()
+        run_model.assert_not_called()
 
-    def test_executar_pipeline_amb_model_mock_desa_resultat(self):
+    def test_run_pipeline_with_mock_model_saves_result(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             config_dir = root / "config"
@@ -281,7 +286,7 @@ class TestInferencia(unittest.TestCase):
             with patch.object(inferencia, "get_git_commit", return_value="git123"), \
                  patch.object(inferencia, "timestamp_utc", return_value="2026-06-20T10:00:00Z"), \
                  patch("builtins.print"):
-                inferencia.executar_pipeline(
+                inferencia.run_pipeline(
                     root=root,
                     tokenizer_loader=lambda *args, **kwargs: FakeTokenizer(),
                     model_loader=lambda *args, **kwargs: FakeModel(),
