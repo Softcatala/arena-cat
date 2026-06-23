@@ -19,5 +19,10 @@ package = false
 requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
+[dependency-groups]
+dev = [
+    "ruff>=0.15.18",
+]
+
 [tool.setuptools]
 packages = []
