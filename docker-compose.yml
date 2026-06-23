@@ -1,0 +1,34 @@
+# Servidor SQL d'Arena Cat per a desenvolupament local.
+# Aixeca PostgreSQL 16 amb un volum persistent i provisiona el rol d'aplicació
+# i la base de dades de tests mitjançant infra/init-db.sh.
+#
+# Les variables provenen del fitxer .env (vegeu .env.example).
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: arena-cat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # Disponibles per a l'script d'inicialització (no les fa servir Postgres directament).
+      APP_DB_USER: ${APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - arena-cat-pgdata:/var/lib/postgresql/data
+      # L'script només s'executa en la primera inicialització (volum buit).
+      - ./infra/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      # Forcem TCP (-h 127.0.0.1): durant la inicialització el servidor temporal
+      # només escolta pel socket, així no es marca sa abans d'acabar init-db.sh.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  arena-cat-pgdata:

@@ -78,6 +78,31 @@ Un cop la plataforma estigui en marxa, obrirem la convocatòria a la comunitat d
 
 Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorporant **més models** a l'avaluació, mantenint la mateixa plataforma i metodologia.
 
+## Col·laboradors
+
+<!-- readme: contributors -start -->
+<table>
+	<tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/jordimas">
+                    <img src="https://avatars.githubusercontent.com/u/309265?v=4" width="100;" alt="jordimas"/>
+                    <br />
+                    <sub><b>Jordi Mas</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/ganlub">
+                    <img src="https://avatars.githubusercontent.com/u/1272617?v=4" width="100;" alt="ganlub"/>
+                    <br />
+                    <sub><b>Albert Casanovas</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
+</table>
+<!-- readme: contributors -end -->
+
 ## Llicència
 
 Vegeu [LICENSE](LICENSE).
