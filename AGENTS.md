@@ -44,5 +44,5 @@ cd backend && uv sync && uv run alembic upgrade head
 
 ## Política lingüística del repository
 
-- Els noms de les funcions, classes, etc. és l'anglès
-- Els docstrings i documentació general és el català
+- L'idioma dels noms de les funcions, classes i codi en general, és l'anglès
+- L'idioma dels docstrings i documentació general és el català
