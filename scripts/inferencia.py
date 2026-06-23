@@ -29,8 +29,14 @@ DEFAULT_INFERENCIA_CONFIG = "config/inferencia/inferencia_config.yaml"
 LOGGER = logging.getLogger(__name__)
 
 
+# Utilitats generals
 def get_git_commit() -> str:
-    """Retorna el commit Git actual o un marcador estable fora d'un repo."""
+    """Retorna el commit Git actual.
+
+    Returns:
+        Hash del commit actual o un marcador estable si el directori no és un
+        repositori Git.
+    """
     try:
         return (
             subprocess.check_output(
@@ -44,46 +50,49 @@ def get_git_commit() -> str:
         return "not_a_git_repository"
 
 
-def calculate_sha256(text: str) -> str:
-    """Calcula el SHA-256 del text del prompt."""
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
 def timestamp_utc() -> str:
-    """Genera un timestamp UTC en format ISO-8601 amb sufix Z."""
+    """Genera el timestamp UTC actual.
+
+    Returns:
+        Timestamp en format ISO-8601 amb sufix ``Z``.
+    """
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
-def split_reasoning(text: str) -> tuple[str | None, str]:
-    """
-    Detecta estructures de pensament tipus <think>...</think> i les separa
-    de la resposta final visible per a l'avaluador.
-    """
-    if "<think>" in text and "</think>" in text:
-        parts = text.split("</think>")
-        reasoning = parts[0].replace("<think>", "").strip()
-        clean_answer = parts[1].strip()
-        return reasoning, clean_answer
-    return None, text.strip()
-
-
+# Configuració
 def load_config(root: Path = REPO_ROOT) -> ConfigDict:
-    """Llegeix la configuració d'inferència activa."""
+    """Llegeix la configuració d'inferència activa.
+
+    Args:
+        root: Arrel del repositori usada per resoldre camins relatius.
+
+    Returns:
+        Configuració carregada des del YAML actiu.
+    """
     config_path = Path(
         os.getenv(ENV_INFERENCIA_CONFIG, DEFAULT_INFERENCIA_CONFIG)
     )
     if not config_path.is_absolute():
         config_path = root / config_path
 
-    with config_path.open("r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    with config_path.open("r", encoding="utf-8") as file:
+        return yaml.safe_load(file)
 
 
 def apply_device_map_override(
     config: ConfigDict,
     device_map: str | None,
 ) -> ConfigDict:
-    """Sobreescriu el device_map de tots els models si s'ha indicat per CLI."""
+    """Aplica una sobreescriptura de ``device_map`` a tots els models.
+
+    Args:
+        config: Configuració d'inferència carregada.
+        device_map: Valor CLI que substitueix el ``device_map`` de cada model,
+            o ``None`` si cal mantenir la configuració.
+
+    Returns:
+        La mateixa configuració, amb els models actualitzats si escau.
+    """
     if device_map is None:
         return config
 
@@ -99,16 +108,36 @@ def resolve_config_dir(
     default_value: str,
     root: Path = REPO_ROOT,
 ) -> Path:
-    """Resol un directori de configuració relatiu al repo si cal."""
+    """Resol un directori configurat.
+
+    Args:
+        global_config: Bloc global de configuració.
+        key: Clau del directori dins del bloc global.
+        default_value: Valor per defecte si la clau no existeix.
+        root: Arrel del repositori usada per camins relatius.
+
+    Returns:
+        Camí absolut o relatiu resolt contra l'arrel del repositori.
+    """
     base_dir = Path(global_config.get(key, default_value))
     return base_dir if base_dir.is_absolute() else root / base_dir
 
 
+# Prompts
 def discover_prompt_files(
     global_config: ConfigDict | str | Path | None = None,
     root: Path = REPO_ROOT,
 ) -> list[Path]:
-    """Descobreix els fitxers YAML de prompts configurats."""
+    """Descobreix els fitxers YAML de prompts.
+
+    Args:
+        global_config: Configuració global o arrel antiga acceptada per
+            compatibilitat amb tests.
+        root: Arrel del repositori usada per resoldre camins relatius.
+
+    Returns:
+        Llista ordenada de fitxers YAML de prompts.
+    """
     if isinstance(global_config, (str, Path)):
         root = Path(global_config)
         global_config = {}
@@ -121,14 +150,19 @@ def discover_prompt_files(
     return sorted(prompts_dir.glob("*.yaml"))
 
 
-# TODO: potser es pot simplificar quan el format dels prompts es definit?
-
-
 def load_prompts(
     prompt_files: Iterable[Path],
     root: Path = REPO_ROOT,
 ) -> list[Prompt]:
-    """Carrega prompts YAML acceptant escalares, diccionaris i llistes."""
+    """Carrega prompts des de fitxers YAML.
+
+    Args:
+        prompt_files: Fitxers de prompt a llegir.
+        root: Arrel usada per guardar el camí relatiu d'origen.
+
+    Returns:
+        Llista de prompts normalitzats amb el camp ``_path_origen``.
+    """
     prompt_list = []
     for prompt_file in prompt_files:
         with prompt_file.open("r", encoding="utf-8") as file:
@@ -150,8 +184,16 @@ def load_prompts(
     return prompt_list
 
 
+# Models
 def get_model_name(model_entry: ConfigDict) -> str:
-    """Obtè el nom Hugging Face del model configurat."""
+    """Obtè el nom Hugging Face d'un model.
+
+    Args:
+        model_entry: Configuració d'un model.
+
+    Returns:
+        Nom del model compatible amb Hugging Face.
+    """
     return (
         model_entry["name"]
         if "name" in model_entry
@@ -160,7 +202,17 @@ def get_model_name(model_entry: ConfigDict) -> str:
 
 
 def get_dtype(torch_dtype: str) -> Any:
-    """Converteix el nom de dtype configurat al dtype de PyTorch."""
+    """Converteix el nom de dtype configurat al dtype de PyTorch.
+
+    Args:
+        torch_dtype: Nom del dtype configurat.
+
+    Returns:
+        Dtype de PyTorch corresponent.
+
+    Raises:
+        ValueError: Si el dtype configurat no està suportat.
+    """
     dtype_map = {
         "float16": torch.float16,
         "bfloat16": torch.bfloat16,
@@ -181,7 +233,16 @@ def load_tokenizer(
     hf_token: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
 ) -> Any:
-    """Carrega el tokenizer del model configurat."""
+    """Carrega el tokenizer del model configurat.
+
+    Args:
+        model_entry: Configuració d'un model.
+        hf_token: Token de Hugging Face, si n'hi ha.
+        tokenizer_loader: Funció injectable per carregar tokenitzadors.
+
+    Returns:
+        Tokenitzador carregat.
+    """
     return tokenizer_loader(
         get_model_name(model_entry),
         revision=model_entry["revision"],
@@ -194,7 +255,19 @@ def load_model(
     hf_token: str | None = None,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
 ) -> Any:
-    """Carrega el model i aplica la quantització si està configurada."""
+    """Carrega el model configurat.
+
+    Args:
+        model_entry: Configuració d'un model.
+        hf_token: Token de Hugging Face, si n'hi ha.
+        model_loader: Funció injectable per carregar models.
+
+    Returns:
+        Model carregat.
+
+    Raises:
+        ValueError: Si la quantització o el ``torch_dtype`` no estan suportats.
+    """
     dtype = get_dtype(model_entry["torch_dtype"])
     device_map = model_entry["device_map"]
     kwargs = {
@@ -229,10 +302,35 @@ def load_model(
     return model_loader(get_model_name(model_entry), **kwargs)
 
 
+def release_model(model: Any, tokenizer: Any) -> None:
+    """Allibera recursos del model.
+
+    És útil sobretot amb GPU i múltiples models, perquè redueix el risc
+    d'esgotar la memòria CUDA abans de carregar el model següent.
+
+    Args:
+        model: Model carregat.
+        tokenizer: Tokenitzador carregat.
+    """
+    del model
+    del tokenizer
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
+# Generació
 def build_messages(
     prompt_text: str, generation_params: ConfigDict
 ) -> list[ConfigDict]:
-    """Construeix els missatges de xat per al tokenizer."""
+    """Construeix els missatges de xat.
+
+    Args:
+        prompt_text: Text del prompt d'usuari.
+        generation_params: Paràmetres de generació.
+
+    Returns:
+        Missatges en format compatible amb plantilles de xat.
+    """
     messages = []
     if generation_params.get("system_prompt"):
         messages.append(
@@ -248,7 +346,17 @@ def generate_text(
     prompt_text: str,
     generation_params: ConfigDict,
 ) -> str:
-    """Genera la resposta del model per a un prompt."""
+    """Genera text per a un prompt.
+
+    Args:
+        tokenizer: Tokenitzador del model.
+        model: Model carregat.
+        prompt_text: Text del prompt.
+        generation_params: Paràmetres de generació.
+
+    Returns:
+        Text generat pel model.
+    """
     messages = build_messages(prompt_text, generation_params)
     if getattr(tokenizer, "chat_template", None):
         formatted_prompt = tokenizer.apply_chat_template(
@@ -284,6 +392,37 @@ def generate_text(
     return tokenizer.decode(generated_tokens, skip_special_tokens=True)
 
 
+# Resultats
+def calculate_sha256(text: str) -> str:
+    """Calcula el SHA-256 d'un text.
+
+    Args:
+        text: Text d'entrada.
+
+    Returns:
+        Hash SHA-256 codificat en hexadecimal.
+    """
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def split_reasoning(text: str) -> tuple[str | None, str]:
+    """Separa el raonament intern de la resposta final.
+
+    Args:
+        text: Text generat pel model.
+
+    Returns:
+        Tupla amb el raonament detectat, si existeix, i la resposta final
+        visible per a l'avaluador.
+    """
+    if "<think>" in text and "</think>" in text:
+        parts = text.split("</think>")
+        reasoning = parts[0].replace("<think>", "").strip()
+        clean_answer = parts[1].strip()
+        return reasoning, clean_answer
+    return None, text.strip()
+
+
 def build_result(
     prompt: Prompt,
     model_entry: ConfigDict,
@@ -293,7 +432,20 @@ def build_result(
     current_timestamp: str,
     git_commit: str,
 ) -> ConfigDict:
-    """Construeix el document YAML de sortida d'una inferència."""
+    """Construeix el document de sortida d'una inferència.
+
+    Args:
+        prompt: Prompt executat.
+        model_entry: Configuració del model.
+        generation_params: Paràmetres de generació.
+        global_config: Configuració global.
+        generated_text: Text generat pel model.
+        current_timestamp: Timestamp de l'execució.
+        git_commit: Commit Git de l'execució.
+
+    Returns:
+        Diccionari serialitzable a YAML.
+    """
     model_name = get_model_name(model_entry)
     reasoning, final_answer = split_reasoning(generated_text)
 
@@ -338,7 +490,16 @@ def save_result(
     output_dir: Path,
     prompt_id: str,
 ) -> Path:
-    """Desa una inferència en YAML i retorna el camí escrit."""
+    """Desa una inferència en YAML.
+
+    Args:
+        result_yaml: Resultat serialitzable.
+        output_dir: Directori de sortida.
+        prompt_id: Identificador del prompt.
+
+    Returns:
+        Camí del fitxer escrit.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     target_file = output_dir / f"{prompt_id}.yaml"
     with target_file.open("w", encoding="utf-8") as output_file:
@@ -351,24 +512,30 @@ def save_result(
     return target_file
 
 
-def release_model(model: Any, tokenizer: Any) -> None:
-    """Allibera referències del model i buida la cache CUDA si existeix."""
-    del model
-    del tokenizer
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-
-
+# Execució
 def run_prompt(
     prompt: Prompt,
     model_entry: ConfigDict,
-    tokenizer: Any,
-    model: Any,
+    tokenizer: object,
+    model: object,
     generation_params: ConfigDict,
     global_config: ConfigDict,
     run_context: ConfigDict,
 ) -> ConfigDict:
-    """Executa un prompt i retorna el resultat serialitzable."""
+    """Executa un prompt amb un model carregat.
+
+    Args:
+        prompt: Prompt a executar.
+        model_entry: Configuració del model.
+        tokenizer: Tokenitzador carregat.
+        model: Model carregat.
+        generation_params: Paràmetres de generació.
+        global_config: Configuració global.
+        run_context: Metadades de l'execució.
+
+    Returns:
+        Resultat serialitzable del prompt.
+    """
     generated_text = generate_text(
         tokenizer, model, prompt["text"], generation_params
     )
@@ -394,7 +561,19 @@ def run_model(
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
 ) -> None:
-    """Executa tots els prompts per a un model configurat."""
+    """Executa tots els prompts per a un model configurat.
+
+    Args:
+        model_entry: Configuració del model.
+        prompt_list: Prompts a executar.
+        generation_params: Paràmetres de generació.
+        global_config: Configuració global.
+        run_context: Metadades de l'execució.
+        root: Arrel del repositori.
+        hf_token: Token de Hugging Face, si n'hi ha.
+        tokenizer_loader: Funció injectable per carregar tokenitzadors.
+        model_loader: Funció injectable per carregar models.
+    """
     model_id = model_entry["id"]
     model_name = get_model_name(model_entry)
     LOGGER.info("Carregant model: %s (%s)", model_id, model_name)
@@ -434,50 +613,110 @@ def run_model(
         release_model(model, tokenizer)
 
 
+class InferencePipeline:
+    """Orquestra l'execució completa de la canonada d'inferència.
+
+    Args:
+        root: Arrel del repositori.
+        device_map: Valor opcional per sobreescriure el ``device_map`` dels
+            models configurats.
+        tokenizer_loader: Funció injectable per carregar tokenitzadors.
+        model_loader: Funció injectable per carregar models.
+    """
+
+    def __init__(
+        self,
+        root: Path = REPO_ROOT,
+        device_map: str | None = None,
+        tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
+        model_loader: Loader = AutoModelForCausalLM.from_pretrained,
+    ) -> None:
+        """Inicialitza la canonada d'inferència.
+
+        Args:
+            root: Arrel del repositori.
+            device_map: Valor opcional per sobreescriure el ``device_map``.
+            tokenizer_loader: Funció injectable per carregar tokenitzadors.
+            model_loader: Funció injectable per carregar models.
+        """
+        self.root = root
+        self.device_map = device_map
+        self.tokenizer_loader = tokenizer_loader
+        self.model_loader = model_loader
+
+    def run(self) -> None:
+        """Executa la canonada d'inferència.
+
+        Carrega la configuració, descobreix prompts i executa cada model
+        configurat.
+        """
+        config = apply_device_map_override(
+            load_config(self.root), self.device_map
+        )
+        global_config = config["configuracio_global"]
+        generation_params = config["parametres_generacio"]
+        hf_token = os.getenv(ENV_HF_TOKEN, None)
+        run_context = {
+            "git_commit": get_git_commit(),
+            "timestamp": timestamp_utc(),
+        }
+
+        torch.manual_seed(global_config["seed"])
+
+        prompt_list = load_prompts(
+            discover_prompt_files(global_config, root=self.root),
+            root=self.root,
+        )
+        if len(prompt_list) == 0:
+            LOGGER.error("No s'han trobat prompts")
+            return
+
+        LOGGER.info("S'han trobat %s prompts per processar.", len(prompt_list))
+
+        for model_entry in config["models"]:
+            run_model(
+                model_entry,
+                prompt_list,
+                generation_params,
+                global_config,
+                run_context,
+                root=self.root,
+                hf_token=hf_token,
+                tokenizer_loader=self.tokenizer_loader,
+                model_loader=self.model_loader,
+            )
+
+
 def run_pipeline(
     root: Path = REPO_ROOT,
     device_map: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
 ) -> None:
-    """Executa la canonada completa d'inferència."""
-    config = apply_device_map_override(load_config(root), device_map)
-    global_config = config["configuracio_global"]
-    generation_params = config["parametres_generacio"]
-    hf_token = os.getenv(ENV_HF_TOKEN, None)
-    run_context = {
-        "git_commit": get_git_commit(),
-        "timestamp": timestamp_utc(),
-    }
+    """Executa la canonada completa d'inferència.
 
-    torch.manual_seed(global_config["seed"])
-
-    prompt_list = load_prompts(
-        discover_prompt_files(global_config, root=root),
+    Args:
+        root: Arrel del repositori.
+        device_map: Valor opcional per sobreescriure el ``device_map`` dels
+            models configurats.
+        tokenizer_loader: Funció injectable per carregar tokenitzadors.
+        model_loader: Funció injectable per carregar models.
+    """
+    InferencePipeline(
         root=root,
-    )
-    if len(prompt_list) == 0:
-        LOGGER.error("No s'han trobat prompts")
-        return
-
-    LOGGER.info("S'han trobat %s prompts per processar.", len(prompt_list))
-
-    for model_entry in config["models"]:
-        run_model(
-            model_entry,
-            prompt_list,
-            generation_params,
-            global_config,
-            run_context,
-            root=root,
-            hf_token=hf_token,
-            tokenizer_loader=tokenizer_loader,
-            model_loader=model_loader,
-        )
+        device_map=device_map,
+        tokenizer_loader=tokenizer_loader,
+        model_loader=model_loader,
+    ).run()
 
 
+# CLI
 def parse_args() -> argparse.Namespace:
-    """Llegeix els paràmetres CLI de la canonada d'inferència."""
+    """Llegeix els paràmetres CLI.
+
+    Returns:
+        Namespace amb els paràmetres de la línia d'ordres.
+    """
     parser = argparse.ArgumentParser(
         description="Executa la canonada d'inferència d'Arena Cat.",
     )
@@ -492,9 +731,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Executa el punt d'entrada CLI de la canonada."""
     logging.basicConfig(
         level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s"
     )
     args = parse_args()
     run_pipeline(device_map=args.device_map)
+
+
+if __name__ == "__main__":
+    main()
