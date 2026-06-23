@@ -266,10 +266,11 @@ class TestInferencia(unittest.TestCase):
         with patch.object(inferencia, "load_config", return_value=config), \
              patch.object(inferencia, "discover_prompt_files", return_value=[]), \
              patch.object(inferencia, "run_model") as run_model, \
-             patch("builtins.print"):
+             patch.object(inferencia.LOGGER, "error") as log_error:
             inferencia.run_pipeline(root=Path("/tmp/no-prompts"))
 
         run_model.assert_not_called()
+        log_error.assert_called_once_with("No s'han trobat prompts")
 
     def test_run_pipeline_with_mock_model_saves_result(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -309,7 +310,7 @@ class TestInferencia(unittest.TestCase):
 
             with patch.object(inferencia, "get_git_commit", return_value="git123"), \
                  patch.object(inferencia, "timestamp_utc", return_value="2026-06-20T10:00:00Z"), \
-                 patch("builtins.print"):
+                 patch.object(inferencia.LOGGER, "info"):
                 inferencia.run_pipeline(
                     root=root,
                     device_map="cpu",

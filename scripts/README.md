@@ -65,6 +65,9 @@ Actualment el CLI només controla `device_map`. Si més endavant cal controlar
 altres opcions, com el dtype o la quantització, es poden afegir nous paràmetres
 específics.
 
+Els missatges de progrés fan servir `logging` i es poden reduir ajustant el
+nivell de logging.
+
 Els resultats es desen a `data/inferencies/v1/<model_id>/`.
 
 ### 6. Prova local amb un model molt petit

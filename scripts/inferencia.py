@@ -4,6 +4,7 @@ import argparse
 from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
 import hashlib
+import logging
 import os
 from pathlib import Path
 import subprocess
@@ -25,6 +26,7 @@ Loader = Callable[..., Any]
 ENV_HF_TOKEN = "HF_TOKEN"
 ENV_INFERENCIA_CONFIG = "INFERENCIA_CONFIG"
 DEFAULT_INFERENCIA_CONFIG = "config/inferencia/inferencia_config.yaml"
+LOGGER = logging.getLogger(__name__)
 
 
 def get_git_commit() -> str:
@@ -395,7 +397,7 @@ def run_model(
     """Executa tots els prompts per a un model configurat."""
     model_id = model_entry["id"]
     model_name = get_model_name(model_entry)
-    print(f"\n--- Carregant model: {model_id} ({model_name}) ---")
+    LOGGER.info("Carregant model: %s (%s)", model_id, model_name)
 
     tokenizer = load_tokenizer(
         model_entry,
@@ -417,7 +419,7 @@ def run_model(
     try:
         for prompt in prompt_list:
             prompt_id = prompt["id"]
-            print(f"Executant prompt {prompt_id}...")
+            LOGGER.info("Executant prompt %s", prompt_id)
             result_yaml = run_prompt(
                 prompt,
                 model_entry,
@@ -455,10 +457,10 @@ def run_pipeline(
         root=root,
     )
     if len(prompt_list) == 0:
-        print("Error: No s'han trobat prompts")
+        LOGGER.error("No s'han trobat prompts")
         return
 
-    print(f"S'han trobat {len(prompt_list)} prompts per processar.")
+    LOGGER.info("S'han trobat %s prompts per processar.", len(prompt_list))
 
     for model_entry in config["models"]:
         run_model(
@@ -491,5 +493,8 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s"
+    )
     args = parse_args()
     run_pipeline(device_map=args.device_map)
