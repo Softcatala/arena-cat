@@ -88,7 +88,10 @@ def split_reasoning(text: str) -> tuple[str | None, str]:
 def load_config(root: Path = REPO_ROOT) -> ConfigDict:
     """Llegeix la configuració d'inferència activa."""
     config_path = Path(
-        os.getenv("INFERENCIA_CONFIG", "config/inferencia_config.yaml")
+        os.getenv(
+            "INFERENCIA_CONFIG",
+            "config/inferencia/inferencia_config.yaml",
+        )
     )
     if not config_path.is_absolute():
         config_path = root / config_path

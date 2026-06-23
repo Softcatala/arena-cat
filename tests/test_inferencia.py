@@ -250,9 +250,9 @@ class TestInferencia(unittest.TestCase):
     def test_run_pipeline_with_mock_model_saves_result(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            config_dir = root / "config"
+            config_dir = root / "config" / "inferencia"
             prompt_dir = root / "data" / "prompts" / "v1"
-            config_dir.mkdir()
+            config_dir.mkdir(parents=True)
             prompt_dir.mkdir(parents=True)
 
             (prompt_dir / "prompt.yaml").write_text("Digues hola", encoding="utf-8")

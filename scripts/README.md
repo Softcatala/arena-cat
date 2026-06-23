@@ -47,7 +47,7 @@ Els tests fan servir dobles de prova (*mocks/stubs*) per al model i el tokenitza
 
 ### 5. Executar la inferència
 
-Abans d'executar-la, revisa `config/inferencia_config.yaml` i comprova que els models, els paràmetres de generació i els prompts són els esperats.
+Abans d'executar-la, revisa `config/inferencia/inferencia_config.yaml` i comprova que els models, els paràmetres de generació i els prompts són els esperats.
 
 ```bash
 uv run python scripts/inferencia.py
@@ -60,7 +60,7 @@ Els resultats es desen a `data/inferencies/v1/<model_id>/`.
 Per comprovar el flux complet sense carregar cap model gran, pots usar la configuració local:
 
 ```bash
-INFERENCIA_CONFIG=config/inferencia_local_config.yaml uv run python scripts/inferencia.py
+INFERENCIA_CONFIG=config/inferencia/inferencia_local_config.yaml uv run python scripts/inferencia.py
 ```
 
 Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model de prova molt petit. Serveix per validar que la descàrrega, la càrrega del model, la generació i l'escriptura dels YAML funcionen, però no per avaluar qualitat lingüística.
@@ -70,7 +70,7 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 Per provar el flux amb un model petit però real:
 
 ```bash
-INFERENCIA_CONFIG=config/inferencia_cpu_config.yaml uv run python scripts/inferencia.py
+INFERENCIA_CONFIG=config/inferencia/inferencia_cpu_config.yaml uv run python scripts/inferencia.py
 ```
 
 Aquesta configuració fa servir `Qwen/Qwen2.5-0.5B-Instruct` en CPU, sense quantització `bitsandbytes`.
