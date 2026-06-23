@@ -31,13 +31,13 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
     - Creació de la base de dades `arena_cat` i del rol d'aplicació amb permisos limitats.
     - Variables d'entorn al `.env` (`DATABASE_URL`, credencials), amb `.env.example` versionat.
 - **Model de dades**:
-    - Taules `prompts`, `respostes` i `vots` definides amb SQLAlchemy (sense `usuaris` a v1).
+    - Taules `prompts`, `responses` i `votes` definides amb SQLAlchemy (sense `users` a v1).
     - Migracions amb Alembic per poder evolucionar l'esquema a v2.
-    - Restriccions: `UNIQUE(prompt_id, model)` a `respostes`, *enum* per `guanyador` (`a` | `b` | `empat` | `cap`).
-    - Índexs sobre `vots.prompt_id` i `vots.creat_a`.
+    - Restriccions: `UNIQUE(prompt_id, model)` a `responses`, *enum* per `winner` (`a` | `b` | `tie` | `neither`).
+    - Índexs sobre `votes.prompt_id` i `votes.created_at`.
 - ***Script* de càrrega idempotent**:
     - `scripts/carrega_inferencies.py` que llegeix `data/prompts/v1/*.yaml` i `data/inferencies/v1/**/*.json`.
-    - Pobla les taules `prompts` i `respostes` amb *upsert* per clau primària.
+    - Pobla les taules `prompts` i `responses` amb *upsert* per clau primària.
     - Es pot tornar a executar sense duplicar files.
 - **Servei web FastAPI**:
     - Esquelet `backend/app/`: `main.py`, `models.py` (SQLAlchemy), `schemas.py` (Pydantic), `db.py`, `routers/`.
@@ -51,9 +51,9 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
     - Retorna el *prompt*, les dues respostes i el *token*.
 - **`POST /api/vote`**:
     - Verifica el `token_vot` (signatura i caducitat).
-    - Valida el cos amb Pydantic (`guanyador ∈ {a, b, empat, cap}`).
-    - Insereix una fila a `vots` amb `sessio_id` (extret d'una *cookie* anònima) i `temps_resposta_s`.
-    - *Rate limit* per `sessio_id`.
+    - Valida el cos amb Pydantic (`winner ∈ {a, b, tie, neither}`).
+    - Insereix una fila a `votes` amb `session_id` (extret d'una *cookie* anònima) i `response_time_s`.
+    - *Rate limit* per `session_id`.
 - **HTML local de proves** (`frontend/dev/index.html`):
     - Una sola pàgina amb HTML + JS petit, sense *framework*.
     - Crida `GET /api/task` i renderitza el *prompt* amb les dues respostes.
