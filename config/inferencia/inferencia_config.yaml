@@ -1,0 +1,40 @@
+configuracio_global:
+  seed: 42
+  backend_preferit: "transformers"
+  dir_prompts: "data/prompts/v1"
+  dir_sortida: "data/inferencies/v1"
+
+parametres_generacio:
+  temperature: 0.7
+  top_p: 0.9
+  max_new_tokens: 1024
+  # System prompt idèntic en intenció per a tots
+  system_prompt: "Ets un assistent d'intel·ligència artificial útil, precís i que respon exclusivament en llengua catalana. Contesta només amb el que es demana sense cap explicació ni text addicional."
+
+models:
+  # 1. Qwen 3.5 9B
+  - id: "qwen-3.5-9b"
+    model_name: "Qwen/Qwen3.5-9B"
+    revision: "main"
+    torch_dtype: "float32"
+    device_map: "cpu"
+    quantization: "none"
+    es_reasoning_model: true
+
+  # 2. Salamandra 7B Instruct (El model del BSC, optimitzat per a llengües europees i català)
+  - id: "salamandra-7b-instruct"
+    model_name: "BSC-LT/salamandra-7b-instruct"
+    revision: "main"
+    torch_dtype: "float32"
+    device_map: "cpu"
+    quantization: "none"
+    es_reasoning_model: false
+
+  # 3. Gemma 3 27B Instruct
+  - id: "gemma-3-27b-it"
+    model_name: "google/gemma-3-27b-it"
+    revision: "main"
+    torch_dtype: "float32"
+    device_map: "cpu"
+    quantization: "none"
+    es_reasoning_model: true

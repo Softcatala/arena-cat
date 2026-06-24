@@ -13,3 +13,7 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+.hf-cache/
+arena_cat.egg-info
+
+

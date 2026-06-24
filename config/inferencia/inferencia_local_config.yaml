@@ -1,0 +1,18 @@
+configuracio_global:
+  seed: 42
+  backend_preferit: "transformers"
+
+parametres_generacio:
+  temperature: 0
+  top_p: 1.0
+  max_new_tokens: 16
+  system_prompt: ""
+
+models:
+  - id: "tiny-random-gpt2"
+    model_name: "hf-internal-testing/tiny-random-gpt2"
+    revision: "main"
+    torch_dtype: "float32"
+    device_map: "cpu"
+    quantization: "none"
+    es_reasoning_model: false

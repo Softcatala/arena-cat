@@ -41,3 +41,8 @@ cd backend && uv sync && uv run alembic upgrade head
 - **Entorn**: gestionat amb `uv` (no cal activar venv ni pyenv). No versionis `.env`.
 - **Esquema**: tot canvi a la base de dades passa per una migració d'Alembic. Revisa
   sempre els fitxers autogenerats i actualitza el diagrama a `docs/esquema_db.md`.
+
+## Política lingüística del repository
+
+- L'idioma dels noms de les funcions, classes i codi en general, és l'anglès
+- L'idioma dels docstrings i documentació general és el català

@@ -1,0 +1,28 @@
+[project]
+name = "arena-cat"
+version = "0.1.0"
+description = "Canonada d'inferència: processa prompts i desa els resultats generats"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate==1.14.0",
+    "bitsandbytes==0.49.2",
+    "pyyaml==6.0.3",
+    "torch==2.12.1",
+    "transformers==5.12.1",
+]
+
+[tool.uv]
+package = false
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.18",
+]
+
+[tool.setuptools]
+packages = []
