@@ -24,7 +24,6 @@ ConfigDict = dict[str, Any]
 Prompt = dict[str, Any]
 Loader = Callable[..., Any]
 ENV_HF_TOKEN = "HF_TOKEN"
-ENV_INFERENCIA_CONFIG = "INFERENCIA_CONFIG"
 DEFAULT_INFERENCIA_CONFIG = "config/inferencia/inferencia_config.yaml"
 LOGGER = logging.getLogger(__name__)
 
@@ -60,18 +59,20 @@ def timestamp_utc() -> str:
 
 
 # Configuració
-def load_config(root: Path = REPO_ROOT) -> ConfigDict:
+def load_config(
+    root: Path = REPO_ROOT,
+    config_path: str | Path = DEFAULT_INFERENCIA_CONFIG,
+) -> ConfigDict:
     """Llegeix la configuració d'inferència activa.
 
     Args:
         root: Arrel del repositori usada per resoldre camins relatius.
+        config_path: Fitxer YAML de configuració.
 
     Returns:
         Configuració carregada des del YAML actiu.
     """
-    config_path = Path(
-        os.getenv(ENV_INFERENCIA_CONFIG, DEFAULT_INFERENCIA_CONFIG)
-    )
+    config_path = Path(config_path)
     if not config_path.is_absolute():
         config_path = root / config_path
 
@@ -618,6 +619,7 @@ class InferencePipeline:
 
     Args:
         root: Arrel del repositori.
+        config_path: Fitxer YAML de configuració.
         device_map: Valor opcional per sobreescriure el ``device_map`` dels
             models configurats.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
@@ -627,6 +629,7 @@ class InferencePipeline:
     def __init__(
         self,
         root: Path = REPO_ROOT,
+        config_path: str | Path = DEFAULT_INFERENCIA_CONFIG,
         device_map: str | None = None,
         tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
         model_loader: Loader = AutoModelForCausalLM.from_pretrained,
@@ -635,11 +638,13 @@ class InferencePipeline:
 
         Args:
             root: Arrel del repositori.
+            config_path: Fitxer YAML de configuració.
             device_map: Valor opcional per sobreescriure el ``device_map``.
             tokenizer_loader: Funció injectable per carregar tokenitzadors.
             model_loader: Funció injectable per carregar models.
         """
         self.root = root
+        self.config_path = config_path
         self.device_map = device_map
         self.tokenizer_loader = tokenizer_loader
         self.model_loader = model_loader
@@ -651,7 +656,7 @@ class InferencePipeline:
         configurat.
         """
         config = apply_device_map_override(
-            load_config(self.root), self.device_map
+            load_config(self.root, self.config_path), self.device_map
         )
         global_config = config["configuracio_global"]
         generation_params = config["parametres_generacio"]
@@ -689,6 +694,7 @@ class InferencePipeline:
 
 def run_pipeline(
     root: Path = REPO_ROOT,
+    config_path: str | Path = DEFAULT_INFERENCIA_CONFIG,
     device_map: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
@@ -697,6 +703,7 @@ def run_pipeline(
 
     Args:
         root: Arrel del repositori.
+        config_path: Fitxer YAML de configuració.
         device_map: Valor opcional per sobreescriure el ``device_map`` dels
             models configurats.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
@@ -704,6 +711,7 @@ def run_pipeline(
     """
     InferencePipeline(
         root=root,
+        config_path=config_path,
         device_map=device_map,
         tokenizer_loader=tokenizer_loader,
         model_loader=model_loader,
@@ -721,6 +729,11 @@ def parse_args() -> argparse.Namespace:
         description="Executa la canonada d'inferència d'Arena Cat.",
     )
     parser.add_argument(
+        "--config",
+        default=DEFAULT_INFERENCIA_CONFIG,
+        help="Fitxer YAML de configuració d'inferència.",
+    )
+    parser.add_argument(
         "--device-map",
         choices=("auto", "cpu"),
         help=(
@@ -728,16 +741,23 @@ def parse_args() -> argparse.Namespace:
             "Si cal més control en el futur, es poden afegir nous paràmetres CLI."
         ),
     )
+    parser.add_argument(
+        "--log-level",
+        choices=("DEBUG", "INFO", "WARNING", "ERROR"),
+        default="INFO",
+        help="Nivell mínim dels missatges de logging.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     """Executa el punt d'entrada CLI de la canonada."""
-    logging.basicConfig(
-        level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s"
-    )
     args = parse_args()
-    run_pipeline(device_map=args.device_map)
+    logging.basicConfig(
+        level=args.log_level, format="%(levelname)s:%(name)s:%(message)s"
+    )
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    run_pipeline(config_path=args.config, device_map=args.device_map)
 
 
 if __name__ == "__main__":

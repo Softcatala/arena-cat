@@ -9,7 +9,7 @@ parametres_generacio:
   top_p: 0.9
   max_new_tokens: 1024
   # System prompt idèntic en intenció per a tots
-  system_prompt: "Ets un assistent d'intel·ligència artificial útil, precís i que respon exclusivament en llengua catalana."
+  system_prompt: "Ets un assistent d'intel·ligència artificial útil, precís i que respon exclusivament en llengua catalana. Contesta només amb el que es demana sense cap explicació ni text addicional."
 
 models:
   # 1. Qwen 3.5 9B

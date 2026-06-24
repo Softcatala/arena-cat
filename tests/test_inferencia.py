@@ -55,6 +55,49 @@ class FakeModel:
 
 
 class TestInferencia(unittest.TestCase):
+    def test_load_config_accepts_explicit_config_path(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            config_dir = root / "config" / "inferencia"
+            config_dir.mkdir(parents=True)
+            config_file = config_dir / "local.yaml"
+            config_file.write_text(
+                yaml.dump({"configuracio_global": {"seed": 42}}),
+                encoding="utf-8",
+            )
+
+            config = inferencia.load_config(root=root, config_path=config_file)
+
+        self.assertEqual(config["configuracio_global"]["seed"], 42)
+
+    def test_parse_args_uses_default_config_path(self):
+        with patch("sys.argv", ["inferencia.py"]):
+            args = inferencia.parse_args()
+
+        self.assertEqual(args.config, inferencia.DEFAULT_INFERENCIA_CONFIG)
+        self.assertEqual(args.log_level, "INFO")
+
+    def test_parse_args_accepts_config_path(self):
+        with patch(
+            "sys.argv",
+            [
+                "inferencia.py",
+                "--config",
+                "config/inferencia/inferencia_local_config.yaml",
+            ],
+        ):
+            args = inferencia.parse_args()
+
+        self.assertEqual(
+            args.config, "config/inferencia/inferencia_local_config.yaml"
+        )
+
+    def test_parse_args_accepts_log_level(self):
+        with patch("sys.argv", ["inferencia.py", "--log-level", "WARNING"]):
+            args = inferencia.parse_args()
+
+        self.assertEqual(args.log_level, "WARNING")
+
     def test_load_prompts_accepts_text_dict_and_list(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)

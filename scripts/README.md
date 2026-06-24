@@ -55,18 +55,30 @@ Abans d'executar-la, revisa `config/inferencia/inferencia_config.yaml` i comprov
 uv run python scripts/inferencia.py
 ```
 
-Per sobreescriure el dispositiu definit a la configuració:
+Per sobreescriure el dispositiu (device-map) definit a la configuració:
 
 ```bash
 uv run python scripts/inferencia.py --device-map cpu
 ```
+Si més endavant cal controlar altres opcions adicionals, com el dtype o la quantització,
+es poden afegir nous paràmetres específics.
 
-Actualment el CLI només controla `device_map`. Si més endavant cal controlar
-altres opcions, com el dtype o la quantització, es poden afegir nous paràmetres
-específics.
+
+Per fer servir un fitxer de configuració alternatiu:
+
+```bash
+uv run python scripts/inferencia.py --config config/inferencia/inferencia_local_config.yaml
+```
 
 Els missatges de progrés fan servir `logging` i es poden reduir ajustant el
 nivell de logging.
+
+
+Per veure només avisos i errors:
+
+```bash
+uv run python scripts/inferencia.py --log-level WARNING
+```
 
 Els resultats es desen a `data/inferencies/v1/<model_id>/`.
 
@@ -75,17 +87,7 @@ Els resultats es desen a `data/inferencies/v1/<model_id>/`.
 Per comprovar el flux complet sense carregar cap model gran, pots usar la configuració local:
 
 ```bash
-INFERENCIA_CONFIG=config/inferencia/inferencia_local_config.yaml uv run python scripts/inferencia.py
+uv run python scripts/inferencia.py --config config/inferencia/inferencia_local_config.yaml
 ```
 
 Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model de prova molt petit. Serveix per validar que la descàrrega, la càrrega del model, la generació i l'escriptura dels YAML funcionen, però no per avaluar qualitat lingüística.
-
-### 7. Prova local en CPU amb 16 GB de RAM
-
-Per provar el flux amb un model petit però real:
-
-```bash
-INFERENCIA_CONFIG=config/inferencia/inferencia_cpu_config.yaml uv run python scripts/inferencia.py
-```
-
-Aquesta configuració fa servir `Qwen/Qwen2.5-0.5B-Instruct` en CPU, sense quantització `bitsandbytes`.
