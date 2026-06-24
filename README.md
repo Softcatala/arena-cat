@@ -98,6 +98,13 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                     <sub><b>Albert Casanovas</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/bytesontherocks">
+                    <img src="https://avatars.githubusercontent.com/u/44874065?v=4" width="100;" alt="bytesontherocks"/>
+                    <br />
+                    <sub><b>bytesontherocks</b></sub>
+                </a>
+            </td>
 		</tr>
 	<tbody>
 </table>
