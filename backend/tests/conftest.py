@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app import models
 from app.config import get_settings
 from app.db import Base
-from app.seeds import CATEGORIES_INICIALS
+from app.seeds import INITIAL_CATEGORIES
 
 
 @pytest.fixture(scope="session")
@@ -22,7 +22,7 @@ def engine():
     Base.metadata.drop_all(eng)
     Base.metadata.create_all(eng)
     with Session(eng) as seed_session:
-        seed_session.add_all([models.Categoria(**c) for c in CATEGORIES_INICIALS])
+        seed_session.add_all([models.Category(**c) for c in INITIAL_CATEGORIES])
         seed_session.commit()
     yield eng
     Base.metadata.drop_all(eng)

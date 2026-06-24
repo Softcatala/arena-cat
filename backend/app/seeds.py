@@ -1,7 +1,7 @@
 """Dades de referència inicials, compartides entre la migració i els tests."""
 
-CATEGORIES_INICIALS = [
-    {"codi": "correccio", "nom": "Correcció", "descripcio": "Corregeix aquest text."},
-    {"codi": "reformulacio", "nom": "Reformulació", "descripcio": "Reformula aquest text."},
-    {"codi": "traduccio", "nom": "Traducció", "descripcio": "Tradueix aquest text."},
+INITIAL_CATEGORIES = [
+    {"code": "correccio", "name": "Correcció", "description": "Corregeix aquest text."},
+    {"code": "reformulacio", "name": "Reformulació", "description": "Reformula aquest text."},
+    {"code": "traduccio", "name": "Traducció", "description": "Tradueix aquest text."},
 ]
