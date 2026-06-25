@@ -99,6 +99,13 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/carmencampo04">
+                    <img src="https://avatars.githubusercontent.com/u/243333619?v=4" width="100;" alt="carmencampo04"/>
+                    <br />
+                    <sub><b>Carmen C. L.</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/bytesontherocks">
                     <img src="https://avatars.githubusercontent.com/u/44874065?v=4" width="100;" alt="bytesontherocks"/>
                     <br />
