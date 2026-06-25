@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # Rol d'aplicació amb permisos limitats: el consumeix el servei.
     app_db_user: str
     app_db_password: str
+    # API Secret Key FastAPI
+    api_secret_key: str
 
     def _url(self, user: str, password: str, database: str) -> str:
         return URL.create(
