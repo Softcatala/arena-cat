@@ -364,6 +364,7 @@ def generate_text(
             messages,
             tokenize=False,
             add_generation_prompt=True,
+            enable_thinking=False,
         )
     else:
         formatted_prompt = "\n\n".join(

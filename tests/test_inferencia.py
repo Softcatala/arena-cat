@@ -27,10 +27,13 @@ class FakeTokenizer:
         self.formatted_prompt = None
         self.decode_args = None
 
-    def apply_chat_template(self, messages, tokenize, add_generation_prompt):
+    def apply_chat_template(
+        self, messages, tokenize, add_generation_prompt, enable_thinking
+    ):
         self.messages = messages
         assert tokenize is False
         assert add_generation_prompt is True
+        assert enable_thinking is False
         return "PROMPT"
 
     def __call__(self, formatted_prompt, return_tensors):
