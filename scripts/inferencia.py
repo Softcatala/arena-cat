@@ -631,14 +631,7 @@ def run_model(
 
     if not inference_times:
         return None
-    avg_time = sum(inference_times) / len(inference_times)
-    LOGGER.info(
-        "Temps mitjà d'inferència per a %s: %.2f s (%d prompts)",
-        model_id,
-        avg_time,
-        len(inference_times),
-    )
-    return avg_time
+    return sum(inference_times) / len(inference_times)
 
 
 class InferencePipeline:
