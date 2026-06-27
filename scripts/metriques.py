@@ -1,12 +1,11 @@
 # Mètriques de distància entre sortides de models per a un mateix prompt:
-# chrF, cosinus de n-grames de caràcters i distància d'edició normalitzada.
+# chrF i distància d'edició normalitzada.
 
 from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Iterable
 from itertools import combinations
-import math
 from pathlib import Path
 from typing import Any
 
@@ -80,67 +79,42 @@ def edit_distance(text_a: str, text_b: str) -> float:
     return prev[len_b] / max(len_a, len_b)
 
 
-def _ngram_vector(text: str, max_n: int = 4) -> Counter[str]:
-    """Vector de freqüències de n-grames de caràcters (n=1..max_n)."""
-    vector: Counter[str] = Counter()
-    for n in range(1, max_n + 1):
-        for ngram, count in _char_ngrams(text, n).items():
-            vector[f"{n}:{ngram}"] += count
-    return vector
-
-
-def cosine(text_a: str, text_b: str, max_n: int = 4) -> float:
-    """Similitud cosinus entre dues cadenes a partir de n-grames de caràcters.
-
-    Returns:
-        Valor entre 0 i 1. Més alt = més semblants.
-    """
-    if not text_a or not text_b:
-        return 0.0
-    vec_a = _ngram_vector(text_a, max_n=max_n)
-    vec_b = _ngram_vector(text_b, max_n=max_n)
-    dot = sum(vec_a[key] * vec_b.get(key, 0) for key in vec_a)
-    norm_a = math.sqrt(sum(value * value for value in vec_a.values()))
-    norm_b = math.sqrt(sum(value * value for value in vec_b.values()))
-    if norm_a == 0 or norm_b == 0:
-        return 0.0
-    return dot / (norm_a * norm_b)
-
-
 def pairwise_metrics(outputs: dict[str, str]) -> dict[str, Any]:
-    """Calcula chrF, cosinus i edit entre totes les parelles, amb mitjana i pitjor cas.
+    """Calcula chrF i edit entre totes les parelles, com a distàncies 0-1.
 
-    La parella "pitjor" és la més semblant del trio (chrF/cos màxims, edit mínim):
-    indica si dos models continuen sonant igual encara que la mitjana sigui alta.
+    Totes dues mètriques s'expressen en la mateixa direcció (0 = idèntiques,
+    1 = totalment diferents). La parella "pitjor" és la més semblant del trio
+    (mínim en totes dues): indica si dos models segueixen sonant igual encara
+    que la mitjana del grup sigui alta.
     """
     pairs = []
-    chrf_values: list[float] = []
-    cosine_values: list[float] = []
+    chrf_dist_values: list[float] = []
     edit_values: list[float] = []
+    dist_values: list[float] = []
     for left, right in combinations(sorted(outputs), 2):
-        chrf_score = chrf(outputs[left], outputs[right])
-        cos_score = cosine(outputs[left], outputs[right])
+        chrf_dist = 1.0 - chrf(outputs[left], outputs[right]) / 100.0
         edit_score = edit_distance(outputs[left], outputs[right])
+        dist = (chrf_dist + edit_score) / 2.0
         pairs.append(
             {
                 "pair": (left, right),
-                "chrf": chrf_score,
-                "cosine": cos_score,
+                "chrf_dist": chrf_dist,
                 "edit": edit_score,
+                "dist": dist,
             }
         )
-        chrf_values.append(chrf_score)
-        cosine_values.append(cos_score)
+        chrf_dist_values.append(chrf_dist)
         edit_values.append(edit_score)
+        dist_values.append(dist)
 
     return {
         "pairs": pairs,
-        "chrf_mean": sum(chrf_values) / len(chrf_values),
-        "cosine_mean": sum(cosine_values) / len(cosine_values),
+        "chrf_dist_mean": sum(chrf_dist_values) / len(chrf_dist_values),
         "edit_mean": sum(edit_values) / len(edit_values),
-        "chrf_worst": max(chrf_values),
-        "cosine_worst": max(cosine_values),
+        "dist_mean": sum(dist_values) / len(dist_values),
+        "chrf_dist_worst": min(chrf_dist_values),
         "edit_worst": min(edit_values),
+        "dist_worst": min(dist_values),
     }
 
 
@@ -178,7 +152,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Calcula chrF, cosinus i distància d'edició entre sortides "
+        description="Calcula chrF i distància d'edició entre sortides "
         "de models per a tots els prompts trobats."
     )
     parser.add_argument(
@@ -212,14 +186,16 @@ if __name__ == "__main__":
             left, right = pair["pair"]
             print(
                 f"  {left:<28} vs {right:<28} "
-                f"chrF={pair['chrf']:5.2f}  cos={pair['cosine']:.3f}  "
-                f"edit={pair['edit']:.3f}"
+                f"chrF_d={pair['chrf_dist']:.3f}  edit={pair['edit']:.3f}  "
+                f"dist={pair['dist']:.3f}"
             )
         print(
-            f"  mitjana   chrF={metrics['chrf_mean']:5.2f}  "
-            f"cos={metrics['cosine_mean']:.3f}  edit={metrics['edit_mean']:.3f}"
+            f"  mitjana   chrF_d={metrics['chrf_dist_mean']:.3f}  "
+            f"edit={metrics['edit_mean']:.3f}  "
+            f"dist={metrics['dist_mean']:.3f}"
         )
         print(
-            f"  pitjor    chrF={metrics['chrf_worst']:5.2f}  "
-            f"cos={metrics['cosine_worst']:.3f}  edit={metrics['edit_worst']:.3f}"
+            f"  pitjor    chrF_d={metrics['chrf_dist_worst']:.3f}  "
+            f"edit={metrics['edit_worst']:.3f}  "
+            f"dist={metrics['dist_worst']:.3f}"
         )

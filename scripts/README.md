@@ -89,16 +89,17 @@ models per a un mateix prompt. Serveix per detectar prompts on els models
 generen respostes massa semblants — i, per tant, on un avaluador humà no podrà
 distingir-les fàcilment.
 
-Per a cada prompt amb sortides desades, imprimeix tres mètriques per parella de
-models i les seves agregacions:
+Per a cada parella de models imprimeix dues mètriques **normalitzades a
+distància** (0 = sortides idèntiques, 1 = totalment diferents) i la seva
+mitjana:
 
-- **chrF** (0–100, més alt = més semblants): F-score de n-grames de caràcters.
-- **cosinus** (0–1, més alt = més semblants): cosinus de vectors de n-grames.
-- **edit** (0–1, més alt = més diferents): Levenshtein normalitzat a caràcter.
+- **chrF_d**: `1 − chrF/100` (n-grames de caràcters).
+- **edit**: Levenshtein normalitzat a caràcter.
+- **dist**: mitjana de les dues anteriors, com a resum d'un cop d'ull.
 
 A més de la mitjana de les parelles, mostra la **parella pitjor** (la més
-semblant del trio: chrF/cos màxims, edit mínim), que delata si dos models
-continuen sonant igual encara que la mitjana sigui alta.
+semblant del trio, mínim de les distàncies), que delata si dos models continuen
+sonant igual encara que la mitjana sigui alta.
 
 ```bash
 uv run python scripts/metriques.py
