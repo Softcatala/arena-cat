@@ -8,6 +8,7 @@ import logging
 import os
 from pathlib import Path
 import subprocess
+import time
 from typing import Any
 
 import torch
@@ -360,11 +361,19 @@ def generate_text(
     """
     messages = build_messages(prompt_text, generation_params)
     if getattr(tokenizer, "chat_template", None):
-        formatted_prompt = tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
+        try:
+            formatted_prompt = tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=False,
+            )
+        except TypeError:
+            formatted_prompt = tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
     else:
         formatted_prompt = "\n\n".join(
             message["content"] for message in messages if message["content"]
@@ -561,7 +570,7 @@ def run_model(
     hf_token: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
-) -> None:
+) -> float | None:
     """Executa tots els prompts per a un model configurat.
 
     Args:
@@ -574,6 +583,10 @@ def run_model(
         hf_token: Token de Hugging Face, si n'hi ha.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
+
+    Returns:
+        Temps mitjà d'inferència per prompt en segons, o ``None`` si no s'ha
+        executat cap prompt.
     """
     model_id = model_entry["id"]
     model_name = get_model_name(model_entry)
@@ -596,10 +609,12 @@ def run_model(
         / model_id
     )
 
+    inference_times: list[float] = []
     try:
         for prompt in prompt_list:
             prompt_id = prompt["id"]
             LOGGER.info("Executant prompt %s", prompt_id)
+            start_time = time.perf_counter()
             result_yaml = run_prompt(
                 prompt,
                 model_entry,
@@ -609,9 +624,14 @@ def run_model(
                 global_config,
                 run_context,
             )
+            inference_times.append(time.perf_counter() - start_time)
             save_result(result_yaml, output_dir, prompt_id)
     finally:
         release_model(model, tokenizer)
+
+    if not inference_times:
+        return None
+    return sum(inference_times) / len(inference_times)
 
 
 class InferencePipeline:
@@ -678,8 +698,9 @@ class InferencePipeline:
 
         LOGGER.info("S'han trobat %s prompts per processar.", len(prompt_list))
 
+        avg_times: dict[str, float] = {}
         for model_entry in config["models"]:
-            run_model(
+            avg_time = run_model(
                 model_entry,
                 prompt_list,
                 generation_params,
@@ -690,6 +711,13 @@ class InferencePipeline:
                 tokenizer_loader=self.tokenizer_loader,
                 model_loader=self.model_loader,
             )
+            if avg_time is not None:
+                avg_times[model_entry["id"]] = avg_time
+
+        if avg_times:
+            LOGGER.info("Temps mitjà d'inferència per model:")
+            for model_id, avg_time in avg_times.items():
+                LOGGER.info("  %s: %.2f s/prompt", model_id, avg_time)
 
 
 def run_pipeline(
