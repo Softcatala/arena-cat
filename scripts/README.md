@@ -82,7 +82,31 @@ uv run python scripts/inferencia.py --log-level WARNING
 
 Els resultats es desen a `data/inferencies/v1/<model_id>/`.
 
-### 6. Prova local amb un model molt petit
+### 6. Mètriques de distància entre sortides
+
+`scripts/metriques.py` calcula com de diferents són les sortides dels diferents
+models per a un mateix prompt. Serveix per detectar prompts on els models
+generen respostes massa semblants — i, per tant, on un avaluador humà no podrà
+distingir-les fàcilment.
+
+Per a cada parella de models imprimeix dues mètriques **normalitzades a
+distància** (0 = sortides idèntiques, 1 = totalment diferents) i la seva
+mitjana:
+
+- **chrF_d**: `1 − chrF/100` (n-grames de caràcters).
+- **edit**: Levenshtein normalitzat a caràcter.
+- **combinat**: mitjana de les dues anteriors, com a resum d'un cop d'ull.
+
+A més de la mitjana de les parelles, mostra la **parella pitjor** (la més
+semblant del trio, mínim de les distàncies), que delata si dos models continuen
+sonant igual encara que la mitjana sigui alta.
+
+```bash
+uv run python scripts/metriques.py
+uv run python scripts/metriques.py --inferencies data/inferencies/hypotheses
+```
+
+### 7. Prova local amb un model molt petit
 
 Per comprovar el flux complet sense carregar cap model gran, pots usar la configuració local:
 
