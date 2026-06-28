@@ -90,31 +90,31 @@ def pairwise_metrics(outputs: dict[str, str]) -> dict[str, Any]:
     pairs = []
     chrf_dist_values: list[float] = []
     edit_values: list[float] = []
-    dist_values: list[float] = []
+    combinat_values: list[float] = []
     for left, right in combinations(sorted(outputs), 2):
         chrf_dist = 1.0 - chrf(outputs[left], outputs[right]) / 100.0
         edit_score = edit_distance(outputs[left], outputs[right])
-        dist = (chrf_dist + edit_score) / 2.0
+        combinat = (chrf_dist + edit_score) / 2.0
         pairs.append(
             {
                 "pair": (left, right),
                 "chrf_dist": chrf_dist,
                 "edit": edit_score,
-                "dist": dist,
+                "combinat": combinat,
             }
         )
         chrf_dist_values.append(chrf_dist)
         edit_values.append(edit_score)
-        dist_values.append(dist)
+        combinat_values.append(combinat)
 
     return {
         "pairs": pairs,
         "chrf_dist_mean": sum(chrf_dist_values) / len(chrf_dist_values),
         "edit_mean": sum(edit_values) / len(edit_values),
-        "dist_mean": sum(dist_values) / len(dist_values),
+        "combinat_mean": sum(combinat_values) / len(combinat_values),
         "chrf_dist_worst": min(chrf_dist_values),
         "edit_worst": min(edit_values),
-        "dist_worst": min(dist_values),
+        "combinat_worst": min(combinat_values),
     }
 
 
@@ -137,6 +137,18 @@ def load_answers(
         if answer is not None:
             answers[model_id] = answer
     return answers
+
+
+def load_prompt(
+    prompt_id: str,
+    root: Path = REPO_ROOT,
+    prompts_subdir: str = "data/prompts/v1",
+) -> str | None:
+    """Llegeix el text original d'un prompt."""
+    path = root / prompts_subdir / f"{prompt_id}.yaml"
+    if not path.exists():
+        return None
+    return path.read_text(encoding="utf-8").rstrip()
 
 
 def _discover_prompt_ids(inferences_dir: Path, model_ids: list[str]) -> list[str]:
@@ -166,6 +178,11 @@ if __name__ == "__main__":
         default="data/inferencies/v1",
         help="Subdirectori d'inferències.",
     )
+    parser.add_argument(
+        "--prompts",
+        default="data/prompts/v1",
+        help="Subdirectori amb els fitxers de prompts originals.",
+    )
     args = parser.parse_args()
 
     prompt_ids = _discover_prompt_ids(REPO_ROOT / args.inferencies, args.models)
@@ -173,6 +190,7 @@ if __name__ == "__main__":
         print(f"No s'ha trobat cap sortida a {args.inferencies}")
         raise SystemExit(1)
 
+    inspection_blocks: list[str] = []
     for prompt_id in prompt_ids:
         outputs = load_answers(
             prompt_id, args.models, inference_subdir=args.inferencies
@@ -187,15 +205,40 @@ if __name__ == "__main__":
             print(
                 f"  {left:<28} vs {right:<28} "
                 f"chrF_d={pair['chrf_dist']:.3f}  edit={pair['edit']:.3f}  "
-                f"dist={pair['dist']:.3f}"
+                f"combinat={pair['combinat']:.3f}"
             )
         print(
             f"  mitjana   chrF_d={metrics['chrf_dist_mean']:.3f}  "
             f"edit={metrics['edit_mean']:.3f}  "
-            f"dist={metrics['dist_mean']:.3f}"
+            f"combinat={metrics['combinat_mean']:.3f}"
         )
         print(
             f"  pitjor    chrF_d={metrics['chrf_dist_worst']:.3f}  "
             f"edit={metrics['edit_worst']:.3f}  "
-            f"dist={metrics['dist_worst']:.3f}"
+            f"combinat={metrics['combinat_worst']:.3f}"
         )
+
+        prompt_text = load_prompt(prompt_id, prompts_subdir=args.prompts)
+        for pair in metrics["pairs"]:
+            left, right = pair["pair"]
+            block = [
+                "=" * 80,
+                f"prompt: {prompt_id}   parella: {left} vs {right}",
+                f"chrF_d={pair['chrf_dist']:.3f}  edit={pair['edit']:.3f}  "
+                f"combinat={pair['combinat']:.3f}",
+                "-- prompt original --",
+                prompt_text if prompt_text is not None else "(no s'ha trobat)",
+                f"-- {left} --",
+                outputs[left],
+                f"-- {right} --",
+                outputs[right],
+            ]
+            inspection_blocks.append("\n".join(block))
+
+    if inspection_blocks:
+        print()
+        print("#" * 80)
+        print("# Inspecció visual")
+        print("#" * 80)
+        for block in inspection_blocks:
+            print(block)

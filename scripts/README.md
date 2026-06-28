@@ -95,7 +95,7 @@ mitjana:
 
 - **chrF_d**: `1 − chrF/100` (n-grames de caràcters).
 - **edit**: Levenshtein normalitzat a caràcter.
-- **dist**: mitjana de les dues anteriors, com a resum d'un cop d'ull.
+- **combinat**: mitjana de les dues anteriors, com a resum d'un cop d'ull.
 
 A més de la mitjana de les parelles, mostra la **parella pitjor** (la més
 semblant del trio, mínim de les distàncies), que delata si dos models continuen

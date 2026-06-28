@@ -361,19 +361,12 @@ def generate_text(
     """
     messages = build_messages(prompt_text, generation_params)
     if getattr(tokenizer, "chat_template", None):
-        try:
-            formatted_prompt = tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=True,
-                enable_thinking=False,
-            )
-        except TypeError:
-            formatted_prompt = tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=True,
-            )
+        formatted_prompt = tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False,
+        )
     else:
         formatted_prompt = "\n\n".join(
             message["content"] for message in messages if message["content"]
