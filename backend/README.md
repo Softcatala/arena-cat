@@ -21,6 +21,7 @@ From `backend/`:
 ```bash
 uv sync                       # install the dependencies
 uv run alembic upgrade head   # create the schema in arena_cat
+uv run pre-commit install     # lint/format git hook (catches issues before CI)
 ```
 
 ## Structure

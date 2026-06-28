@@ -21,6 +21,7 @@ Arena Cat is a platform for human evaluation of AI models in Catalan.
 cp .env.example .env
 docker compose up -d --wait
 cd backend && uv sync && uv run alembic upgrade head
+uv run pre-commit install   # lint/format git hook (catches issues before CI)
 ```
 
 ## Common commands (from `backend/`)
