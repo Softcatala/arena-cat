@@ -32,23 +32,18 @@ def _load_original_prompt(inferences_dir: Path, prompt_id: str) -> str:
     """Llegeix el prompt original referenciat per qualsevol de les inferències."""
     for model_id in MODEL_IDS:
         inf_path = inferences_dir / model_id / f"{prompt_id}.yaml"
-        if not inf_path.exists():
+        if not inf_path.is_file():
             continue
-        with inf_path.open("r", encoding="utf-8") as f:
-            rel = yaml.safe_load(f).get("prompt", {}).get("path")
-        if not rel:
+        rel = (yaml.safe_load(inf_path.read_text("utf-8")) or {}).get("prompt", {}).get("path")
+        prompt_path = REPO_ROOT / rel if rel else None
+        if not prompt_path or not prompt_path.is_file():
             continue
-        prompt_path = REPO_ROOT / rel
-        if not prompt_path.exists():
-            continue
-        raw = prompt_path.read_text(encoding="utf-8")
+        raw = prompt_path.read_text("utf-8")
         try:
             data = yaml.safe_load(raw)
         except yaml.YAMLError:
             data = None
-        if isinstance(data, dict) and "text" in data:
-            return data["text"].strip()
-        return raw.strip()
+        return (data["text"] if isinstance(data, dict) and "text" in data else raw).strip()
     return "(prompt original no trobat)"
 
 
