@@ -1,9 +1,8 @@
 name: Contributors README
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types: [opened, reopened]
   workflow_dispatch:
 
 jobs:
@@ -14,6 +13,11 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
       - uses: akhilmhdh/contributors-readme-action@v2.3.10
+        with:
+          auto_detect_branch_protection: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: refs/heads/${{ github.head_ref }}
