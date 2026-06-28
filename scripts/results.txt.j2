@@ -1,0 +1,48 @@
+RESULTATS - Distàncies entre sortides de models per prompt
+
+Inferències:   {{ inferencies }}
+Models:        {{ models_display | join(', ') }}
+
+Mètriques (0 = idèntiques, 1 = totalment diferents):
+  - chrF_d:   distància chrF
+  - edit:     distància de Levenshtein normalitzada
+  - combinat: mitjana de chrF_d i edit
+
+Rang 0 = prompt MÉS DISCRIMINANT (sortides més divergents entre models).
+
+RESUM DE RANGS
+{{ '-' * 80 }}
+{{ '%-6s%-35s%-16s%-14s%s' | format('rang', 'prompt', 'chrF_d mitjà', 'edit mitjà', 'combinat') }}
+{%- for e in entries %}
+{{ '%-6d%-35s%-16.3f%-14.3f%.4f' | format(loop.index0, e.prompt_id, e.metrics.chrf_dist_mean, e.metrics.edit_mean, e.metrics.combinat_mean) }}
+{%- endfor %}
+
+{% for e in entries -%}
+{{ '=' * 80 }}
+PROMPT {{ e.prompt_id }}
+{{ '=' * 80 }}
+Rang (0 = més discriminant): {{ loop.index0 }}
+Puntuació (combinat mitjà, més alt = més divergent): {{ '%.4f' | format(e.metrics.combinat_mean) }}
+
+--- PROMPT ORIGINAL ---
+{{ e.prompt_text }}
+
+--- MÈTRIQUES PARELLA A PARELLA ---
+{%- for p in e.metrics.pairs %}
+  {{ '%-28s vs %-28s chrF_d=%.3f  edit=%.3f  combinat=%.3f' | format(p.pair[0], p.pair[1], p.chrf_dist, p.edit, p.combinat) }}
+{%- endfor %}
+  chrF_d mitjà : {{ '%.3f' | format(e.metrics.chrf_dist_mean) }}    edit mitjà : {{ '%.3f' | format(e.metrics.edit_mean) }}    combinat mitjà : {{ '%.3f' | format(e.metrics.combinat_mean) }}
+  chrF_d pitjor: {{ '%.3f' | format(e.metrics.chrf_dist_worst) }}    edit pitjor: {{ '%.3f' | format(e.metrics.edit_worst) }}    combinat pitjor: {{ '%.3f' | format(e.metrics.combinat_worst) }}
+{%- if e.missing %}
+  Sortides absents: {{ e.missing | join(', ') }}
+{%- endif %}
+
+--- SORTIDES DELS MODELS ---
+{% for m in models -%}
+[{{ models_display_map[m] }}]
+{{ (e.outputs.get(m) or '(SENSE SORTIDA)').strip() }}
+
+{% endfor -%}
+{%- if not loop.last %}
+{% endif %}
+{%- endfor %}

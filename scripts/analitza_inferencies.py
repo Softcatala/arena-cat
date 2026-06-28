@@ -12,6 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 import yaml  # noqa: E402
+from jinja2 import Environment, FileSystemLoader  # noqa: E402
 
 from metriques import load_answers, pairwise_metrics  # noqa: E402
 
@@ -47,54 +48,6 @@ def _load_original_prompt(inferences_dir: Path, prompt_id: str) -> str:
     return "(prompt original no trobat)"
 
 
-def _format_section(
-    prompt_id: str,
-    prompt_text: str,
-    outputs: dict,
-    metrics: dict,
-    rank: int,
-) -> str:
-    lines = [
-        "=" * 80,
-        f"PROMPT {prompt_id}",
-        "=" * 80,
-        f"Rang (0 = més discriminant): {rank}",
-        f"Puntuació (combinat mitjà, més alt = més divergent): {metrics['combinat_mean']:.4f}",
-        "",
-        "--- PROMPT ORIGINAL ---",
-        prompt_text,
-        "",
-        "--- MÈTRIQUES PARELLA A PARELLA ---",
-    ]
-    for pair in metrics["pairs"]:
-        left, right = pair["pair"]
-        lines.append(
-            f"  {left:<28} vs {right:<28} "
-            f"chrF_d={pair['chrf_dist']:.3f}  edit={pair['edit']:.3f}  "
-            f"combinat={pair['combinat']:.3f}"
-        )
-    lines.append(
-        f"  chrF_d mitjà : {metrics['chrf_dist_mean']:.3f}    "
-        f"edit mitjà : {metrics['edit_mean']:.3f}    "
-        f"combinat mitjà : {metrics['combinat_mean']:.3f}"
-    )
-    lines.append(
-        f"  chrF_d pitjor: {metrics['chrf_dist_worst']:.3f}    "
-        f"edit pitjor: {metrics['edit_worst']:.3f}    "
-        f"combinat pitjor: {metrics['combinat_worst']:.3f}"
-    )
-    missing = [m for m in MODEL_IDS if m not in outputs]
-    if missing:
-        lines.append(f"  Sortides absents: {', '.join(missing)}")
-    lines.append("")
-    lines.append("--- SORTIDES DELS MODELS ---")
-    for model_id in MODEL_IDS:
-        lines.append(f"[{MODEL_DISPLAY[model_id]}]")
-        lines.append(outputs.get(model_id, "(SENSE SORTIDA)").strip())
-        lines.append("")
-    return "\n".join(lines)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Calcula mètriques de distància entre sortides de models "
@@ -114,40 +67,27 @@ def main() -> None:
         if len(outputs) < 2:
             print(f"avís: {prompt_id} té només {len(outputs)} sortida(es), s'omet")
             continue
-        prompt_text = _load_original_prompt(inferences_dir, prompt_id)
-        entries.append((prompt_id, prompt_text, outputs, pairwise_metrics(outputs)))
+        entries.append({
+            "prompt_id": prompt_id,
+            "prompt_text": _load_original_prompt(inferences_dir, prompt_id),
+            "outputs": outputs,
+            "metrics": pairwise_metrics(outputs),
+            "missing": [m for m in MODEL_IDS if m not in outputs],
+        })
 
-    entries.sort(key=lambda e: e[3]["combinat_mean"], reverse=True)
+    entries.sort(key=lambda e: e["metrics"]["combinat_mean"], reverse=True)
 
-    lines = [
-        "RESULTATS - Distàncies entre sortides de models per prompt",
-        "",
-        f"Inferències:   {args.inferencies}",
-        f"Models:        {', '.join(MODEL_DISPLAY[m] for m in MODEL_IDS)}",
-        "",
-        "Mètriques (0 = idèntiques, 1 = totalment diferents):",
-        "  - chrF_d:   distància chrF",
-        "  - edit:     distància de Levenshtein normalitzada",
-        "  - combinat: mitjana de chrF_d i edit",
-        "",
-        "Rang 0 = prompt MÉS DISCRIMINANT (sortides més divergents entre models).",
-        "",
-        "RESUM DE RANGS",
-        "-" * 80,
-        f"{'rang':<6}{'prompt':<35}{'chrF_d mitjà':<16}{'edit mitjà':<14}combinat",
-    ]
-    for rank, (prompt_id, _, _, m) in enumerate(entries):
-        lines.append(
-            f"{rank:<6}{prompt_id:<35}"
-            f"{m['chrf_dist_mean']:<16.3f}{m['edit_mean']:<14.3f}{m['combinat_mean']:.4f}"
-        )
-    lines.append("")
-    for rank, (prompt_id, prompt_text, outputs, metrics) in enumerate(entries):
-        lines.append(_format_section(prompt_id, prompt_text, outputs, metrics, rank))
-        lines.append("")
+    env = Environment(loader=FileSystemLoader(Path(__file__).parent))
+    rendered = env.get_template("results.txt.j2").render(
+        inferencies=args.inferencies,
+        models=MODEL_IDS,
+        models_display=[MODEL_DISPLAY[m] for m in MODEL_IDS],
+        models_display_map=MODEL_DISPLAY,
+        entries=entries,
+    )
 
     target = REPO_ROOT / "results.txt"
-    target.write_text("\n".join(lines), encoding="utf-8")
+    target.write_text(rendered, encoding="utf-8")
     print(f"Escrit: {target}")
 
 
