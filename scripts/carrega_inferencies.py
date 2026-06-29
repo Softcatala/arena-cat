@@ -52,7 +52,7 @@ class SchemaError(Exception):
     """
 
 
-@dataclass
+@dataclass(slots=True)
 class PromptRecord:
     """Prompt normalitzat, a punt per fer *upsert* a la taula ``prompts``."""
 
@@ -63,7 +63,7 @@ class PromptRecord:
     source: Path
 
 
-@dataclass
+@dataclass(slots=True)
 class ResponseRecord:
     """Resposta d'un model normalitzada, per fer *upsert* a ``responses``."""
 
@@ -75,7 +75,7 @@ class ResponseRecord:
     source: Path
 
 
-@dataclass
+@dataclass(slots=True)
 class Stats:
     """Recompte d'un tipus d'entitat carregada.
 
@@ -90,7 +90,7 @@ class Stats:
     errors: int = 0
 
 
-@dataclass
+@dataclass(slots=True)
 class Summary:
     """Resum global de la càrrega."""
 
@@ -139,18 +139,6 @@ def _nested(data: Any, *keys: str) -> Any:
     return current
 
 
-def category_code_for(code: str) -> str:
-    """Deriva el codi de categoria a partir del codi de prompt.
-
-    Args:
-        code: Codi del prompt (p. ex. ``traduccio_10``).
-
-    Returns:
-        Codi de categoria (p. ex. ``traduccio``).
-    """
-    return _CODE_SUFFIX.sub("", code)
-
-
 def parse_prompt_file(path: Path, version: str) -> list[PromptRecord]:
     """Llegeix un fitxer de prompt i en normalitza les entrades.
 
@@ -180,7 +168,7 @@ def parse_prompt_file(path: Path, version: str) -> list[PromptRecord]:
     for entry in entries:
         code = str(entry.get("code") or entry.get("id") or path.stem)
         text = _require(entry.get("text"), "el prompt no té text", path)
-        category_code = str(entry.get("category") or category_code_for(code))
+        category_code = str(entry.get("category") or _CODE_SUFFIX.sub("", code))
         records.append(
             PromptRecord(
                 version=version,

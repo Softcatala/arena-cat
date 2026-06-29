@@ -122,13 +122,19 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 
 És **idempotent**: tornar-lo a executar no duplica files. Cada fila es classifica com a inserida o omesa (ja existeix amb el mateix contingut), i n'imprimeix un resum a la sortida estàndard. **No modifica files existents**: si un prompt o una resposta ja existeix amb la mateixa clau però amb un contingut diferent, ho registra com a error i exigeix publicar-ho amb una versió nova en comptes de sobreescriure-ho. Sobreescriure el text d'una resposta invalidaria semànticament els vots que hi apunten (mantenen el `response_id` però votaven un text que hauria canviat). Igualment, si un fitxer no compleix l'esquema (categoria o prompt desconegut, camps obligatoris absents, YAML mal format), registra un error clar. En tots els casos d'error acaba amb codi de sortida 1 sense aturar la resta de la càrrega.
 
-Necessita la base de dades en marxa i migrada, i les mateixes variables de connexió que el backend (vegeu `.env`). Reaprofita l'entorn i el model de dades del backend, així que s'executa amb `--project backend` des de l'arrel del repositori:
+Necessita la base de dades en marxa i migrada, i les mateixes variables de connexió que el backend (vegeu `.env`). La manera més curta és el target del `Makefile`, des de l'arrel del repositori:
 
 ```bash
-uv --project backend run python scripts/carrega_inferencies.py
+make load_inferences
 ```
 
-Per defecte usa `data/prompts/v1` i `data/inferencies/v1`. Es poden sobreescriure els directoris i la versió:
+Per defecte usa `data/prompts/v1` i `data/inferencies/v1`. Es poden sobreescriure els directoris i la versió amb variables d'entorn:
+
+```bash
+PROMPTS_DIR=data/prompts/v2 INFERENCIES_DIR=data/inferencies/v2 make load_inferences
+```
+
+El target només és un embolcall d'aquesta comanda, que reaprofita l'entorn i el model de dades del backend amb `--project backend` i també es pot cridar directament:
 
 ```bash
 uv --project backend run python scripts/carrega_inferencies.py \
