@@ -20,6 +20,14 @@ from transformers import (
     BitsAndBytesConfig,
 )
 
+# Helper compartit amb scripts/carrega_inferencies.py. S'importa tant si el mòdul
+# s'executa com a script (scripts/ al sys.path) com si es carrega com a paquet
+# (scripts.inferencia, amb l'arrel del repositori al sys.path, com fan els tests).
+try:
+    from prompts_yaml import normalize_prompts
+except ModuleNotFoundError:  # pragma: no cover
+    from scripts.prompts_yaml import normalize_prompts
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ConfigDict = dict[str, Any]
 Prompt = dict[str, Any]
@@ -170,16 +178,7 @@ def load_prompts(
         with prompt_file.open("r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
 
-        if isinstance(data, list):
-            prompts = data
-        elif isinstance(data, dict):
-            prompts = [data]
-        elif isinstance(data, str):
-            prompts = [{"id": prompt_file.stem, "text": data}]
-        else:
-            continue
-
-        for prompt in prompts:
+        for prompt in normalize_prompts(data, prompt_file.stem):
             prompt["_path_origen"] = str(prompt_file.relative_to(root))
             prompt_list.append(prompt)
 

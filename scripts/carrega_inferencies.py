@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from prompts_yaml import normalize_prompts
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 # El model de dades i la configuració viuen al paquet backend/app.
@@ -76,10 +77,15 @@ class ResponseRecord:
 
 @dataclass
 class Stats:
-    """Recompte d'un tipus d'entitat carregada."""
+    """Recompte d'un tipus d'entitat carregada.
+
+    No hi ha categoria ``updated``: la càrrega és idempotent només si el contingut
+    és idèntic (``skipped``). Si una entitat ja existeix amb un contingut diferent,
+    es compta com a ``errors`` i s'exigeix una versió nova en comptes de modificar
+    la fila (vegeu :func:`upsert_response` i :func:`upsert_prompt`).
+    """
 
     inserted: int = 0
-    updated: int = 0
     skipped: int = 0
     errors: int = 0
 
@@ -145,43 +151,46 @@ def category_code_for(code: str) -> str:
     return _CODE_SUFFIX.sub("", code)
 
 
-def parse_prompt_file(path: Path, version: str) -> PromptRecord:
-    """Llegeix un fitxer de prompt i el normalitza.
+def parse_prompt_file(path: Path, version: str) -> list[PromptRecord]:
+    """Llegeix un fitxer de prompt i en normalitza les entrades.
 
-    Accepta tant un escalar de text (el cos del prompt) com un mapa amb els camps
-    ``code``/``id``, ``text`` i, opcionalment, ``category``.
+    Comparteix amb ``scripts/inferencia.py`` (via :func:`normalize_prompts`) el
+    reconeixement dels formats acceptats: un escalar de text (el cos del prompt),
+    un mapa amb els camps ``code``/``id``, ``text`` i, opcionalment, ``category``,
+    o una llista de mapes (diversos prompts en un sol fitxer).
 
     Args:
         path: Fitxer YAML del prompt.
         version: Versió del conjunt de dades.
 
     Returns:
-        Prompt normalitzat.
+        Prompts normalitzats (un per entrada del fitxer).
 
     Raises:
-        SchemaError: Si el contingut no és text ni mapa, o no té text.
+        SchemaError: Si el contingut no és cap dels formats acceptats, o alguna
+            entrada no té text.
     """
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
 
-    if isinstance(data, str):
-        code = path.stem
-        text = data
-        category_code = category_code_for(code)
-    elif isinstance(data, dict):
-        code = str(data.get("code") or data.get("id") or path.stem)
-        text = data.get("text")
-        category_code = str(data.get("category") or category_code_for(code))
-    else:
-        raise SchemaError(f"{path}: el prompt ha de ser un text o un mapa")
+    entries = normalize_prompts(data, path.stem)
+    if not entries:
+        raise SchemaError(f"{path}: el prompt ha de ser un text, un mapa o una llista de mapes")
 
-    text = _require(text, "el prompt no té text", path)
-    return PromptRecord(
-        version=version,
-        code=code,
-        category_code=category_code,
-        text=text.strip(),
-        source=path,
-    )
+    records = []
+    for entry in entries:
+        code = str(entry.get("code") or entry.get("id") or path.stem)
+        text = _require(entry.get("text"), "el prompt no té text", path)
+        category_code = str(entry.get("category") or category_code_for(code))
+        records.append(
+            PromptRecord(
+                version=version,
+                code=code,
+                category_code=category_code,
+                text=text.strip(),
+                source=path,
+            )
+        )
+    return records
 
 
 def parse_inference_file(path: Path, version: str) -> ResponseRecord:
@@ -236,6 +245,12 @@ def upsert_prompt(
 ) -> None:
     """Fa *upsert* d'un prompt per la clau ``(version, code)``.
 
+    Insereix si no existeix i omet si ja existeix amb el mateix contingut. Si
+    existeix amb un contingut diferent (text o categoria), ho compta com a error i
+    **no** modifica la fila: igual que les respostes, els prompts ja carregats
+    poden tenir vots associats, de manera que un canvi exigeix una versió nova en
+    comptes de mutar la fila existent.
+
     Args:
         session: Sessió de base de dades activa.
         record: Prompt normalitzat.
@@ -262,17 +277,27 @@ def upsert_prompt(
         )
         session.flush()
         stats.inserted += 1
-    elif existing.text != record.text or existing.category_id != category_id:
-        existing.text = record.text
-        existing.category_id = category_id
-        session.flush()
-        stats.updated += 1
-    else:
+    elif existing.text == record.text and existing.category_id == category_id:
         stats.skipped += 1
+    else:
+        LOGGER.error(
+            "%s: el prompt (%s/%s) ja existeix amb un contingut diferent; "
+            "publica'l amb una versió nova en comptes de modificar-lo",
+            record.source,
+            record.version,
+            record.code,
+        )
+        stats.errors += 1
 
 
 def upsert_response(session: Session, record: ResponseRecord, stats: Stats) -> None:
     """Fa *upsert* d'una resposta per la clau ``(prompt_id, model)``.
+
+    Insereix si no existeix i omet si ja existeix amb el mateix contingut. Si
+    existeix amb un contingut diferent (text o metadades), ho compta com a error i
+    **no** modifica la fila: els vots existents apunten a aquest ``response_id`` i
+    sobreescriure'n el text els invalidaria semànticament. Un canvi de contingut
+    exigeix, doncs, una versió nova en comptes de mutar la resposta.
 
     Args:
         session: Sessió de base de dades activa.
@@ -303,13 +328,18 @@ def upsert_response(session: Session, record: ResponseRecord, stats: Stats) -> N
         )
         session.flush()
         stats.inserted += 1
-    elif existing.text != record.text or existing.inference_metadata != record.metadata:
-        existing.text = record.text
-        existing.inference_metadata = record.metadata
-        session.flush()
-        stats.updated += 1
-    else:
+    elif existing.text == record.text and existing.inference_metadata == record.metadata:
         stats.skipped += 1
+    else:
+        LOGGER.error(
+            "%s: la resposta (%s/%s) ja existeix amb un contingut diferent; "
+            "publica-la amb una versió nova en comptes de modificar-la, perquè els "
+            "vots existents apunten al text actual",
+            record.source,
+            record.prompt_code,
+            record.model,
+        )
+        stats.errors += 1
 
 
 def load_prompts(
@@ -330,12 +360,13 @@ def load_prompts(
     """
     for path in sorted(prompts_dir.glob("*.yaml")):
         try:
-            record = parse_prompt_file(path, version)
+            records = parse_prompt_file(path, version)
         except (SchemaError, yaml.YAMLError) as error:
             LOGGER.error("prompt no vàlid: %s", error)
             stats.errors += 1
             continue
-        upsert_prompt(session, record, category_ids, stats)
+        for record in records:
+            upsert_prompt(session, record, category_ids, stats)
 
 
 def load_responses(session: Session, inferencies_dir: Path, version: str, stats: Stats) -> None:
@@ -391,10 +422,7 @@ def run_load(
 
 
 def _format_stats(stats: Stats) -> str:
-    return (
-        f"inserits={stats.inserted} actualitzats={stats.updated} "
-        f"omesos={stats.skipped} errors={stats.errors}"
-    )
+    return f"inserits={stats.inserted} omesos={stats.skipped} errors={stats.errors}"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

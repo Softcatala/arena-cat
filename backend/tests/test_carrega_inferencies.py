@@ -77,6 +77,27 @@ def test_prompt_is_inserted_with_derived_category(session, dirs):
     assert prompt.category.code == "traduccio"
 
 
+def test_prompt_list_file_loads_each_entry(session, dirs):
+    # Un sol fitxer amb una llista de prompts (format compartit amb inferencia.py).
+    prompts_dir, inferencies_dir = dirs
+    (prompts_dir / "llista.yaml").write_text(
+        yaml.dump(
+            [
+                {"id": "traduccio_1", "text": "Prompt A"},
+                {"id": "traduccio_2", "text": "Prompt B"},
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    summary = loader.run_load(session, prompts_dir, inferencies_dir)
+
+    assert summary.prompts.inserted == 2
+    assert summary.prompts.errors == 0
+    codes = session.scalars(select(Prompt.code).order_by(Prompt.code)).all()
+    assert codes == ["traduccio_1", "traduccio_2"]
+
+
 def test_load_is_idempotent(session, dirs):
     prompts_dir, inferencies_dir = dirs
     write_prompt(prompts_dir, "correccio_1")
@@ -137,7 +158,9 @@ def test_reasoning_goes_to_metadata_not_visible_text(session, dirs):
     assert response.inference_metadata["reasoning"] == "Raonament intern del model"
 
 
-def test_changed_answer_triggers_update(session, dirs):
+def test_changed_answer_is_conflict_error_and_keeps_original(session, dirs):
+    # Tornar a carregar una resposta amb un text diferent no l'ha de sobreescriure:
+    # els vots existents hi apunten. És un error que exigeix una versió nova.
     prompts_dir, inferencies_dir = dirs
     write_prompt(prompts_dir, "traduccio_1")
     write_inference(inferencies_dir, "qwen-3.5-9b", "traduccio_1", answer="Primera")
@@ -146,11 +169,29 @@ def test_changed_answer_triggers_update(session, dirs):
     write_inference(inferencies_dir, "qwen-3.5-9b", "traduccio_1", answer="Segona")
     summary = loader.run_load(session, prompts_dir, inferencies_dir)
 
-    assert summary.responses.updated == 1
+    assert summary.responses.errors == 1
     assert summary.responses.inserted == 0
+    assert summary.responses.skipped == 0
     response = session.scalar(select(Response))
-    assert response.text == "Segona"
+    assert response.text == "Primera"  # intacta
     assert _count(session, Response) == 1
+
+
+def test_changed_prompt_text_is_conflict_error_and_keeps_original(session, dirs):
+    # El mateix s'aplica als prompts: un canvi de text amb la mateixa clau falla.
+    prompts_dir, inferencies_dir = dirs
+    write_prompt(prompts_dir, "traduccio_1", "Tradueix això.")
+    loader.run_load(session, prompts_dir, inferencies_dir)
+
+    write_prompt(prompts_dir, "traduccio_1", "Tradueix una altra cosa.")
+    summary = loader.run_load(session, prompts_dir, inferencies_dir)
+
+    assert summary.prompts.errors == 1
+    assert summary.prompts.inserted == 0
+    assert summary.prompts.skipped == 0
+    prompt = session.scalar(select(Prompt).where(Prompt.code == "traduccio_1"))
+    assert prompt.text == "Tradueix això."  # intacte
+    assert _count(session, Prompt) == 1
 
 
 def test_unknown_prompt_in_inference_is_error(session, dirs):

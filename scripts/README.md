@@ -120,19 +120,18 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 
 `scripts/carrega_inferencies.py` publica els fitxers versionats a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/v1/*.yaml` (clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/v1/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
 
-És **idempotent**: tornar-lo a executar no duplica files. Cada fila es classifica com a inserida, actualitzada o omesa (sense canvis), i n'imprimeix un resum a la sortida estàndard. Si un fitxer no compleix l'esquema (categoria o prompt desconegut, camps obligatoris absents, YAML mal format), registra un error clar i acaba amb codi de sortida 1 sense aturar la resta de la càrrega.
+És **idempotent**: tornar-lo a executar no duplica files. Cada fila es classifica com a inserida o omesa (ja existeix amb el mateix contingut), i n'imprimeix un resum a la sortida estàndard. **No modifica files existents**: si un prompt o una resposta ja existeix amb la mateixa clau però amb un contingut diferent, ho registra com a error i exigeix publicar-ho amb una versió nova en comptes de sobreescriure-ho. Sobreescriure el text d'una resposta invalidaria semànticament els vots que hi apunten (mantenen el `response_id` però votaven un text que hauria canviat). Igualment, si un fitxer no compleix l'esquema (categoria o prompt desconegut, camps obligatoris absents, YAML mal format), registra un error clar. En tots els casos d'error acaba amb codi de sortida 1 sense aturar la resta de la càrrega.
 
-Necessita la base de dades en marxa i migrada, i les mateixes variables de connexió que el backend (vegeu `.env`). S'executa des de `backend/` perquè en reaprofita l'entorn i el model de dades:
+Necessita la base de dades en marxa i migrada, i les mateixes variables de connexió que el backend (vegeu `.env`). Reaprofita l'entorn i el model de dades del backend, així que s'executa amb `--project backend` des de l'arrel del repositori:
 
 ```bash
-cd backend
-uv run python ../scripts/carrega_inferencies.py
+uv --project backend run python scripts/carrega_inferencies.py
 ```
 
 Per defecte usa `data/prompts/v1` i `data/inferencies/v1`. Es poden sobreescriure els directoris i la versió:
 
 ```bash
-uv run python ../scripts/carrega_inferencies.py \
-    --prompts-dir ../data/prompts/v1 \
-    --inferencies-dir ../data/inferencies/v1
+uv --project backend run python scripts/carrega_inferencies.py \
+    --prompts-dir data/prompts/v1 \
+    --inferencies-dir data/inferencies/v1
 ```
