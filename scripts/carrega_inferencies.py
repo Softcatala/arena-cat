@@ -43,6 +43,26 @@ DEFAULT_INFERENCIES_DIR = REPO_ROOT / "data" / "inferencies" / DEFAULT_VERSION
 # resta identifica la categoria (``traduccio``).
 _CODE_SUFFIX = re.compile(r"_\d+$")
 
+# Separa els trams numèrics d'un nom per poder ordenar-lo de manera natural.
+_DIGITS = re.compile(r"(\d+)")
+
+
+def _natural_key(path: Path) -> list[object]:
+    """Clau d'ordenació natural d'un camí.
+
+    Ordena els trams numèrics pel seu valor i no lexicogràficament, de manera que
+    ``traduccio_2`` va abans de ``traduccio_10``. Opera sobre el camí sencer, així
+    que manté l'agrupació per directori (p. ex. per model) i només canvia l'ordre
+    dels números dins de cada nom.
+
+    Args:
+        path: Camí del fitxer a ordenar.
+
+    Returns:
+        Llista alternada de text i enters, comparable amb la d'altres camins.
+    """
+    return [int(part) if part.isdigit() else part for part in _DIGITS.split(str(path))]
+
 
 class SchemaError(Exception):
     """Un fitxer YAML no compleix l'esquema esperat.
@@ -346,7 +366,7 @@ def load_prompts(
         category_ids: Mapa de codi de categoria a identificador.
         stats: Recompte que s'actualitza.
     """
-    for path in sorted(prompts_dir.glob("*.yaml")):
+    for path in sorted(prompts_dir.glob("*.yaml"), key=_natural_key):
         try:
             records = parse_prompt_file(path, version)
         except (SchemaError, yaml.YAMLError) as error:
@@ -366,7 +386,7 @@ def load_responses(session: Session, inferencies_dir: Path, version: str, stats:
         version: Versió del conjunt de dades.
         stats: Recompte que s'actualitza.
     """
-    for path in sorted(inferencies_dir.rglob("*.yaml")):
+    for path in sorted(inferencies_dir.rglob("*.yaml"), key=_natural_key):
         try:
             record = parse_inference_file(path, version)
         except (SchemaError, yaml.YAMLError) as error:

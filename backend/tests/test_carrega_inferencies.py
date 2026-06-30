@@ -98,6 +98,18 @@ def test_prompt_list_file_loads_each_entry(session, dirs):
     assert codes == ["traduccio_1", "traduccio_2"]
 
 
+def test_prompts_load_in_natural_order(session, dirs):
+    # traduccio_10 s'ha d'inserir després de traduccio_2, no entre l'1 i el 2.
+    prompts_dir, inferencies_dir = dirs
+    for code in ("traduccio_1", "traduccio_2", "traduccio_10"):
+        write_prompt(prompts_dir, code)
+
+    loader.run_load(session, prompts_dir, inferencies_dir)
+
+    codes_by_id = session.scalars(select(Prompt.code).order_by(Prompt.id)).all()
+    assert codes_by_id == ["traduccio_1", "traduccio_2", "traduccio_10"]
+
+
 def test_load_is_idempotent(session, dirs):
     prompts_dir, inferencies_dir = dirs
     write_prompt(prompts_dir, "correccio_1")
