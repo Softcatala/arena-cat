@@ -112,6 +112,13 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                     <sub><b>bytesontherocks</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/estevecastells">
+                    <img src="https://avatars.githubusercontent.com/u/14035230?v=4" width="100;" alt="estevecastells"/>
+                    <br />
+                    <sub><b>Esteve Castells</b></sub>
+                </a>
+            </td>
 		</tr>
 	<tbody>
 </table>
