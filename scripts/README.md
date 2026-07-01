@@ -115,3 +115,29 @@ uv run python scripts/inferencia.py --config config/inferencia/inferencia_local_
 ```
 
 Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model de prova molt petit. Serveix per validar que la descàrrega, la càrrega del model, la generació i l'escriptura dels YAML funcionen, però no per avaluar qualitat lingüística.
+
+### 8. Carregar prompts i inferències a la base de dades
+
+`scripts/carrega_inferencies.py` publica els fitxers versionats a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/v1/*.yaml` (clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/v1/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
+
+És **idempotent**: tornar-lo a executar no duplica files. Cada fila es classifica com a inserida o omesa (ja existeix amb el mateix contingut), i n'imprimeix un resum a la sortida estàndard. **No modifica files existents**: si un prompt o una resposta ja existeix amb la mateixa clau però amb un contingut diferent, ho registra com a error i exigeix publicar-ho amb una versió nova en comptes de sobreescriure-ho. Sobreescriure el text d'una resposta invalidaria semànticament els vots que hi apunten (mantenen el `response_id` però votaven un text que hauria canviat). Igualment, si un fitxer no compleix l'esquema (categoria o prompt desconegut, camps obligatoris absents, YAML mal format), registra un error clar. En tots els casos d'error acaba amb codi de sortida 1 sense aturar la resta de la càrrega.
+
+Necessita la base de dades en marxa i migrada, i les mateixes variables de connexió que el backend (vegeu `.env`). La manera més curta és el target del `Makefile`, des de l'arrel del repositori:
+
+```bash
+make load_inferences
+```
+
+Per defecte usa `data/prompts/v1` i `data/inferencies/v1`. Es poden sobreescriure els directoris i la versió amb variables d'entorn:
+
+```bash
+PROMPTS_DIR=data/prompts/v2 INFERENCIES_DIR=data/inferencies/v2 make load_inferences
+```
+
+El target només és un embolcall d'aquesta comanda, que reaprofita l'entorn i el model de dades del backend amb `--project backend` i també es pot cridar directament:
+
+```bash
+uv --project backend run python scripts/carrega_inferencies.py \
+    --prompts-dir data/prompts/v1 \
+    --inferencies-dir data/inferencies/v1
+```
