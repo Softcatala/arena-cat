@@ -834,3 +834,147 @@ def test_ranking_adapts_when_new_prompts_added_mid_campaign(session):
         f"Rànquing inestable després d'afegir prompts. "
         f"CI=[{final_confidence['ci_lo']}, {final_confidence['ci_hi']}]"
     )
+
+
+# ---------------------------------------------------------------------------
+# Test 7 — apareix una nova categoria a mig camí; el sistema s'hi adapta.
+# ---------------------------------------------------------------------------
+
+
+def test_new_category_added_mid_campaign_is_independent(session):
+    """Afegim una nova categoria (`cultura`) després d'haver votat a `correccio`.
+
+    Escenari real: el projecte decideix afegir una categoria nova (per exemple,
+    "cultura" — no seedejada al `conftest`). El sistema ha de:
+        - Retornar None si es demana una tasca d'una categoria sense prompts.
+        - Un cop hi ha prompts a la nova categoria, servir-los amb normalitat.
+        - Mantenir els rànquings de les categories velles intactes.
+        - Calcular un rànquing independent per a la nova categoria.
+        - No contaminar les altres categories existents (`reformulacio`
+          continua buida).
+
+    Configuració:
+        - Fase 1: 5 prompts × 3 models a `correccio`. 600 vots amb gemma
+          al 60%.
+        - Comprovem: sampling de `cultura` retorna None (encara no té prompts).
+        - Creem la categoria `cultura` (no és a `INITIAL_CATEGORIES`) i
+          afegim 3 prompts × 3 respostes.
+        - Fase 2: 600 vots a `cultura` amb salamandra al 60%.
+
+    Comprovacions finals:
+        - `correccio` conserva els seus 600 vots i gemma com a millor model.
+        - `cultura` té 600 vots i salamandra com a millor model.
+        - Els guanyadors són diferents (no hi ha fuga entre categories).
+        - Ambdós rànquings són estables.
+        - `reformulacio` continua buida.
+    """
+    _assert_running_against_test_database(session)
+    _seed_prompts_with_responses(session, "correccio", n_prompts=5)
+    n_votes_per_phase = 600
+    win_prob = 0.60
+    correccio_winner = "gemma-3-4b-it"
+    cultura_winner = "salamandra-7b-instruct"
+
+    # Ni el RNG ens atura. Som i serem
+    rng = np.random.default_rng(seed=1714)
+
+    # ---- Fase 1: només `correccio` existeix com a categoria amb prompts ----
+    for i in range(n_votes_per_phase):
+        task = select_next_task(session, "correccio", seed=i)
+        assert task is not None, f"Fase 1 iteració {i}: sampler ha retornat None"
+
+        response_a = session.get(Response, task["response_a_id"])
+        response_b = session.get(Response, task["response_b_id"])
+        winner = _planted_winner(
+            rng, response_a.model, response_b.model, correccio_winner, win_prob
+        )
+        _record_vote(
+            session,
+            prompt_id=task["prompt_id"],
+            response_a_id=task["response_a_id"],
+            response_b_id=task["response_b_id"],
+            winner=winner,
+            session_id=f"phase1-cat-{i % 20}",
+        )
+
+    # Snapshot Fase 1: correccio identifica gemma com a millor.
+    snap_correccio = compute_ranking(session, "correccio")
+    assert snap_correccio["best_model"] == correccio_winner
+    assert snap_correccio["n_votes_total"] == n_votes_per_phase
+
+    # ---- Verifiquem que una categoria SENSE prompts retorna None al sampler ----
+    # (`cultura` encara no existeix a la BD; el sampler ha de gestionar-ho
+    # amb elegància.)
+    task_empty = select_next_task(session, "cultura", seed=42)
+    assert task_empty is None, (
+        "Sampler ha retornat una tasca per a una categoria sense prompts. Hauria de retornar None."
+    )
+
+    # ---- Creem la categoria `cultura` i li afegim 3 prompts × 3 respostes ----
+    session.add(
+        Category(
+            code="cultura",
+            name="Cultura",
+            description="Preguntes sobre cultura catalana.",
+        )
+    )
+    session.flush()
+    _seed_prompts_with_responses(session, "cultura", n_prompts=3)
+
+    # ---- Fase 2: votem a `cultura` amb salamandra com a guanyadora plantada ----
+    for j in range(n_votes_per_phase):
+        i = n_votes_per_phase + j
+        task = select_next_task(session, "cultura", seed=i)
+        assert task is not None, f"Fase 2 iteració {j}: sampler ha retornat None"
+
+        response_a = session.get(Response, task["response_a_id"])
+        response_b = session.get(Response, task["response_b_id"])
+        winner = _planted_winner(rng, response_a.model, response_b.model, cultura_winner, win_prob)
+        _record_vote(
+            session,
+            prompt_id=task["prompt_id"],
+            response_a_id=task["response_a_id"],
+            response_b_id=task["response_b_id"],
+            winner=winner,
+            session_id=f"phase2-cat-{j % 20}",
+        )
+
+    # ---- Comprovacions finals ----
+    final_correccio = compute_ranking(session, "correccio")
+    final_cultura = compute_ranking(session, "cultura")
+    final_reformulacio = compute_ranking(session, "reformulacio")
+
+    # 1) correccio no s'ha alterat: mateixos vots, mateix guanyador.
+    assert final_correccio["n_votes_total"] == n_votes_per_phase, (
+        f"correcció ha canviat el recompte de vots: {final_correccio['n_votes_total']}"
+    )
+    assert final_correccio["best_model"] == correccio_winner, (
+        f"correcció ha canviat de guanyador: {final_correccio['best_model']}"
+    )
+
+    # 2) cultura identifica salamandra com a millor.
+    assert final_cultura["n_votes_total"] == n_votes_per_phase
+    assert final_cultura["best_model"] == cultura_winner, (
+        f"Esperat {cultura_winner} a cultura, obtingut {final_cultura['best_model']}. "
+        f"Skills: {final_cultura['bt_skills']}"
+    )
+
+    # 3) Els guanyadors de les dues categories són diferents (sense fuga).
+    assert final_correccio["best_model"] != final_cultura["best_model"]
+
+    # 4) Ambdós rànquings són estables.
+    conf_correccio = assess_confidence(session, "correccio", n_bootstrap=200, seed=1714)
+    conf_cultura = assess_confidence(session, "cultura", n_bootstrap=200, seed=1714)
+    assert conf_correccio["is_stable"] is True, (
+        f"correcció inestable després d'introduir cultura. "
+        f"CI=[{conf_correccio['ci_lo']}, {conf_correccio['ci_hi']}]"
+    )
+    assert conf_cultura["is_stable"] is True, (
+        f"cultura inestable. CI=[{conf_cultura['ci_lo']}, {conf_cultura['ci_hi']}]"
+    )
+
+    # 5) reformulacio continua buida — les altres categories no la contaminen.
+    assert final_reformulacio["n_votes_total"] == 0
+    assert final_reformulacio["best_model"] is None
+    assert final_reformulacio["bt_skills"] == {}
+    assert final_reformulacio["raw_pairwise"] == []
