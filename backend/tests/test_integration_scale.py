@@ -854,23 +854,28 @@ def test_new_category_added_mid_campaign_is_independent(session):
           continua buida).
 
     Configuració:
-        - Fase 1: 5 prompts × 3 models a `correccio`. 600 vots amb gemma
-          al 60%.
+        - Fase 1: 5 prompts × 3 models a `correccio`. 1800 vots amb gemma
+          al 60% (~120 vots/cel·la per obtenir un rànquing clarament estable).
         - Comprovem: sampling de `cultura` retorna None (encara no té prompts).
         - Creem la categoria `cultura` (no és a `INITIAL_CATEGORIES`) i
           afegim 3 prompts × 3 respostes.
-        - Fase 2: 600 vots a `cultura` amb salamandra al 60%.
+        - Fase 2: 800 vots a `cultura` amb salamandra al 60% (3 prompts ×
+          3 parelles = 9 cel·les → ~89 vots/cel·la, prou generós).
 
     Comprovacions finals:
-        - `correccio` conserva els seus 600 vots i gemma com a millor model.
-        - `cultura` té 600 vots i salamandra com a millor model.
+        - `correccio` conserva els seus 1800 vots i gemma com a millor model.
+        - `cultura` té 800 vots i salamandra com a millor model.
         - Els guanyadors són diferents (no hi ha fuga entre categories).
         - Ambdós rànquings són estables.
         - `reformulacio` continua buida.
     """
     _assert_running_against_test_database(session)
     _seed_prompts_with_responses(session, "correccio", n_prompts=5)
-    n_votes_per_phase = 600
+    # Fase 1 (correcció, 5 prompts × 3 parelles = 15 cel·les): 1800 vots per
+    # tenir ~120 vots/cel·la i que la CI clusteritzada del gap sigui clarament
+    # positiva amb només 5 clusters — mateixa lliçó que Test 1 i Test 4.
+    n_votes_phase1 = 1800
+    n_votes_phase2 = 800
     win_prob = 0.60
     correccio_winner = "gemma-3-4b-it"
     cultura_winner = "salamandra-7b-instruct"
@@ -879,7 +884,7 @@ def test_new_category_added_mid_campaign_is_independent(session):
     rng = np.random.default_rng(seed=1714)
 
     # ---- Fase 1: només `correccio` existeix com a categoria amb prompts ----
-    for i in range(n_votes_per_phase):
+    for i in range(n_votes_phase1):
         task = select_next_task(session, "correccio", seed=i)
         assert task is not None, f"Fase 1 iteració {i}: sampler ha retornat None"
 
@@ -900,7 +905,7 @@ def test_new_category_added_mid_campaign_is_independent(session):
     # Snapshot Fase 1: correccio identifica gemma com a millor.
     snap_correccio = compute_ranking(session, "correccio")
     assert snap_correccio["best_model"] == correccio_winner
-    assert snap_correccio["n_votes_total"] == n_votes_per_phase
+    assert snap_correccio["n_votes_total"] == n_votes_phase1
 
     # ---- Verifiquem que una categoria SENSE prompts retorna None al sampler ----
     # (`cultura` encara no existeix a la BD; el sampler ha de gestionar-ho
@@ -922,8 +927,8 @@ def test_new_category_added_mid_campaign_is_independent(session):
     _seed_prompts_with_responses(session, "cultura", n_prompts=3)
 
     # ---- Fase 2: votem a `cultura` amb salamandra com a guanyadora plantada ----
-    for j in range(n_votes_per_phase):
-        i = n_votes_per_phase + j
+    for j in range(n_votes_phase2):
+        i = n_votes_phase1 + j
         task = select_next_task(session, "cultura", seed=i)
         assert task is not None, f"Fase 2 iteració {j}: sampler ha retornat None"
 
@@ -945,7 +950,7 @@ def test_new_category_added_mid_campaign_is_independent(session):
     final_reformulacio = compute_ranking(session, "reformulacio")
 
     # 1) correccio no s'ha alterat: mateixos vots, mateix guanyador.
-    assert final_correccio["n_votes_total"] == n_votes_per_phase, (
+    assert final_correccio["n_votes_total"] == n_votes_phase1, (
         f"correcció ha canviat el recompte de vots: {final_correccio['n_votes_total']}"
     )
     assert final_correccio["best_model"] == correccio_winner, (
@@ -953,7 +958,7 @@ def test_new_category_added_mid_campaign_is_independent(session):
     )
 
     # 2) cultura identifica salamandra com a millor.
-    assert final_cultura["n_votes_total"] == n_votes_per_phase
+    assert final_cultura["n_votes_total"] == n_votes_phase2
     assert final_cultura["best_model"] == cultura_winner, (
         f"Esperat {cultura_winner} a cultura, obtingut {final_cultura['best_model']}. "
         f"Skills: {final_cultura['bt_skills']}"
