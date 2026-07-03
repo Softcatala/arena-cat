@@ -4,7 +4,7 @@
 
 Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/), centrada exclusivament a mesurar la **competència en llengua catalana** dels models de llenguatge gran (LLMs). A diferència de les avaluacions automàtiques, aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor. Si l'experiència té èxit, la plataforma es podria **generalitzar a altres llengües** que també necessitin una avaluació humana pròpia.
 
-Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](projecte.md)**.
+Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](docs/projecte.md)**.
 
 🧮 **[Simulador de dimensionament](https://softcatala.github.io/arena-cat/simulador/)**: calcula quants vots i hores humanes calen segons el nombre de models, categories, marge d'error i mètode d'agregació (parelles independents o Bradley-Terry / Elo).
 
@@ -35,7 +35,7 @@ La fita té **dues parts**: primer construir la plataforma i, tot seguit, demana
 
 #### Part 1: Construcció de la plataforma
 
-> Per al desglossament tècnic de les versions v1, v2 i v3, vegeu **[pla_detallat.md](pla_detallat.md)**.
+> Per al desglossament tècnic de les versions v1, v2 i v3, vegeu **[pla_detallat.md](docs/pla_detallat.md)**.
 
 **Abast**
 

@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Guide for coding agents working in this repository.
-For project context, see `README.md`, `projecte.md` and `pla_detallat.md`.
+For project context, see `README.md`, `docs/projecte.md` and `docs/pla_detallat.md`.
 
 ## Overview
 

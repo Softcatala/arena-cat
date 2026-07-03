@@ -753,7 +753,7 @@ On és probable que s'estiri: semàntica d'empat/cap amb l'equip, gestió de sep
 
 ## Referències
 
-- Documents del projecte: [`README.md`](../README.md), [`projecte.md`](../projecte.md), [`pla_detallat.md`](../pla_detallat.md), [`AGENTS.md`](../AGENTS.md)
+- Documents del projecte: [`README.md`](../README.md), [`projecte.md`](projecte.md), [`pla_detallat.md`](pla_detallat.md), [`AGENTS.md`](../AGENTS.md)
 - Issue: [#7 Biblioteca de rànquing i selecció de parelles](https://github.com/Softcatala/arena-cat/issues/7)
 - Relacionats oberts: [#6 microservei (Isaac)](https://github.com/Softcatala/arena-cat/issues/6), [#14 càrrega idempotent](https://github.com/Softcatala/arena-cat/issues/14), [PR #18 diversitat de prompts](https://github.com/Softcatala/arena-cat/pull/18)
 - Esquema: [`backend/app/models.py`](../backend/app/models.py), [`docs/db_schema.md`](db_schema.md)
