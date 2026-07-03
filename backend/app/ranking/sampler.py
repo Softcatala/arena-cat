@@ -9,6 +9,8 @@ Estratègia per defecte: **quota-balanced randomization**.
   cel·la.
 - Tria uniformement entre les cel·les que actualment tenen menys vots.
 - Randomitza l'ordre A/B per evitar biaix de posició.
+- Si es passa `session_id`, exclou les cel·les en les quals aquesta sessió
+  ja ha votat per evitar repeticions.
 
 Aquesta estratègia és preferible a la iid uniform (que genera variància
 Poisson entre cel·les) i no pateix crítica de "Leaderboard Illusion"
@@ -24,7 +26,7 @@ from itertools import combinations
 
 import numpy as np
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.models import Category, Prompt, Response, Vote
 
@@ -55,8 +57,6 @@ def _existing_vote_counts(session: Session, prompt_ids: list[int]) -> Counter:
     if not prompt_ids:
         return Counter()
     # Llegim els vots i fem el join amb responses per obtenir els models.
-    from sqlalchemy.orm import aliased
-
     response_a = aliased(Response)
     response_b = aliased(Response)
     stmt = (
@@ -72,9 +72,35 @@ def _existing_vote_counts(session: Session, prompt_ids: list[int]) -> Counter:
     return counts
 
 
+def _cells_voted_by_session(
+    session: Session, prompt_ids: list[int], session_id: str
+) -> set[tuple[int, str, str]]:
+    """Retorna les cel·les (prompt_id, model_a, model_b) on `session_id` ja ha votat.
+
+    Servirà per excloure-les del proper sampling i no demanar el mateix dues
+    vegades a la mateixa persona.
+    """
+    if not prompt_ids:
+        return set()
+    response_a = aliased(Response)
+    response_b = aliased(Response)
+    stmt = (
+        select(Vote.prompt_id, response_a.model, response_b.model)
+        .join(response_a, Vote.response_a_id == response_a.id)
+        .join(response_b, Vote.response_b_id == response_b.id)
+        .where(Vote.prompt_id.in_(prompt_ids))
+        .where(Vote.session_id == session_id)
+    )
+    voted: set[tuple[int, str, str]] = set()
+    for prompt_id, model_a, model_b in session.execute(stmt).all():
+        voted.add((prompt_id, *sorted((model_a, model_b))))
+    return voted
+
+
 def select_next_task(
     session: Session,
     category_code: str,
+    session_id: str | None = None,
     seed: int | None = None,
 ) -> dict | None:
     """Tria la propera tasca a mostrar a un avaluador.
@@ -91,6 +117,13 @@ def select_next_task(
         - Quan totes les cel·les igualen recompte, esdevé aleatori uniforme.
         - Randomitza l'ordre A/B per evitar biaix de posició.
 
+    Si es passa `session_id`, exclou les cel·les on aquesta sessió ja ha
+    votat: una mateixa persona no veurà dos cops la mateixa (prompt, parella).
+    Quan una sessió ja ha votat a TOTES les cel·les de la categoria, retorna
+    None — la microservei interpretarà això com "aquest avaluador ja ha
+    completat aquesta categoria, mostra-li una altra cosa o agraeix-li la
+    contribució".
+
     Per què NO iid uniforme: amb un pressupost petit (133 vots/cel·la a la
     Fita 1), iid genera variància Poisson que deixa cel·les amb el doble de
     vots que altres. La validació empírica a `analysis/phase1/04_samplers_comparison.py`
@@ -104,6 +137,9 @@ def select_next_task(
     Args:
         session: sessió SQLAlchemy ja oberta.
         category_code: codi de la categoria (e.g. "correccio", "reformulacio").
+        session_id: identificador anònim de la sessió de l'usuari. Si es
+            proporciona, exclou les cel·les en les quals aquesta sessió ja
+            ha votat. Si és None, no es filtra per sessió.
         seed: opcional, per reproduïbilitat als tests.
 
     Returns:
@@ -121,7 +157,10 @@ def select_next_task(
         }
         ```
 
-        Si la categoria no té prompts amb almenys dues respostes, retorna None.
+        Retorna None en dos casos:
+            - La categoria no té cap prompt amb almenys dues respostes.
+            - `session_id` ha votat a totes les cel·les disponibles.
+
         Els identificadors de model (`model_a`, `model_b`) NO es retornen:
         l'avaluació és cega. La microservei pot recuperar-los des de Response
         si li cal registrar el mapping al gravar el vot.
@@ -144,10 +183,21 @@ def select_next_task(
     if not cells:
         return None
 
+    prompt_ids = [p.id for p, _ in prompts_with_responses]
+
+    # Si tenim session_id, excloem les cel·les que aquesta sessió ja ha votat.
+    # Si la sessió ja ha votat a totes les cel·les, retornem None per indicar
+    # que aquest avaluador ja ha completat la categoria.
+    if session_id is not None:
+        already_voted = _cells_voted_by_session(session, prompt_ids, session_id)
+        cells = [c for c in cells if c not in already_voted]
+        if not cells:
+            return None
+
     # Busquem el recompte mínim de vots i recollim TOTES les cel·les empatades a aquell mínim.
     # Després triem una uniformement a l'atzar: la combinació "empatats al mínim + atzar"
     # és la que evita biaixos d'ordre i fa convergir els recomptes a valors igualats.
-    counts = _existing_vote_counts(session, [p.id for p, _ in prompts_with_responses])
+    counts = _existing_vote_counts(session, prompt_ids)
     min_count = min(counts.get(c, 0) for c in cells)
     underfilled = [c for c in cells if counts.get(c, 0) == min_count]
     chosen = underfilled[int(rng.integers(len(underfilled)))]
