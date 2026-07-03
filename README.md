@@ -119,6 +119,13 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                     <sub><b>Esteve Castells</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/gerardmartinezcanelles">
+                    <img src="https://avatars.githubusercontent.com/u/22821004?v=4" width="100;" alt="gerardmartinezcanelles"/>
+                    <br />
+                    <sub><b>Gerard Martínez Canelles</b></sub>
+                </a>
+            </td>
 		</tr>
 	<tbody>
 </table>
