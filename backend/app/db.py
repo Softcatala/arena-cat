@@ -4,10 +4,11 @@ El motor fa servir el rol d'aplicació amb permisos limitats (database_url) i no
 es crea quan algú demana get_engine().
 """
 
+from collections.abc import Generator
 from functools import lru_cache
 
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.config import get_settings
 
@@ -24,3 +25,12 @@ def get_engine() -> Engine:
 @lru_cache
 def get_sessionmaker() -> sessionmaker:
     return sessionmaker(bind=get_engine(), autoflush=False, expire_on_commit=False)
+
+
+def get_db() -> Generator[Session, None, None]:
+    SessionLocal = get_sessionmaker()
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
