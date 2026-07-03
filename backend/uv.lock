@@ -50,17 +50,17 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.13" },
-    { name = "numpy", specifier = ">=1.26" },
+    { name = "numpy", specifier = "==2.5.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.1" },
     { name = "pydantic-settings", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "scipy", specifier = ">=1.11" },
+    { name = "scipy", specifier = "==1.18.0" },
     { name = "sqlalchemy", specifier = ">=2.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "choix", specifier = ">=0.3" },
+    { name = "choix", specifier = "==0.4.1" },
     { name = "pre-commit", specifier = ">=3.7" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "ruff", specifier = ">=0.6" },
