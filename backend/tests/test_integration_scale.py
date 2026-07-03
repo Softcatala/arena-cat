@@ -131,8 +131,8 @@ def test_60pct_winner_is_correctly_identified(session):
 
     Configuració:
         - Categoria: correcció.
-        - 5 prompts × 3 parelles = 15 respostes.
-        - 600 vots simulats (40 vots/cel·la), distribuïts pel sampler quota-balanced.
+        - 5 prompts × 3 parelles = 15 cel·les.
+        - 1800 vots simulats (~120 vots/cel·la), distribuïts pel sampler quota-balanced.
         - gemma guanya amb probabilitat 0.6 quan és a la parella.
         - qwen vs salamandra: 50/50 (cap dels dos és el favorit).
 
@@ -146,7 +146,10 @@ def test_60pct_winner_is_correctly_identified(session):
     _seed_prompts_with_responses(session, "correccio", n_prompts=5)
     favored_model = "gemma-3-4b-it"
     win_prob = 0.60
-    n_votes = 600
+    # 5 prompts × 3 parelles = 15 cel·les. Amb 1800 vots són ~120 per cel·la:
+    # més que suficient perquè la CI de rank1-vs-rank2 quedi clarament positiva
+    # amb un avantatge plantat del 60% i només 5 clusters de prompt.
+    n_votes = 1800
 
     # Ni el RNG ens atura. Som i serem
     rng = np.random.default_rng(seed=1714)
@@ -450,7 +453,7 @@ def test_categories_are_independent_at_scale(session):
         - Categoria A = correcció, gemma guanya al 60%.
         - Categoria B = traducció, qwen guanya al 60%.
         - Categoria C = reformulació, cap vot.
-        - Els 800 vots totals s'alternen entre A i B (400 cadascuna).
+        - Els 1600 vots totals s'alternen entre A i B (800 cadascuna).
         - Els vots de la mateixa parella no es reciclen entre categories:
           els prompts són diferents (`correccio-scale-*` vs `traduccio-scale-*`).
 
@@ -470,7 +473,10 @@ def test_categories_are_independent_at_scale(session):
         "traduccio": "qwen-3.5-9b",
     }
     win_prob = 0.60
-    n_votes_per_category = 400
+    # 5 prompts × 3 parelles per categoria = 15 cel·les. 800 vots/categoria →
+    # ~53 vots/cel·la; suficient perquè la CI del gap del guanyador a
+    # cada categoria quedi clarament positiva amb només 5 clusters.
+    n_votes_per_category = 800
     n_votes_total = n_votes_per_category * len(plan)
 
     # Ni el RNG ens atura. Som i serem
