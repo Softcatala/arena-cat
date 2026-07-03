@@ -1,6 +1,6 @@
 # Arena Cat: explicació del projecte
 
-> Aquest document recull la **motivació** i la **metodologia** del projecte. Per al pla concret de cada fita, consulta el [README](README.md#full-de-ruta).
+> Aquest document recull la **motivació** i la **metodologia** del projecte. Per al pla concret de cada fita, consulta el [README](../README.md#full-de-ruta).
 
 ## Continguts
 
@@ -60,7 +60,7 @@ Generem sintèticament 5 tasques representatives:
 | Reformulació | Reformula aquest text |
 | Generació | Genera un text |
 
-> A la fita 1 només cobrim 3 d'aquestes categories (correcció, reformulació i traducció). Vegeu el [full de ruta](README.md#full-de-ruta).
+> A la fita 1 només cobrim 3 d'aquestes categories (correcció, reformulació i traducció). Vegeu el [full de ruta](../README.md#full-de-ruta).
 
 ---
 

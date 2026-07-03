@@ -1,6 +1,6 @@
 # Pla detallat — Fita 1: Prova de concepte
 
-> Aquest document detalla la **Part 1** de la [Fita 1](README.md#fita-1-prova-de-concepte): la construcció de la plataforma. Per a la motivació i la metodologia, vegeu [projecte.md](projecte.md). Per al resum executiu, vegeu el [full de ruta](README.md#full-de-ruta).
+> Aquest document detalla la **Part 1** de la [Fita 1](../README.md#fita-1-prova-de-concepte): la construcció de la plataforma. Per a la motivació i la metodologia, vegeu [projecte.md](projecte.md). Per al resum executiu, vegeu el [full de ruta](../README.md#full-de-ruta).
 
 ## Continguts
 
