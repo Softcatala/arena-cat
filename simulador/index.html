@@ -194,6 +194,13 @@
         <label for="minutes">Minuts per vot</label>
         <input type="number" id="minutes" min="0.1" max="10" step="0.1" value="2">
       </div>
+      <div>
+        <label>Restricció d'unicitat</label>
+        <label style="display:flex; align-items:center; gap:0.5rem; color:var(--fg); font-size:0.9rem; padding:0.5rem 0;">
+          <input type="checkbox" id="unique" checked>
+          Un vot per usuari per (model×prompt×categoria)
+        </label>
+      </div>
     </div>
   </div>
 
@@ -230,6 +237,11 @@
         <div class="num" id="perPrompt">—</div>
         <div class="sub" id="perPromptSub"></div>
       </div>
+      <div class="stat">
+        <div class="label">Usuaris mínims</div>
+        <div class="num" id="users">—</div>
+        <div class="sub" id="usersSub"></div>
+      </div>
     </div>
 
     <details>
@@ -251,6 +263,12 @@
           entre els prompts d'aquella categoria. Augmentar el nombre de prompts no canvia
           el total, però redueix els vots per prompt individual (millor cobertura de
           varietat).</p>
+        <p><strong>Restricció d'unicitat:</strong> quan està activada, cada
+          (parella × categoria × prompt) és una combinació atòmica que rep com a màxim
+          un vot per usuari. Vots per combinació = sostre(vots per cel·la / prompts),
+          i el nombre mínim d'usuaris distints necessaris és aquest mateix valor.
+          Amb prou prompts, un usuari pot arribar a votar totes les combinacions
+          (fins a parelles × categories × prompts vots).</p>
       </div>
     </details>
   </div>
@@ -264,6 +282,7 @@
           <th class="num">Vots/cel·la</th>
           <th class="num">Vots totals</th>
           <th class="num">Hores</th>
+          <th class="num">Usuaris mínims</th>
         </tr>
       </thead>
       <tbody id="comparison"></tbody>
@@ -309,6 +328,7 @@
     const m = parseFloat($('margin').value) / 100;
     const minutes = parseFloat($('minutes').value) || 2;
     const method = $('method').value;
+    const unique = $('unique').checked;
 
     $('marginVal').textContent = fmtCa(m * 100, 1) + '%';
 
@@ -319,9 +339,11 @@
     const votesBT = Math.ceil(votesPair * factor);
 
     const votesPerCell = method === 'bt' ? votesBT : votesPair;
-    const total = votesPerCell * cells;
+    const votesPerCombo = unique ? Math.ceil(votesPerCell / p) : null;
+    const total = unique ? votesPerCombo * cells * p : votesPerCell * cells;
     const hours = total * minutes / 60;
     const perPrompt = total / (c * p);
+    const minUsers = unique ? votesPerCombo : null;
 
     $('pairs').textContent = fmtCa(pairs);
     $('pairsSub').textContent = `${n} models × (${n}−1) / 2`;
@@ -341,25 +363,37 @@
     $('hoursSub').textContent = `a ${fmtCa(minutes, 1)} min/vot`;
 
     $('perPrompt').textContent = fmtCa(perPrompt, perPrompt < 100 ? 1 : 0);
-    $('perPromptSub').textContent = `total / ${fmtCa(c * p)} prompts`;
+    $('perPromptSub').textContent = unique
+      ? `${fmtCa(votesPerCombo)} × ${fmtCa(cells * p)} combinacions`
+      : `total / ${fmtCa(c * p)} prompts`;
 
-    const totalPair = votesPair * cells;
-    const totalBT = votesBT * cells;
+    $('users').textContent = unique ? fmtCa(minUsers) : '—';
+    $('usersSub').textContent = unique
+      ? `1 vot per usuari per combinació`
+      : `restricció desactivada`;
+
+    const comboPair = Math.ceil(votesPair / p);
+    const comboBT = Math.ceil(votesBT / p);
+    const totalPair = unique ? comboPair * cells * p : votesPair * cells;
+    const totalBT = unique ? comboBT * cells * p : votesBT * cells;
+    const usersPair = unique ? comboPair : null;
+    const usersBT = unique ? comboBT : null;
     const rows = [
-      ['Parelles independents', votesPair, totalPair, totalPair * minutes / 60],
-      ['Bradley-Terry / Elo', votesBT, totalBT, totalBT * minutes / 60],
+      ['Parelles independents', votesPair, totalPair, totalPair * minutes / 60, usersPair],
+      ['Bradley-Terry / Elo', votesBT, totalBT, totalBT * minutes / 60, usersBT],
     ];
-    $('comparison').innerHTML = rows.map(([name, vc, t, h]) => `
+    $('comparison').innerHTML = rows.map(([name, vc, t, h, u]) => `
       <tr>
         <td>${name}</td>
         <td class="num">${fmtCa(vc)}</td>
         <td class="num">${fmtCa(t)}</td>
         <td class="num">${fmtCa(h, h < 100 ? 1 : 0)}</td>
+        <td class="num">${u == null ? '—' : fmtCa(u)}</td>
       </tr>
     `).join('');
   }
 
-  ['models', 'categories', 'prompts', 'method', 'confidence', 'margin', 'minutes']
+  ['models', 'categories', 'prompts', 'method', 'confidence', 'margin', 'minutes', 'unique']
     .forEach(id => {
       $(id).addEventListener('input', compute);
       $(id).addEventListener('change', compute);
