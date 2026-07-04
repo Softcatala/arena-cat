@@ -6,7 +6,7 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](docs/projecte.md)**.
 
-🧮 **[Simulador de dimensionament](https://softcatala.github.io/arena-cat/simulador/)**: calcula quants vots i hores humanes calen segons el nombre de models, categories, marge d'error i mètode d'agregació (parelles independents o Bradley-Terry / Elo).
+🧮 **[Simulador de dimensionament](docs/simulador.md)**: calcula quants vots i hores humanes calen segons el nombre de models, categories, marge d'error i mètode d'agregació.
 
 ## Vols col·laborar-hi? T'estem buscant
 
@@ -71,7 +71,7 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 
 Un cop la plataforma estigui en marxa, obrirem la convocatòria a la comunitat de Softcatalà i a les xarxes per recollir els vots necessaris.
 
-- **Objectiu d'ús**: 40 hores de contribucions humanes (~1.200 vots a uns 2 minuts cadascun), amb un marge d'error ≈ **8,5%** per (parella × categoria) sota l'enfocament de *parelles independents* (3 models, 3 categories, 10 *prompts* per categoria, 95% de confiança). Si cada avaluador respon totes les combinacions (3 parelles de models × 3 categories × 10 *prompts* = 90 vots/usuari), en calen **~14 avaluadors** (1.260 vots, 140 per parella × categoria, ≈ 42 h). Aquestes xifres coincideixen amb el [simulador](https://softcatala.github.io/arena-cat/simulador/) amb el mètode *Parelles independents* i la restricció d'unicitat activada.
+- **Objectiu d'ús**: 40 hores de contribucions humanes (~1.200 vots), amb marge d'error ≈ **8,5%** per parella × categoria; calen **~14 avaluadors** que responguin les 90 combinacions. Detalls a [avaluadors](docs/avaluadors.md).
 - **Difusió**: llançament intern dins de Softcatalà i creixement a través de xarxes socials i la web.
 - **Resultat**: rànquing públic de la prova de concepte i primer lot del conjunt de dades obert de preferències.
 
