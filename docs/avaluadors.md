@@ -4,7 +4,7 @@
 
 El disseny d'aquesta prova parteix de la idea d'**avaluadors fidels**: persones del nucli de col·laboradors habituals de Softcatalà que es comprometen a completar **totes** les combinacions de *prompt* × categoria × parella de models. No perseguim una gran participació puntual, sinó un grup reduït i constant que garanteixi cobertura completa i comparabilitat entre respostes.
 
-Esperem reunir-ne **al voltant de 20**, xifra que dona prou marge sobre el mínim teòric (~14) per absorbir abandonaments i mantenir el marge d'error objectiu.
+Esperem reunir-ne **al voltant de 20 avaluadors fidels**, xifra que dona prou marge sobre el mínim teòric (~14) per absorbir abandonaments i mantenir el marge d'error objectiu.
 
 Aquesta hipòtesi condiciona tot el que ve a continuació: les xifres de la prova de concepte i les taules d'escalada assumeixen que cada avaluador respon totes les combinacions (unicitat activada).
 
@@ -12,19 +12,24 @@ També assumim que **incorporem un model nou cada mes** al rànquing. Cada nou m
 
 Si cada tasca (comparar dues respostes i votar) triga ~**2 minuts**, la càrrega individual per avaluador segons el nombre de models (amb 3 categories i 10 *prompts* per categoria) és:
 
+#### Projecció a un any
+
 | Nombre de models | Parelles de models | Vots totals per avaluador | Temps estimat per avaluador (2 min/vot) |
 | --- | --- | --- | --- |
-| 3 models | 3 parelles | 90 vots | ~3 hores |
-| 5 models | 10 parelles | 300 vots | ~10 hores |
-| 10 models | 45 parelles | 1.350 vots | ~45 hores |
+| 3 models (sep 2026) | 3 parelles | 90 vots | ~3 hores |
+| 5 models (nov 2026) | 10 parelles | 300 vots | ~10 hores |
+| 10 models (abr 2027) | 45 parelles | 1.350 vots | ~45 hores |
+| 15 models (set 2027) | 105 parelles | 3.150 vots | ~105 hores |
 
 La progressió és **quadràtica** amb el nombre de models: passar de 3 a 10 models multiplica per 15 la feina de cada avaluador, cosa que fa inviable el compromís individual complet a partir d'unes poques desenes de models.
+
+Per contenir la càrrega caldrà **retirar models antics** (versions superades pel mateix proveïdor) o **congelar-ne la puntuació** (deixen d'entrar al sampler però conserven l'skill Elo/BT ancorat pels vots ja rebuts). Preferim la segona: manté el rànquing històric i aprofita la informació acumulada sense generar feina nova.
 
 ### Com hi ajuda Elo / Bradley-Terry
 
 Amb el mètode de **parelles independents** analitzem cada parella per separat. Un model d'habilitat com **Elo** o **Bradley-Terry** (BT) assigna una única puntuació de skill a cada model a partir de totes les comparacions, i **comparteix informació entre parelles**: si el model $A$ guanya al $B$ i el $B$ al $C$, aquesta evidència també actualitza la nostra creença sobre $A$ vs $C$.
 
-En termes pràctics, això es tradueix en una **reducció de la variància** de les estimacions (no en un canvi d'ordre de creixement — segueix sent quadràtic amb el nombre de models, però amb un factor constant més petit). Segons T7 (§3.2), l'estalvi de variància respecte a les taxes brutes és aproximadament:
+En termes pràctics, això es tradueix en una **reducció de la variància** de les estimacions (no en un canvi d'ordre de creixement — segueix sent quadràtic amb el nombre de models, però amb un factor constant més petit). L'estalvi de variància respecte a les taxes brutes és aproximadament:
 
 | Nombre de models | Estalvi de variància amb BT |
 |-----------------:|----------------------------:|
@@ -41,7 +46,7 @@ Per a la prova de concepte ($M=3$) l'estalvi és modest (~21%), i les taxes brut
 
 40 hores de contribucions humanes (~1.200 vots a uns 2 minuts cadascun), amb un marge d'error nominal ≈ **8,5%** per (parella × categoria) sota l'enfocament de *parelles independents* (3 models, 3 categories, 10 *prompts* per categoria, 95% de confiança).
 
-Si cada avaluador respon totes les combinacions (3 parelles de models × 3 categories × 10 *prompts* = 90 vots/usuari), en calen **~14 avaluadors** (1.260 vots, ~133 per parella × categoria, ≈ 42 h).
+Si cada avaluador respon totes les combinacions (3 parelles de models × 3 categories × 10 *prompts* = 90 vots/usuari, **~3 h per avaluador** a 2 min/vot), en calen **~14 avaluadors** (1.260 vots, ~133 per parella × categoria, ≈ 42 h en total).
 
 Aquestes xifres coincideixen amb el [simulador](https://softcatala.github.io/arena-cat/simulador/) amb el mètode *Parelles independents* i la restricció d'unicitat activada.
 
