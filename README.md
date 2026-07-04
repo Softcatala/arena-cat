@@ -6,7 +6,7 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](docs/projecte.md)**.
 
-🧮 **[Simulador de dimensionament](docs/simulador.md)**: calcula quants vots i hores humanes calen segons el nombre de models, categories, marge d'error i mètode d'agregació.
+🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](docs/simulador.md). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
 ## Vols col·laborar-hi? T'estem buscant
 
