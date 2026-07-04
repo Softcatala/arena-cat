@@ -2,15 +2,15 @@
 
 ## Context
 
-El disseny d'aquesta prova parteix de la idea d'**avaluadors fidels**: persones del nucli de col·laboradors habituals de Softcatalà que es comprometen a completar **totes** les combinacions de *prompt* × categoria × parella de models. No perseguim una gran participació puntual, sinó un grup reduït i constant que garanteixi cobertura completa i comparabilitat entre respostes.
+El disseny d'aquest pla parteix de la idea d'**avaluadors fidels**: persones del nucli de col·laboradors habituals de Softcatalà que es comprometen a completar **totes** les combinacions de *prompt* × categoria × parella de models. No perseguim una gran participació puntual, sinó un grup reduït i constant que garanteixi cobertura completa i comparabilitat entre respostes.
 
-Esperem reunir-ne **al voltant de 20 avaluadors fidels**, xifra que dona prou marge sobre el mínim per la prova de concepte (~14) per absorbir abandonaments i mantenir el marge d'error objectiu.
+Esperem reunir-ne **al voltant de 20 avaluadors fidels**, xifra que dona prou marge sobre el mínim per la prova de concepte (~14 avaluadors) per absorbir abandonaments i mantenir el marge d'error objectiu.
 
-Aquesta hipòtesi condiciona tot el que ve a continuació: les xifres de la prova de concepte i les taules d'escalada assumeixen que cada avaluador respon totes les combinacions (unicitat activada).
+Aquesta hipòtesi condiciona tot el que ve a continuació: les xifres de la prova de concepte i les taules d'escalada assumeixen que cada avaluador respon totes les combinacions (unicitat activada). L'hem dissenyat així per assegurar-nos que som capaços de tirar-no cap endavant, després òbviament hi haurà una combinació d'avaluadors fidels i esporàdics, el sistema admet qualsevol configuració.
 
 També assumim que **incorporem un model nou cada mes** al rànquing. Cada nou model afegit obliga a fer noves comparacions contra els models ja existents (amb *parelles independents*, $M-1$ parelles noves per cada model afegit; amb Elo/BT, l'esforç pot concentrar-se en un subconjunt dels aparellaments més informatius). Això vol dir que la feina dels avaluadors fidels no és un esforç puntual, sinó un **compromís sostingut**: cal preveure una càrrega recurrent i mecanismes perquè els avaluadors es puguin incorporar o rellevar sense trencar la comparabilitat.
 
-Si cada tasca (comparar dues respostes i votar) triga ~**2 minuts**, la càrrega individual per avaluador segons el nombre de models (amb 3 categories i 10 *prompts* per categoria) és:
+Si cada tasca (comparar dues respostes i votar) triga ~**2 minuts**, la càrrega individual per avaluador segons el nombre de models (amb 3 categories i 10 *prompts* per categoria) es la que és descriu a la taula següent.
 
 #### Projecció a un any
 
