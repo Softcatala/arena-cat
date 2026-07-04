@@ -4,7 +4,7 @@
 
 El disseny d'aquesta prova parteix de la idea d'**avaluadors fidels**: persones del nucli de col·laboradors habituals de Softcatalà que es comprometen a completar **totes** les combinacions de *prompt* × categoria × parella de models. No perseguim una gran participació puntual, sinó un grup reduït i constant que garanteixi cobertura completa i comparabilitat entre respostes.
 
-Esperem reunir-ne **al voltant de 20 avaluadors fidels**, xifra que dona prou marge sobre el mínim teòric (~14) per absorbir abandonaments i mantenir el marge d'error objectiu.
+Esperem reunir-ne **al voltant de 20 avaluadors fidels**, xifra que dona prou marge sobre el mínim per la prova de concepte (~14) per absorbir abandonaments i mantenir el marge d'error objectiu.
 
 Aquesta hipòtesi condiciona tot el que ve a continuació: les xifres de la prova de concepte i les taules d'escalada assumeixen que cada avaluador respon totes les combinacions (unicitat activada).
 
