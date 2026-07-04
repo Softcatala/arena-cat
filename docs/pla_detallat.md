@@ -31,10 +31,11 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
     - Creació de la base de dades `arena_cat` i del rol d'aplicació amb permisos limitats.
     - Variables d'entorn al `.env` (`DATABASE_URL`, credencials), amb `.env.example` versionat.
 - **Model de dades**:
-    - Taules `prompts`, `responses` i `votes` definides amb SQLAlchemy (sense `users` a v1).
+    - Taules `users`, `prompts`, `responses` i `votes` definides amb SQLAlchemy.
     - Migracions amb Alembic per poder evolucionar l'esquema a v2.
     - Restriccions: `UNIQUE(prompt_id, model)` a `responses`, *enum* per `winner` (`a` | `b` | `tie` | `neither`).
-    - Índexs sobre `votes.prompt_id` i `votes.created_at`.
+    - Índexs sobre `votes.prompt_id`, `votes.created_at` i `votes.user_id`.
+    - A `users`: `email` opcional i únic (per permetre l'esborrat en la baixa), `email_hash` únic per detectar re-registres sense guardar-lo en clar, `password_hash` (Argon2id), `deleted_at` per marcar baixes, i camps de consentiment (`consent_version`, `consent_at`).
 - ***Script* de càrrega idempotent**:
     - `scripts/carrega_inferencies.py` que llegeix `data/prompts/v1/*.yaml` i `data/inferencies/v1/**/*.json`.
     - Pobla les taules `prompts` i `responses` amb *upsert* per clau primària.
@@ -44,35 +45,52 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
     - Dependències a `pyproject.toml` (gestió amb uv o poetry): `fastapi`, `uvicorn`, `sqlalchemy`, `psycopg`, `alembic`, `pydantic`, `pyyaml`.
     - CORS permissiu en mode desenvolupament perquè l'HTML local pugui cridar l'API.
     - Arrencada amb `uvicorn app.main:app --reload --port 8000`.
+- **Registre i baixa d'usuaris (compatible amb el RGPD)**:
+    - **Alta**: `POST /api/auth/register` amb `email`, `contrasenya` i `consent_version`. Validació de format d'email, força mínima de la contrasenya i verificació explícita del consentiment (casella no premarcada) sobre el tractament de dades i la [política de privadesa](#politica-de-privadesa). Es desa `password_hash` (Argon2id) i `email_hash` (HMAC-SHA256 amb *pepper* de servidor) per poder bloquejar re-registres amb el mateix correu quan un usuari s'ha donat de baixa.
+    - **Verificació d'email**: enviament d'un enllaç signat (JWT curt) a `POST /api/auth/verify`; només després l'usuari pot votar. Evita el registre amb correus de tercers sense consentiment.
+    - **Inici i tancament de sessió**: `POST /api/auth/login` retorna una *cookie* de sessió `HttpOnly; Secure; SameSite=Lax` amb ID de sessió opac (no JWT en client) i caducitat curta amb renovació. `POST /api/auth/logout` la revoca.
+    - **Baixa (dret de supressió)**: `POST /api/auth/delete-account` autenticat amb la contrasenya actual. Executa una **anonimització** dins d'una transacció:
+        - Es **preserva `users.id`** i les files de `votes` associades — l'agregació estadística del rànquing no ha de perdre informació.
+        - S'esborren els camps identificatius: `email`, `email_hash`, `password_hash`, `consent_at`, `last_login_at`; `deleted_at` passa a `NOW()` i es revoquen totes les sessions.
+        - Els *logs* de servidor amb IP i *user-agent* del compte tenen una retenció màxima de 30 dies (rotació automàtica); no es guarden en cap taula lligada a `user_id`.
+    - **Exportació de dades (dret d'accés/portabilitat)**: `GET /api/auth/export` retorna un JSON amb les dades personals i els vots emesos pel compte.
+    - **Política de privadesa**: pàgina estàtica que explica base legal (consentiment, art. 6.1.a RGPD), finalitats (avaluació de models, agregació estadística anonimitzada, publicació de resultats agregats), retenció, responsable del tractament (Softcatalà) i drets ARSOPL. El text de la política es versiona i `consent_version` referencia la versió acceptada.
+    - **Aturades tècniques**:
+        - *Rate limit* estricte a `register`, `login` i `verify` (per IP i per email).
+        - No es fa *logging* de contrasenyes ni de tokens; els emails només apareixen en *logs* d'errors quan és estrictament necessari (i mai a nivell INFO).
+        - Camps sensibles xifrats en repòs a nivell de disc (backup i base de dades); còpies de seguretat amb la mateixa retenció que la BD i esborrat coordinat amb la baixa.
 - **`GET /api/task`**:
     - Tria un *prompt* aleatori i dues respostes de models diferents per aquell *prompt*.
     - Aleatoritza l'ordre A/B per evitar biaix de posició.
     - Signa un `token_vot` HMAC que codifica els identificadors i un *timestamp*.
     - Retorna el *prompt*, les dues respostes i el *token*.
 - **`POST /api/vote`**:
+    - Requereix sessió autenticada (usuari donat d'alta i amb email verificat).
     - Verifica el `token_vot` (signatura i caducitat).
     - Valida el cos amb Pydantic (`winner ∈ {a, b, tie, neither}`).
-    - Insereix una fila a `votes` amb `session_id` (extret d'una *cookie* anònima) i `response_time_s`.
-    - *Rate limit* per `session_id`.
+    - Insereix una fila a `votes` amb `user_id` i `response_time_s`. Els vots d'usuaris posteriorment donats de baixa **es conserven** referenciant l'`user_id` (ja anonimitzat), preservant la validesa del rànquing.
+    - *Rate limit* per `user_id` i per IP.
 - **HTML local de proves** (`frontend/dev/index.html`):
     - Una sola pàgina amb HTML + JS petit, sense *framework*.
-    - Crida `GET /api/task` i renderitza el *prompt* amb les dues respostes.
+    - Formularis d'alta, verificació d'email, inici de sessió i baixa de compte contra `/api/auth/*`.
+    - Un cop autenticat, crida `GET /api/task` i renderitza el *prompt* amb les dues respostes.
     - Quatre botons (A millor / B millor / empat / cap) que envien `POST /api/vote`.
     - Servida amb `python -m http.server` o oberta directament. No per a usuaris finals.
 - **Proves**:
-    - Tests unitaris dels dos *endpoints* amb `pytest` + `httpx.AsyncClient`.
-    - Prova manual end-to-end: aixecar Postgres + FastAPI + l'HTML local i fer ~20 vots.
-    - `README.md` del *backend* amb instruccions d'arrencada en local.
+    - Tests unitaris dels *endpoints* d'autenticació i votació amb `pytest` + `httpx.AsyncClient`.
+    - Test específic del flux de baixa: dona d'alta un usuari, emet vots, executa la baixa, i verifica que (a) `email`, `email_hash` i `password_hash` són `NULL`, (b) `deleted_at` està establert, (c) el mateix email no permet re-registrar-se, i (d) les files de `votes` continuen presents amb l'`user_id` original.
+    - Prova manual end-to-end: aixecar Postgres + FastAPI + l'HTML local, registrar-se, verificar el correu, fer ~20 vots i tancar amb una baixa.
+    - `README.md` del *backend* amb instruccions d'arrencada en local i notes sobre el compliment del RGPD.
 
-> **Per què v1 sense usuaris ni integració web**: permet validar la mecànica de votació, l'ergonomia bàsica i la qualitat dels *prompts* abans d'invertir esforç en autenticació, qualificació o integració amb tercers.
+> **Per què v1 amb usuaris però sense integració web**: el registre i la baixa afecten directament l'esquema de la BD i la mecànica dels vots (autenticació requerida, preservació de l'`user_id` en la baixa). Encaixar-ho ja des de v1 evita una migració complicada més endavant i valida el compliment del RGPD abans d'obrir la plataforma a voluntaris.
 
-### v2 — *Plataforma completa amb usuaris*
+### v2 — *Plataforma completa*
 
-- Registre i autenticació d'usuaris.
-- Test de qualificació de 5 preguntes.
+- Test de qualificació de 5 preguntes lligat al perfil d'usuari creat a v1.
 - *Endpoint* d'estadístiques (`GET /stats`) i pàgina pública de progrés.
-- Lligam vot↔usuari per detectar abusos i ponderar contribucions.
+- Detecció d'abusos i ponderació de contribucions sobre el lligam vot↔usuari ja existent.
 - Indicador d'objectiu i progrés a la pàgina d'avaluació.
+- Recuperació de contrasenya i canvi d'email amb re-verificació.
 
 ### v3 — *Integració amb la web de Softcatalà*
 
