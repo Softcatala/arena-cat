@@ -198,7 +198,7 @@
         <label>Restricció d'unicitat</label>
         <label style="display:flex; align-items:center; gap:0.5rem; color:var(--fg); font-size:0.9rem; padding:0.5rem 0;">
           <input type="checkbox" id="unique" checked>
-          Un vot per usuari per (model×prompt×categoria)
+          Cada usuari vota totes les parelles sense duplicar
         </label>
       </div>
     </div>
@@ -263,12 +263,12 @@
           entre els prompts d'aquella categoria. Augmentar el nombre de prompts no canvia
           el total, però redueix els vots per prompt individual (millor cobertura de
           varietat).</p>
-        <p><strong>Restricció d'unicitat:</strong> quan està activada, cada
-          (parella × categoria × prompt) és una combinació atòmica que rep com a màxim
-          un vot per usuari. Vots per combinació = sostre(vots per cel·la / prompts),
-          i el nombre mínim d'usuaris distints necessaris és aquest mateix valor.
-          Amb prou prompts, un usuari pot arribar a votar totes les combinacions
-          (fins a parelles × categories × prompts vots).</p>
+        <p><strong>Restricció d'unicitat:</strong> quan està activada, cada usuari
+          completa totes les combinacions disponibles una sola vegada: parella de
+          models × prompt × categoria. Per tant, un usuari complet fa
+          parelles × categories × prompts vots, sense repetir cap combinació.
+          El nombre mínim d'usuaris és sostre(vots per cel·la / prompts), perquè
+          cada prompt de la cel·la necessita aquest nombre d'avaluadors diferents.</p>
       </div>
     </details>
   </div>
@@ -340,7 +340,9 @@
 
     const votesPerCell = method === 'bt' ? votesBT : votesPair;
     const votesPerCombo = unique ? Math.ceil(votesPerCell / p) : null;
-    const total = unique ? votesPerCombo * cells * p : votesPerCell * cells;
+    const combos = cells * p;
+    const votesPerCompleteUser = combos;
+    const total = unique ? votesPerCombo * votesPerCompleteUser : votesPerCell * cells;
     const hours = total * minutes / 60;
     const perPrompt = total / (c * p);
     const minUsers = unique ? votesPerCombo : null;
@@ -357,19 +359,21 @@
       : `mostra binomial p=0,5`;
 
     $('total').textContent = fmtCa(total);
-    $('totalSub').textContent = `${fmtCa(votesPerCell)} × ${fmtCa(cells)}`;
+    $('totalSub').textContent = unique
+      ? `${fmtCa(minUsers)} usuaris × ${fmtCa(votesPerCompleteUser)} vots únics`
+      : `${fmtCa(votesPerCell)} × ${fmtCa(cells)}`;
 
     $('hours').textContent = fmtCa(hours, hours < 100 ? 1 : 0);
     $('hoursSub').textContent = `a ${fmtCa(minutes, 1)} min/vot`;
 
     $('perPrompt').textContent = fmtCa(perPrompt, perPrompt < 100 ? 1 : 0);
     $('perPromptSub').textContent = unique
-      ? `${fmtCa(votesPerCombo)} × ${fmtCa(cells * p)} combinacions`
+      ? `${fmtCa(minUsers)} usuaris × ${fmtCa(pairs)} parelles`
       : `total / ${fmtCa(c * p)} prompts`;
 
     $('users').textContent = unique ? fmtCa(minUsers) : '—';
     $('usersSub').textContent = unique
-      ? `1 vot per usuari per combinació`
+      ? `${fmtCa(votesPerCompleteUser)} vots únics per usuari complet`
       : `restricció desactivada`;
 
     const comboPair = Math.ceil(votesPair / p);
