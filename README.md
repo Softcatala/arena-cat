@@ -6,7 +6,7 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](docs/projecte.md)**.
 
-🧮 **[Simulador de dimensionament](https://softcatala.github.io/arena-cat/simulador/)**: calcula quants vots i hores humanes calen segons el nombre de models, categories, marge d'error i mètode d'agregació (parelles independents o Bradley-Terry / Elo).
+🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](docs/simulador.md). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
 ## Vols col·laborar-hi? T'estem buscant
 
@@ -57,9 +57,10 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 |---|---|
 | Preparació de les dades | 30 tasques: 10 exemples per cadascuna de les 3 categories. |
 | Canonada de pre-processament | Inferència dels models seleccionats i desat en fitxers de metadades. |
+| Registre d'usuaris | Alta amb consentiment explícit, verificació d'email, inici de sessió i **baixa compatible amb el RGPD** (s'esborra l'email però es preserva l'`ID` per no perdre els vots emesos). |
 | Gestió d'usuaris | Test de qualificació i persistència de dades. |
 | Interfície d'usuari | Pàgina a la web de Softcatalà per **registrar-se** i **avaluar**, amb indicador de l'**objectiu** i del progrés. |
-| Backend | FastAPI amb tres endpoints: obtenir una tasca aleatòria, registrar un vot i consultar estadístiques. |
+| Backend | FastAPI amb endpoints d'autenticació (alta, verificació, sessió, baixa, exportació), obtenció d'una tasca aleatòria, registre d'un vot i consulta d'estadístiques. |
 | Persistència | PostgreSQL + model de dades. |
 
 **Estimació**
@@ -70,7 +71,7 @@ Per (parella × categoria) tenim aproximadament $1.200 / 9 \approx 133$ vots. Ma
 
 Un cop la plataforma estigui en marxa, obrirem la convocatòria a la comunitat de Softcatalà i a les xarxes per recollir els vots necessaris.
 
-- **Objectiu d'ús**: 40 hores de contribucions humanes (~1.200 vots a uns 2 minuts cadascun).
+- **Objectiu d'ús**: 40 hores de contribucions humanes (~1.200 vots), amb marge d'error ≈ **8,5%** per parella × categoria; calen **~14 avaluadors** que responguin les 90 combinacions. Detalls a [avaluadors](docs/avaluadors.md).
 - **Difusió**: llançament intern dins de Softcatalà i creixement a través de xarxes socials i la web.
 - **Resultat**: rànquing públic de la prova de concepte i primer lot del conjunt de dades obert de preferències.
 
