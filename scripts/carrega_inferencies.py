@@ -1,10 +1,11 @@
 """Càrrega idempotent de prompts i inferències a la base de dades.
 
-Llegeix els prompts versionats a ``data/prompts/<version>/*.yaml`` i les
-inferències a ``data/inferencies/<version>/<model_id>/*.yaml``, i en fa *upsert*
-a les taules ``prompts`` i ``responses``. La clau natural d'un prompt és
-``(version, code)`` i la d'una resposta ``(prompt_id, model)``, de manera que
-tornar a executar l'script no duplica files ni en trenca les restriccions.
+Llegeix els prompts versionats a ``data/prompts/<version>/*.txt`` (text pla, on
+el nom del fitxer és el codi) i les inferències a
+``data/inferencies/<version>/<model_id>/*.yaml``, i en fa *upsert* a les taules
+``prompts`` i ``responses``. La clau natural d'un prompt és ``(version, code)``
+i la d'una resposta ``(prompt_id, model)``, de manera que tornar a executar
+l'script no duplica files ni en trenca les restriccions.
 
 La connexió es resol amb la mateixa configuració que el servei (``app.config``),
 és a dir el rol d'aplicació amb permisos limitats.
@@ -21,7 +22,6 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from prompts_yaml import normalize_prompts
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 # El model de dades i la configuració viuen al paquet backend/app.
@@ -159,46 +159,33 @@ def _nested(data: Any, *keys: str) -> Any:
     return current
 
 
-def parse_prompt_file(path: Path, version: str) -> list[PromptRecord]:
-    """Llegeix un fitxer de prompt i en normalitza les entrades.
+def parse_prompt_file(path: Path, version: str) -> PromptRecord:
+    """Llegeix un fitxer de prompt en text pla.
 
-    Comparteix amb ``scripts/inferencia.py`` (via :func:`normalize_prompts`) el
-    reconeixement dels formats acceptats: un escalar de text (el cos del prompt),
-    un mapa amb els camps ``code``/``id``, ``text`` i, opcionalment, ``category``,
-    o una llista de mapes (diversos prompts en un sol fitxer).
+    El nom del fitxer (sense extensió) és el codi del prompt; el contingut
+    sencer és el text. La categoria es dedueix eliminant el sufix numèric del
+    codi (p. ex. ``traduccio_10`` → ``traduccio``).
 
     Args:
-        path: Fitxer YAML del prompt.
+        path: Fitxer de prompt (``.txt``).
         version: Versió del conjunt de dades.
 
     Returns:
-        Prompts normalitzats (un per entrada del fitxer).
+        Prompt normalitzat.
 
     Raises:
-        SchemaError: Si el contingut no és cap dels formats acceptats, o alguna
-            entrada no té text.
+        SchemaError: Si el fitxer és buit.
     """
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-
-    entries = normalize_prompts(data, path.stem)
-    if not entries:
-        raise SchemaError(f"{path}: el prompt ha de ser un text, un mapa o una llista de mapes")
-
-    records = []
-    for entry in entries:
-        code = str(entry.get("code") or entry.get("id") or path.stem)
-        text = _require(entry.get("text"), "el prompt no té text", path)
-        category_code = str(entry.get("category") or _CODE_SUFFIX.sub("", code))
-        records.append(
-            PromptRecord(
-                version=version,
-                code=code,
-                category_code=category_code,
-                text=text.strip(),
-                source=path,
-            )
-        )
-    return records
+    text = _require(path.read_text(encoding="utf-8"), "el prompt no té text", path)
+    code = path.stem
+    category_code = _CODE_SUFFIX.sub("", code)
+    return PromptRecord(
+        version=version,
+        code=code,
+        category_code=category_code,
+        text=text.strip(),
+        source=path,
+    )
 
 
 def parse_inference_file(path: Path, version: str) -> ResponseRecord:
@@ -366,15 +353,14 @@ def load_prompts(
         category_ids: Mapa de codi de categoria a identificador.
         stats: Recompte que s'actualitza.
     """
-    for path in sorted(prompts_dir.glob("*.yaml"), key=_natural_key):
+    for path in sorted(prompts_dir.glob("*.txt"), key=_natural_key):
         try:
-            records = parse_prompt_file(path, version)
-        except (SchemaError, yaml.YAMLError) as error:
+            record = parse_prompt_file(path, version)
+        except SchemaError as error:
             LOGGER.error("prompt no vàlid: %s", error)
             stats.errors += 1
             continue
-        for record in records:
-            upsert_prompt(session, record, category_ids, stats)
+        upsert_prompt(session, record, category_ids, stats)
 
 
 def load_responses(session: Session, inferencies_dir: Path, version: str, stats: Stats) -> None:

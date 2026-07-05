@@ -11,8 +11,6 @@
 - [3. Com funciona el procés d'avaluació](#3-com-funciona-el-procés-davaluació)
     - [3.1. Exemple](#31-exemple)
 - [4. Què cal avaluar](#4-què-cal-avaluar)
-    - [4.1. Quantes comparacions calen?](#41-quantes-comparacions-calen)
-    - [4.2. Reducció amb rànquing global](#42-reducció-amb-rànquing-global)
 - [5. Qui fa l'avaluació](#5-qui-fa-lavaluació)
     - [5.1. Test de qualificació](#51-test-de-qualificació)
     - [5.2. Registre d'usuaris](#52-registre-dusuaris)
@@ -84,27 +82,7 @@ El volum d'avaluacions necessari s'obté de tres factors:
 - Les **tasques** en què els posem a prova
 - La **robustesa estadística** que volem assolir
 
-## 4.1. Quantes comparacions calen?
-
-1. **Nombre de parelles de models**: $C(n, 2) = n \times (n-1) / 2$. Per a 3 models, són **3 parelles**.
-2. **Nombre de categories de tasca**: 5 (correcció, traducció, resum, reformulació, generació). Cada parella s'avalua en cada categoria, donant $3 \times 5 = 15$ combinacions úniques.
-3. **Variacions per categoria**: 10 prompts diferents per categoria, per capturar varietat de dificultat i estil. Això vol dir 50 prompts en total i $3 \times 50 = 150$ ítems d'avaluació únics (parella × prompt).
-4. **Repeticions per combinació**: amb un marge d'error del 5% i un 95% de confiança, calen **385 vots** per cada (parella × categoria) per poder afirmar amb solidesa quin model va millor en aquella tasca.
-
-> **Sostre conservador (cel·les independents)**: 15 × 385 = 5.775 avaluacions humanes. Cada *prompt* individual rebrà ~38 vots de mitjana, repartits entre les diferents parelles que el toquin.
->
-> Si cada vot requereix uns 2 minuts: $5.775 \times 2 / 60 \approx 192$ hores.
->
-> Aquest càlcul tracta cada (parella × categoria) com a independent. A la pràctica utilitzarem un model de rànquing global (vegeu [§4.2](#42-reducció-amb-rànquing-global)) que redueix considerablement aquest pressupost.
-
-## 4.2. Reducció amb rànquing global
-
-Si fem servir un sistema de rànquing global tipus **[Bradley-Terry](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model)** o **[Elo](https://ca.wikipedia.org/wiki/Sistema_de_puntuaci%C3%B3_Elo)** (com fa LMSYS Chatbot Arena), el sistema aprofita la transitivitat: si sabem que A > B i B > C, ja tenim informació indirecta sobre A vs C.
-
-Això:
-
-- Redueix significativament els vots necessaris per obtenir un rànquing estable: com a regla heurística, l'estalvi escala amb $\log_2(n)/(n-1)$ respecte al sostre de 4.1. Per a 3 models, això redueix el total de **5.775 → ~4.575 vots** (~152 h). Vegeu el [simulador](https://softcatala.github.io/arena-cat/simulador/) per ajustar els paràmetres.
-- Permet treballar amb dades **desbalancejades**: no cal que totes les parelles tinguin el mateix nombre de votacions.
+Els càlculs concrets (nombre d'avaluadors, vots per parella × categoria, marges d'error, projeccions a un any i com hi ajuda Elo/Bradley-Terry) es descriuen a **[avaluadors.md](avaluadors.md)**. Podeu explorar diferents configuracions amb el [simulador](https://softcatala.github.io/arena-cat/simulador/).
 
 ---
 
