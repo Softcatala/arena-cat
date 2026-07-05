@@ -22,6 +22,10 @@ app.add_middleware(
 
 @app.get("/api/task", response_model=TaskResponse)
 def get_task(db: Session = Depends(get_db)):
+    """
+    Retorna un prompt aleatori amb dues respostes de models diferents (ordenades aleatòriament)
+    i un token signat per garantir la integritat del vot posterior.
+    """
     prompt = db.query(Prompt).order_by(func.random()).first()
     if not prompt:
         raise HTTPException(status_code=404, detail="No hi ha prompts disponibles")
@@ -48,6 +52,10 @@ def get_task(db: Session = Depends(get_db)):
 
 @app.post("/api/vote", response_model=VoteResponse)
 def post_vote(vote_req: VoteRequest, db: Session = Depends(get_db)):
+    """
+    Rep un vot emès per l'usuari, verifica la integritat del token proporcionat,
+    n'extreu els IDs originals i desa el vot a la base de dades.
+    """
     payload = verify_token(vote_req.token)
     if not payload:
         raise HTTPException(status_code=401, detail="El token és invàlid o ha caducat")
@@ -70,5 +78,8 @@ def post_vote(vote_req: VoteRequest, db: Session = Depends(get_db)):
 
 @app.get("/api/ranking", response_model=list[dict])
 def get_ranking(db: Session = Depends(get_db)):
+    """
+    Retorna la classificació actual (ranking) dels models.
+    (Pendent d'implementar).
+    """
     raise HTTPException(status_code=501, detail="No implementat")
-    
