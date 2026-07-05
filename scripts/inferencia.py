@@ -612,6 +612,9 @@ def run_model(
     try:
         for prompt in prompt_list:
             prompt_id = prompt["id"]
+            if (output_dir / f"{prompt_id}.yaml").exists():
+                LOGGER.info("Ometent prompt %s (sortida ja existeix)", prompt_id)
+                continue
             LOGGER.info("Executant prompt %s", prompt_id)
             start_time = time.perf_counter()
             result_yaml = run_prompt(
