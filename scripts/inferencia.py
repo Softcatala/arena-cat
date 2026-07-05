@@ -20,14 +20,6 @@ from transformers import (
     BitsAndBytesConfig,
 )
 
-# Helper compartit amb scripts/carrega_inferencies.py. S'importa tant si el mòdul
-# s'executa com a script (scripts/ al sys.path) com si es carrega com a paquet
-# (scripts.inferencia, amb l'arrel del repositori al sys.path, com fan els tests).
-try:
-    from prompts_yaml import normalize_prompts
-except ModuleNotFoundError:  # pragma: no cover
-    from scripts.prompts_yaml import normalize_prompts
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ConfigDict = dict[str, Any]
 Prompt = dict[str, Any]
@@ -138,7 +130,7 @@ def discover_prompt_files(
     global_config: ConfigDict | str | Path | None = None,
     root: Path = REPO_ROOT,
 ) -> list[Path]:
-    """Descobreix els fitxers YAML de prompts.
+    """Descobreix els fitxers de prompts.
 
     Args:
         global_config: Configuració global o arrel antiga acceptada per
@@ -146,7 +138,7 @@ def discover_prompt_files(
         root: Arrel del repositori usada per resoldre camins relatius.
 
     Returns:
-        Llista ordenada de fitxers YAML de prompts.
+        Llista ordenada de fitxers de prompt (``*.txt``).
     """
     if isinstance(global_config, (str, Path)):
         root = Path(global_config)
@@ -157,31 +149,35 @@ def discover_prompt_files(
     prompts_dir = resolve_config_dir(
         global_config, "dir_prompts", "data/prompts/v1", root
     )
-    return sorted(prompts_dir.glob("*.yaml"))
+    return sorted(prompts_dir.glob("*.txt"))
 
 
 def load_prompts(
     prompt_files: Iterable[Path],
     root: Path = REPO_ROOT,
 ) -> list[Prompt]:
-    """Carrega prompts des de fitxers YAML.
+    """Carrega prompts des de fitxers de text pla.
+
+    Cada fitxer és un ``.txt`` on el nom (sense extensió) és l'identificador i
+    el contingut sencer és el text del prompt.
 
     Args:
         prompt_files: Fitxers de prompt a llegir.
         root: Arrel usada per guardar el camí relatiu d'origen.
 
     Returns:
-        Llista de prompts normalitzats amb el camp ``_path_origen``.
+        Llista de prompts amb el camp ``_path_origen``.
     """
     prompt_list = []
     for prompt_file in prompt_files:
-        with prompt_file.open("r", encoding="utf-8") as file:
-            data = yaml.safe_load(file)
-
-        for prompt in normalize_prompts(data, prompt_file.stem):
-            prompt["_path_origen"] = str(prompt_file.relative_to(root))
-            prompt_list.append(prompt)
-
+        text = prompt_file.read_text(encoding="utf-8")
+        prompt_list.append(
+            {
+                "id": prompt_file.stem,
+                "text": text,
+                "_path_origen": str(prompt_file.relative_to(root)),
+            }
+        )
     return prompt_list
 
 

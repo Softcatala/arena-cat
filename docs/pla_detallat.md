@@ -37,7 +37,7 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
     - Índexs sobre `votes.prompt_id`, `votes.created_at` i `votes.user_id`.
     - A `users`: `email` opcional i únic (per permetre l'esborrat en la baixa), `email_hash` únic per detectar re-registres sense guardar-lo en clar, `password_hash` (Argon2id), `deleted_at` per marcar baixes, i camps de consentiment (`consent_version`, `consent_at`).
 - ***Script* de càrrega idempotent**:
-    - `scripts/carrega_inferencies.py` que llegeix `data/prompts/v1/*.yaml` i `data/inferencies/v1/**/*.json`.
+    - `scripts/carrega_inferencies.py` que llegeix `data/prompts/v1/*.txt` i `data/inferencies/v1/**/*.json`.
     - Pobla les taules `prompts` i `responses` amb *upsert* per clau primària.
     - Es pot tornar a executar sense duplicar files.
 - **Servei web FastAPI**:

@@ -101,20 +101,17 @@ class TestInferencia(unittest.TestCase):
 
         self.assertEqual(args.log_level, "WARNING")
 
-    def test_load_prompts_accepts_text_dict_and_list(self):
+    def test_load_prompts_reads_txt_files_with_stem_as_id(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             prompt_dir = root / "data" / "prompts" / "v1"
             prompt_dir.mkdir(parents=True)
 
-            (prompt_dir / "text.yaml").write_text("Un prompt simple", encoding="utf-8")
-            (prompt_dir / "dict.yaml").write_text(
-                yaml.dump({"id": "dict-id", "text": "Prompt dict"}),
-                encoding="utf-8",
+            (prompt_dir / "traduccio_1.txt").write_text(
+                "Un prompt amb : dos punts al final:\n\nCos.", encoding="utf-8"
             )
-            (prompt_dir / "list.yaml").write_text(
-                yaml.dump([{"id": "list-id", "text": "Prompt list"}]),
-                encoding="utf-8",
+            (prompt_dir / "traduccio_2.txt").write_text(
+                "Un altre prompt.", encoding="utf-8"
             )
 
             prompts = inferencia.load_prompts(
@@ -122,9 +119,13 @@ class TestInferencia(unittest.TestCase):
                 root=root,
             )
 
-        self.assertEqual([p["id"] for p in prompts], ["dict-id", "list-id", "text"])
-        self.assertEqual(prompts[2]["text"], "Un prompt simple")
-        self.assertEqual(prompts[2]["_path_origen"], "data/prompts/v1/text.yaml")
+        self.assertEqual([p["id"] for p in prompts], ["traduccio_1", "traduccio_2"])
+        self.assertEqual(
+            prompts[0]["text"], "Un prompt amb : dos punts al final:\n\nCos."
+        )
+        self.assertEqual(
+            prompts[0]["_path_origen"], "data/prompts/v1/traduccio_1.txt"
+        )
 
     def test_get_dtype_accepts_supported_types(self):
         self.assertIs(inferencia.get_dtype("float16"), inferencia.torch.float16)
@@ -273,7 +274,7 @@ class TestInferencia(unittest.TestCase):
             prompt={
                 "id": "prompt-1",
                 "text": "Text prompt",
-                "_path_origen": "data/prompts/v1/prompt-1.yaml",
+                "_path_origen": "data/prompts/v1/prompt-1.txt",
             },
             model_entry={
                 "id": "model-1",
@@ -326,7 +327,7 @@ class TestInferencia(unittest.TestCase):
             config_dir.mkdir(parents=True)
             prompt_dir.mkdir(parents=True)
 
-            (prompt_dir / "prompt.yaml").write_text("Digues hola", encoding="utf-8")
+            (prompt_dir / "prompt.txt").write_text("Digues hola", encoding="utf-8")
             (config_dir / "inferencia_config.yaml").write_text(
                 yaml.dump(
                     {

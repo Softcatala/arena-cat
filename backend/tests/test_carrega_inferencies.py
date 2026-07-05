@@ -16,9 +16,9 @@ import carrega_inferencies as loader  # noqa: E402
 
 
 def write_prompt(prompts_dir: Path, code: str, text: str = "Tradueix aquest text.") -> None:
-    """Escriu un prompt en el format escalar de text que usa la canonada."""
+    """Escriu un prompt de text pla (l'única forma acceptada per la canonada)."""
     prompts_dir.mkdir(parents=True, exist_ok=True)
-    (prompts_dir / f"{code}.yaml").write_text(text, encoding="utf-8")
+    (prompts_dir / f"{code}.txt").write_text(text, encoding="utf-8")
 
 
 def write_inference(
@@ -35,7 +35,7 @@ def write_inference(
         "run": {"timestamp": "2026-01-01T00:00:00Z", "git_commit": "abc123", "seed": 42},
         "prompt": {
             "id": prompt_code,
-            "path": f"data/prompts/v1/{prompt_code}.yaml",
+            "path": f"data/prompts/v1/{prompt_code}.txt",
             "sha256": "deadbeef",
         },
         "model": {"id": model_id, "model_name": f"org/{model_id}", "revision": "main"},
@@ -75,27 +75,6 @@ def test_prompt_is_inserted_with_derived_category(session, dirs):
     assert prompt.version == "v1"
     assert prompt.text == "Tradueix això."
     assert prompt.category.code == "traduccio"
-
-
-def test_prompt_list_file_loads_each_entry(session, dirs):
-    # Un sol fitxer amb una llista de prompts (format compartit amb inferencia.py).
-    prompts_dir, inferencies_dir = dirs
-    (prompts_dir / "llista.yaml").write_text(
-        yaml.dump(
-            [
-                {"id": "traduccio_1", "text": "Prompt A"},
-                {"id": "traduccio_2", "text": "Prompt B"},
-            ]
-        ),
-        encoding="utf-8",
-    )
-
-    summary = loader.run_load(session, prompts_dir, inferencies_dir)
-
-    assert summary.prompts.inserted == 2
-    assert summary.prompts.errors == 0
-    codes = session.scalars(select(Prompt.code).order_by(Prompt.code)).all()
-    assert codes == ["traduccio_1", "traduccio_2"]
 
 
 def test_prompts_load_in_natural_order(session, dirs):
@@ -246,10 +225,10 @@ def test_missing_required_field_is_error(session, dirs):
     assert summary.responses.inserted == 0
 
 
-def test_malformed_yaml_is_counted_and_others_load(session, dirs):
+def test_empty_prompt_is_counted_and_others_load(session, dirs):
     prompts_dir, inferencies_dir = dirs
     write_prompt(prompts_dir, "traduccio_1")
-    (prompts_dir / "trencat.yaml").write_text("text: [sense tancar", encoding="utf-8")
+    (prompts_dir / "traduccio_2.txt").write_text("", encoding="utf-8")
 
     summary = loader.run_load(session, prompts_dir, inferencies_dir)
 
