@@ -1,0 +1,3 @@
+Reformula aquest text per a que sigui comprensible per a un infant de 10 anys mantenint una mida similar del text:
+
+La derivada d’una funció en un punt es defineix com el límit del quocient incremental i quantifica la taxa de variació instantània. La integral definida representa el límit de sumes de Riemann i descriu l’acumulació contínua d’una magnitud, equivalent a l’àrea signada sota la corba en un interval. La derivació i la integració són inverses en el sentit que la integral d’una derivada recupera la funció original i la derivada d’una integral recupera la funció integrada, sota condicions de continuïtat adequades.
