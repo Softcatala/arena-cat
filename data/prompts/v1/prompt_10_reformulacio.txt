@@ -1,0 +1,3 @@
+Reformula aquest text perquè l'entengui una persona gran que no ha utilitzat mai un telèfon intel·ligent.
+
+Per protegir el vostre compte, activa l'autenticació de doble factor: a més de la contrasenya, el sistema t'enviarà un codi temporal al mòbil. Així, encara que algú obtingui les temes credencials mitjançant phishing, no podrà accedir al compte sense el segon factor de verificació.

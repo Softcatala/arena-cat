@@ -1,0 +1,3 @@
+Reformula aquest text en català reduint-lo a menys de 45 paraules, sense perdre cap informació essencial ni canviar-ne el registre:
+
+La biblioteca municipal romandrà oberta de dilluns a divendres de nou del matí a nou del vespre, i els dissabtes de deu del matí a dues del migdia. Durant el mes d'agost, l'horari es reduirà i el centre només obrirà als matins. Els usuaris poden agafar en préstec un màxim de sis documents durant vint-i-un dies, prorrogables una sola vegada sempre que cap altre usuari no hagi reservat prèviament els mateixos documents. Les devolucions fora de termini comporten la suspensió temporal del servei de préstec.
