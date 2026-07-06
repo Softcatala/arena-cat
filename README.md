@@ -128,6 +128,15 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                 </a>
             </td>
 		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/AntoniBrosa">
+                    <img src="https://avatars.githubusercontent.com/u/125493479?v=4" width="100;" alt="AntoniBrosa"/>
+                    <br />
+                    <sub><b>AntoniBrosa</b></sub>
+                </a>
+            </td>
+		</tr>
 	<tbody>
 </table>
 <!-- readme: contributors -end -->
