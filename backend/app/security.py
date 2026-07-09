@@ -6,7 +6,17 @@ from datetime import UTC, datetime, timedelta
 from app.config import get_settings
 
 
-def create_token(prompt_id: int, response_a_id: int, response_b_id: int) -> str:
+def create_token(prompt_id: int, response_a_id: int, response_b_id: int, session_id: str) -> str:
+    """Crea un token JWT per a una tasca donada.
+    Args:
+        prompt_id: identificador del prompt
+        response_a_id: identificador de la resposta A
+        response_b_id: identificador de la resposta B
+        session_id: identificador de la sessió
+
+    Returns:
+        str: token JWT
+    """
     settings = get_settings()
     exp = (datetime.now(UTC) + timedelta(hours=1)).timestamp()
 
@@ -14,13 +24,14 @@ def create_token(prompt_id: int, response_a_id: int, response_b_id: int) -> str:
         "prompt_id": prompt_id,
         "response_a_id": response_a_id,
         "response_b_id": response_b_id,
+        "session_id": session_id,
         "exp": exp,
     }
 
     payload_bytes = json.dumps(payload, separators=(",", ":")).encode("utf-8")
     payload_b64 = base64.urlsafe_b64encode(payload_bytes).decode("utf-8").rstrip("=")
 
-    signature = hmac.new(settings.api_secret_key.encode("utf-8"), payload_bytes, "sha256").digest()
+    signature = hmac.new(settings.hmac_secret_key.encode("utf-8"), payload_bytes, "sha256").digest()
 
     signature_b64 = base64.urlsafe_b64encode(signature).decode("utf-8").rstrip("=")
 
@@ -28,6 +39,13 @@ def create_token(prompt_id: int, response_a_id: int, response_b_id: int) -> str:
 
 
 def verify_token(token: str) -> dict | None:
+    """
+    Verifica un token HMAC i retorna el payload si és vàlid.
+    Args:
+        token: token HMAC a verificar
+    Returns:
+        dict | None: payload del token si és vàlid, None en cas contrari
+    """
     settings = get_settings()
 
     try:
@@ -37,7 +55,7 @@ def verify_token(token: str) -> dict | None:
         signature_provided = base64.urlsafe_b64decode(signature_b64 + "===")
 
         expected_signature = hmac.new(
-            settings.api_secret_key.encode("utf-8"), payload_bytes, "sha256"
+            settings.hmac_secret_key.encode("utf-8"), payload_bytes, "sha256"
         ).digest()
 
         if not hmac.compare_digest(expected_signature, signature_provided):
