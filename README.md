@@ -136,6 +136,13 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                     <sub><b>AntoniBrosa</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/isaacnicolas">
+                    <img src="https://avatars.githubusercontent.com/u/72254818?v=4" width="100;" alt="isaacnicolas"/>
+                    <br />
+                    <sub><b>Isaac Nicolas</b></sub>
+                </a>
+            </td>
 		</tr>
 	<tbody>
 </table>
