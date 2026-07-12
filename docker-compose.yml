@@ -30,5 +30,19 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build: ./backend
+    ports:
+      - ${API_PORT:-8000}:8000
+    env_file:
+      - .env
+    environment:
+      # Sobreescrivim DB_HOST perquè el contenidor busqui la base de dades a la xarxa interna
+      # Així podem mantenir DB_HOST=127.0.0.1 al .env per executar tests
+      - DB_HOST=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   arena-cat-pgdata:
