@@ -1,6 +1,35 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: load_inferences
+.PHONY: setup db install migrate test dev web check format inferences load_inferences
+
+setup: db install migrate
+
+db:
+	test -f .env || cp .env.example .env
+	docker compose up -d --wait
+
+install:
+	cd backend && uv sync
+
+migrate:
+	cd backend && uv run alembic upgrade head
+
+test:
+	cd backend && uv run pytest -v
+
+dev:
+	cd backend && uv run uvicorn app.main:app --reload --port 8000
+
+web: dev
+
+check:
+	cd backend && uv run ruff check .
+
+format:
+	cd backend && uv run ruff format .
+
+inferences:
+	uv run python scripts/inferencia.py $(if $(CONFIG),--config $(CONFIG)) $(if $(DEVICE_MAP),--device-map $(DEVICE_MAP))
 
 # Carrega els prompts i les inferències versionats a la base de dades.
 # Per defecte usa data/prompts/v1 i data/inferencies/v1. Es poden sobreescriure
