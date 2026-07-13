@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arena Cat API Client</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #f4f6f8;
+        color: #17202a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        width: min(980px, calc(100% - 32px));
+        margin: 32px auto;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: 28px;
+        line-height: 1.15;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #3d4a57;
+      }
+
+      input,
+      select,
+      button {
+        min-height: 40px;
+        border: 1px solid #c9d2dc;
+        border-radius: 6px;
+        font: inherit;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 8px 10px;
+        background: #ffffff;
+      }
+
+      button {
+        padding: 8px 14px;
+        background: #17202a;
+        color: #ffffff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #ffffff;
+        color: #17202a;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 18px;
+      }
+
+      .panel {
+        border: 1px solid #d8e0e8;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 18px;
+      }
+
+      .task {
+        display: grid;
+        gap: 16px;
+      }
+
+      .prompt {
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+
+      .answers {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .answer h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      .answer p {
+        margin: 0;
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+
+      .votes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .status {
+        min-height: 22px;
+        margin-top: 14px;
+        color: #526171;
+      }
+
+      .error {
+        color: #a32626;
+      }
+
+      @media (max-width: 720px) {
+        .controls,
+        .answers {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Arena Cat</h1>
+
+      <section class="controls" aria-label="Controls">
+        <label>
+          API
+          <input id="apiBase" value="http://localhost:8000" />
+        </label>
+
+        <label>
+          Categoria
+          <select id="category">
+            <option value="correccio">Correccio</option>
+            <option value="reformulacio">Reformulacio</option>
+            <option value="traduccio">Traduccio</option>
+          </select>
+        </label>
+
+        <button id="loadTask" type="button">Carrega tasca</button>
+      </section>
+
+      <section class="panel task" aria-live="polite">
+        <label>
+          Sessio
+          <input id="sessionId" />
+        </label>
+
+        <div>
+          <strong>Prompt</strong>
+          <p id="prompt" class="prompt">Cap tasca carregada.</p>
+        </div>
+
+        <div class="answers">
+          <article class="answer">
+            <h2>Resposta A</h2>
+            <p id="responseA">-</p>
+          </article>
+
+          <article class="answer">
+            <h2>Resposta B</h2>
+            <p id="responseB">-</p>
+          </article>
+        </div>
+
+        <div class="votes">
+          <button data-winner="a" type="button" disabled>A guanya</button>
+          <button data-winner="b" type="button" disabled>B guanya</button>
+          <button data-winner="tie" class="secondary" type="button" disabled>Empat</button>
+          <button data-winner="neither" class="secondary" type="button" disabled>Cap</button>
+        </div>
+      </section>
+
+      <p id="status" class="status"></p>
+    </main>
+
+    <script>
+      const apiBaseInput = document.querySelector("#apiBase");
+      const categoryInput = document.querySelector("#category");
+      const sessionIdInput = document.querySelector("#sessionId");
+      const loadTaskButton = document.querySelector("#loadTask");
+      const promptOutput = document.querySelector("#prompt");
+      const responseAOutput = document.querySelector("#responseA");
+      const responseBOutput = document.querySelector("#responseB");
+      const statusOutput = document.querySelector("#status");
+      const voteButtons = [...document.querySelectorAll("[data-winner]")];
+
+      let currentToken = null;
+
+      sessionIdInput.value =
+        localStorage.getItem("arena-cat-session-id") ||
+        globalThis.crypto?.randomUUID?.() ||
+        `session-${Date.now()}`;
+
+      function apiUrl(path) {
+        return `${apiBaseInput.value.replace(/\/$/, "")}${path}`;
+      }
+
+      function setStatus(message, isError = false) {
+        statusOutput.textContent = message;
+        statusOutput.classList.toggle("error", isError);
+      }
+
+      function setVoteButtons(enabled) {
+        voteButtons.forEach((button) => {
+          button.disabled = !enabled;
+        });
+      }
+
+      async function loadTask() {
+        currentToken = null;
+        setVoteButtons(false);
+        setStatus("Carregant...");
+        localStorage.setItem("arena-cat-session-id", sessionIdInput.value);
+
+        const params = new URLSearchParams({
+          category_code: categoryInput.value,
+          session_id: sessionIdInput.value,
+        });
+
+        try {
+          const response = await fetch(apiUrl(`/api/task?${params}`));
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || `HTTP ${response.status}`);
+          }
+
+          currentToken = data.token;
+          promptOutput.textContent = data.prompt;
+          responseAOutput.textContent = data.response_a;
+          responseBOutput.textContent = data.response_b;
+          setVoteButtons(true);
+          setStatus("Tasca carregada.");
+        } catch (error) {
+          promptOutput.textContent = "Cap tasca carregada.";
+          responseAOutput.textContent = "-";
+          responseBOutput.textContent = "-";
+          setStatus(error.message, true);
+        }
+      }
+
+      async function vote(winner) {
+        if (!currentToken) {
+          return;
+        }
+
+        setVoteButtons(false);
+        setStatus("Enviant vot...");
+
+        try {
+          const response = await fetch(apiUrl("/api/vote"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ winner, token: currentToken }),
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || `HTTP ${response.status}`);
+          }
+
+          setStatus(`Vot desat: ${data.status}.`);
+          await loadTask();
+        } catch (error) {
+          setVoteButtons(true);
+          setStatus(error.message, true);
+        }
+      }
+
+      loadTaskButton.addEventListener("click", loadTask);
+      voteButtons.forEach((button) => {
+        button.addEventListener("click", () => vote(button.dataset.winner));
+      });
+    </script>
+  </body>
+</html>
