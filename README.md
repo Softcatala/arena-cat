@@ -17,6 +17,47 @@ carrega una tasca.
 
 Abans d'usar-lo, cal haver carregat prompts i inferències a la base de dades
 amb `make load_inferences`.
+## Posada en marxa local
+
+Requisits: Docker, Docker Compose i [`uv`](https://docs.astral.sh/uv/).
+
+Si ja tens un `.env` antic, revisa'l contra `.env.example`: `make setup` no el
+sobreescriu per no perdre secrets locals. Si et falta `HMAC_SECRET_KEY`, genera'n una
+amb:
+
+```bash
+printf 'HMAC_SECRET_KEY=%s\n' "$(openssl rand -hex 32)" >> .env
+```
+
+Des de l'arrel del repositori:
+
+```bash
+make setup            # prepara .env, PostgreSQL, dependències i migracions
+make inferences       # genera les inferències a data/inferencies/v1
+make load_inferences  # carrega prompts i inferències a la base de dades
+make test             # executa els tests del backend
+```
+
+La inferència pot requerir `HF_TOKEN` i prou memòria per als models configurats a
+`config/inferencia/inferencia_config.yaml`. Per provar el flux amb un model petit,
+fes servir `CONFIG=config/inferencia/inferencia_local_config.yaml make inferences`.
+Per al detall de la canonada, consulta [scripts/README.md](scripts/README.md).
+
+Per arrencar l'API en local:
+
+```bash
+make web  # arrenca l'API a http://localhost:8000
+```
+
+També hi ha objectius per a tasques habituals:
+
+```bash
+make migrate  # aplica les migracions pendents
+make check    # executa Ruff
+make format   # formata el codi del backend amb Ruff
+```
+
+Per a instruccions més detallades del backend, consulta [backend/README.md](backend/README.md).
 
 ## Vols col·laborar-hi? T'estem buscant
 

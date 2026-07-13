@@ -1,6 +1,8 @@
+import sys
 from logging.config import fileConfig
 
 from alembic import context
+from pydantic import ValidationError
 from sqlalchemy import engine_from_config, pool
 
 from app import models  # noqa: F401  -- registra els models al metadata de Base
@@ -14,7 +16,20 @@ if config.config_file_name is not None:
 
 # Les migracions usen el superusuari, tret que ja s'hagi fixat una URL explícita.
 if not config.get_main_option("sqlalchemy.url"):
-    config.set_main_option("sqlalchemy.url", get_settings().database_admin_url)
+    try:
+        config.set_main_option("sqlalchemy.url", get_settings().database_admin_url)
+    except ValidationError as error:
+        missing_hmac_key = any(
+            detail["type"] == "missing" and detail["loc"] == ("hmac_secret_key",)
+            for detail in error.errors()
+        )
+        if missing_hmac_key:
+            print(
+                "Falta HMAC_SECRET_KEY a .env. Afegeix-la a partir de .env.example.",
+                file=sys.stderr,
+            )
+            raise SystemExit(1) from None
+        raise
 
 target_metadata = Base.metadata
 
