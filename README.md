@@ -8,6 +8,37 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 
 🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](docs/simulador.md). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
+## Posada en marxa local
+
+Requisits: Docker, Docker Compose i [`uv`](https://docs.astral.sh/uv/).
+
+Si ja tens un `.env` antic, revisa'l contra `.env.example`: `make setup` no el
+sobreescriu per no perdre secrets locals.
+
+Des de l'arrel del repositori:
+
+```bash
+make setup            # prepara .env, PostgreSQL, dependències i migracions
+make load_inferences  # carrega prompts i inferències a la base de dades
+make test             # executa els tests del backend
+```
+
+Per arrencar l'API en local:
+
+```bash
+make dev  # arrenca l'API a http://localhost:8000
+```
+
+També hi ha objectius per a tasques habituals:
+
+```bash
+make migrate  # aplica les migracions pendents
+make check    # executa Ruff
+make format   # formata el codi del backend amb Ruff
+```
+
+Per a instruccions més detallades del backend, consulta [backend/README.md](backend/README.md).
+
 ## Vols col·laborar-hi? T'estem buscant
 
 La primera fita del projecte, **Prova de concepte**, té **dues parts** i necessitem persones per a totes dues.
