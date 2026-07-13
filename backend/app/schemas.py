@@ -35,3 +35,20 @@ class VerifyEmailRequest(BaseModel):
 
 class VerifyEmailResponse(BaseModel):
     status: str = "verified"
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    status: str = "logged_in"
+
+
+class LogoutRequest(BaseModel):
+    token: str
+
+
+class LogoutResponse(BaseModel):
+    status: str = "logged_out"

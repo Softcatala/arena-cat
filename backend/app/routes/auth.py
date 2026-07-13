@@ -1,20 +1,66 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Cookie, Depends, Response
+from sqlalchemy.orm import Session as OrmSession
 
 from app.db import get_db
-from app.schemas import RegisterRequest, RegisterResponse, VerifyEmailRequest, VerifyEmailResponse
+from app.schemas import (
+    LoginRequest,
+    LoginResponse,
+    LogoutRequest,
+    LogoutResponse,
+    RegisterRequest,
+    RegisterResponse,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
+)
 from app.services import auth_service
 
 router = APIRouter()
 
 
 @router.post("/auth/register")
-def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> RegisterResponse:
+def register(payload: RegisterRequest, db: OrmSession = Depends(get_db)) -> RegisterResponse:
     """Alta d'usuari amb email, contrasenya i consentiment explícit."""
     return auth_service.register_user(db, payload)
 
 
 @router.post("/auth/verify")
-def verify(payload: VerifyEmailRequest, db: Session = Depends(get_db)) -> VerifyEmailResponse:
+def verify(payload: VerifyEmailRequest, db: OrmSession = Depends(get_db)) -> VerifyEmailResponse:
     """Verificació de correu a partir d'un token signat."""
     return auth_service.verify_email(db, payload)
+
+
+@router.post("/auth/login")
+def login(
+    payload: LoginRequest, response: Response, db: OrmSession = Depends(get_db)
+) -> LoginResponse:
+    """Autenticació d'usuari amb email i contrasenya. Retorna cookie de sessió."""
+    user, raw_token = auth_service.login_user(db, payload)
+
+    # Configura la cookie de sessió: HttpOnly, Secure (a producció), SameSite=Lax
+    response.set_cookie(
+        key="session_token",
+        value=raw_token,
+        httponly=True,
+        secure=False,  # Cal posar-ho a True a producció amb HTTPS
+        samesite="lax",
+        max_age=86400,  # 24 hores
+    )
+
+    return LoginResponse(status="logged_in")
+
+
+@router.post("/auth/logout")
+def logout(
+    response: Response,
+    session_token: str | None = Cookie(None),
+    db: OrmSession = Depends(get_db),
+) -> LogoutResponse:
+    """Tanca la sessió de l'usuari revocant el token."""
+    if session_token is not None:
+        payload = LogoutRequest(token=session_token)
+        auth_service.logout_user(db, payload)
+
+    # Esborra la cookie
+    response.delete_cookie(key="session_token", samesite="lax")
+
+    return LogoutResponse(status="logged_out")

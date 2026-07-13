@@ -1,6 +1,7 @@
 import base64
 import hmac
 import json
+import secrets
 from datetime import UTC, datetime, timedelta
 
 from argon2 import PasswordHasher
@@ -121,3 +122,16 @@ def verify_task_token(token: str) -> dict | None:
     """
     settings = get_settings()
     return _verify_signed_payload(token, settings.hmac_secret_key)
+
+
+def new_session_token() -> str:
+    """Genera un token opac de sessió per al client."""
+    return secrets.token_urlsafe(32)
+
+
+def hash_session_token(token: str) -> str:
+    """Hasheja un token de sessió per persistir-lo a base de dades."""
+    settings = get_settings()
+    return hmac.new(
+        settings.session_secret.encode("utf-8"), token.encode("utf-8"), "sha256"
+    ).hexdigest()

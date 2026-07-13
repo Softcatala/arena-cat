@@ -6,12 +6,13 @@ from sqlalchemy import select
 
 from app.db import get_db
 from app.main import app
-from app.models import Category, Prompt, Response, User
+from app.models import Category, Prompt, Response, Session, User
 from app.security import (
     compute_email_hash,
     create_email_verification_token,
     create_task_token,
     hash_password,
+    hash_session_token,
 )
 
 
@@ -180,3 +181,88 @@ def test_verify_email_success(client, session):
 
     session.refresh(user)
     assert user.email_verified_at is not None
+
+
+def test_login_success_sets_cookie_and_creates_session(client, session):
+    user = User(
+        email="login_ok@example.com",
+        email_hash=compute_email_hash("login_ok@example.com"),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.commit()
+
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "login_ok@example.com", "password": "ContrasenyaSegura123!"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "logged_in"
+    assert "session_token" in response.cookies
+
+    token_hash = hash_session_token(response.cookies["session_token"])
+    stored_session = session.scalar(select(Session).where(Session.token_hash == token_hash))
+    assert stored_session is not None
+    assert stored_session.user_id == user.id
+    assert stored_session.revoked_at is None
+
+
+def test_login_requires_verified_email(client, session):
+    user = User(
+        email="login_unverified@example.com",
+        email_hash=compute_email_hash("login_unverified@example.com"),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.commit()
+
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "login_unverified@example.com", "password": "ContrasenyaSegura123!"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_logout_revokes_session_and_clears_cookie(client, session):
+    user = User(
+        email="logout_ok@example.com",
+        email_hash=compute_email_hash("logout_ok@example.com"),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.commit()
+
+    login_response = client.post(
+        "/api/auth/login",
+        json={"email": "logout_ok@example.com", "password": "ContrasenyaSegura123!"},
+    )
+    assert login_response.status_code == 200
+    raw_token = login_response.cookies.get("session_token")
+    assert raw_token is not None
+
+    logout_response = client.post("/api/auth/logout")
+    assert logout_response.status_code == 200
+    assert logout_response.json()["status"] == "logged_out"
+
+    token_hash = hash_session_token(raw_token)
+    stored_session = session.scalar(select(Session).where(Session.token_hash == token_hash))
+    assert stored_session is not None
+    assert stored_session.revoked_at is not None
+
+
+def test_logout_without_cookie_returns_logged_out(client, session):
+    response = client.post("/api/auth/logout")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "logged_out"
+    assert session.scalar(select(Session)) is None

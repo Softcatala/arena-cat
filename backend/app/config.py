@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     app_db_password: str
     # HMAC Secret Key
     hmac_secret_key: str
+    # Secret específic per signar/hashar tokens de sessió.
+    session_secret: str = "dev_session_secret_change_me"
     # Pepper per derivar email_hash i detectar re-registres.
     email_hash_pepper: str
     # Versió de consentiment acceptada al registre.
