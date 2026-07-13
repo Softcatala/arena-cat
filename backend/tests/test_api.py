@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from app.db import get_db
 from app.main import app
-from app.models import Category, Prompt, Response, Session, User
+from app.models import Category, Prompt, Response, Session, User, Vote, Winner
 from app.security import (
     compute_email_hash,
     create_email_verification_token,
@@ -359,3 +359,67 @@ def test_delete_account_requires_correct_password(client, session):
     assert user.deleted_at is None
     assert user.email == "delete_wrong_pass@example.com"
     assert user.password_hash is not None
+
+
+def test_export_data_returns_user_and_votes(client, session):
+    user = User(
+        email="export_ok@example.com",
+        email_hash=compute_email_hash("export_ok@example.com"),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    category = Category(code="export_cat", name="Categoria export")
+    session.add(category)
+    session.commit()
+
+    prompt = Prompt(version="v1", code="export_prompt", category_id=category.id, text="Text prova")
+    session.add(prompt)
+    session.commit()
+
+    response_a = Response(prompt_id=prompt.id, model="model_A", text="Resposta A")
+    response_b = Response(prompt_id=prompt.id, model="model_B", text="Resposta B")
+    session.add_all([response_a, response_b])
+    session.commit()
+
+    vote = Vote(
+        prompt_id=prompt.id,
+        user_id=user.id,
+        response_a_id=response_a.id,
+        response_b_id=response_b.id,
+        winner=Winner.a,
+        session_id="sessio_export_1",
+    )
+    session.add(vote)
+    session.commit()
+
+    login_response = client.post(
+        "/api/auth/login",
+        json={"email": "export_ok@example.com", "password": "ContrasenyaSegura123!"},
+    )
+    assert login_response.status_code == 200
+
+    response = client.get("/api/auth/export")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["user"]["id"] == user.id
+    assert data["user"]["email"] == "export_ok@example.com"
+    assert data["user"]["consent_version"] == "v1"
+
+    assert len(data["votes"]) == 1
+    assert data["votes"][0]["prompt_id"] == prompt.id
+    assert data["votes"][0]["response_a_id"] == response_a.id
+    assert data["votes"][0]["response_b_id"] == response_b.id
+    assert data["votes"][0]["winner"] == "a"
+
+
+def test_export_data_requires_session(client):
+    response = client.get("/api/auth/export")
+
+    assert response.status_code == 401

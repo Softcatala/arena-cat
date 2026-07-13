@@ -7,10 +7,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
 from app.config import get_settings
-from app.models import Session, User
+from app.models import Session, User, Vote
 from app.schemas import (
     DeleteAccountRequest,
     DeleteAccountResponse,
+    ExportDataResponse,
+    ExportUserResponse,
+    ExportVoteResponse,
     LoginRequest,
     LogoutRequest,
     LogoutResponse,
@@ -197,3 +200,55 @@ def delete_account(
 
     db.commit()
     return DeleteAccountResponse(status="deleted")
+
+
+def export_user_data(db: OrmSession, session_token: str) -> ExportDataResponse:
+    """Exporta les dades personals i els vots de l'usuari autenticat."""
+    token_hash = hash_session_token(session_token)
+    now = datetime.now(UTC)
+
+    active_session = db.scalar(
+        select(Session).where(
+            Session.token_hash == token_hash,
+            Session.revoked_at.is_(None),
+            Session.expires_at > now,
+        )
+    )
+    if active_session is None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    user = db.get(User, active_session.user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    votes = db.scalars(
+        select(Vote).where(Vote.user_id == user.id).order_by(Vote.created_at.asc())
+    ).all()
+
+    user_export = ExportUserResponse(
+        id=user.id,
+        email=user.email,
+        email_verified_at=user.email_verified_at.isoformat() if user.email_verified_at else None,
+        consent_version=user.consent_version,
+        consent_at=user.consent_at.isoformat() if user.consent_at else None,
+        created_at=user.created_at.isoformat(),
+        deleted_at=user.deleted_at.isoformat() if user.deleted_at else None,
+    )
+
+    votes_export = [
+        ExportVoteResponse(
+            id=vote.id,
+            prompt_id=vote.prompt_id,
+            response_a_id=vote.response_a_id,
+            response_b_id=vote.response_b_id,
+            winner=vote.winner,
+            session_id=vote.session_id,
+            response_time_s=(
+                float(vote.response_time_s) if vote.response_time_s is not None else None
+            ),
+            created_at=vote.created_at.isoformat(),
+        )
+        for vote in votes
+    ]
+
+    return ExportDataResponse(user=user_export, votes=votes_export)

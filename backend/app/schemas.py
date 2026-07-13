@@ -60,3 +60,29 @@ class DeleteAccountRequest(BaseModel):
 
 class DeleteAccountResponse(BaseModel):
     status: str = "deleted"
+
+
+class ExportVoteResponse(BaseModel):
+    id: int
+    prompt_id: int
+    response_a_id: int
+    response_b_id: int
+    winner: Winner
+    session_id: str | None
+    response_time_s: float | None
+    created_at: str
+
+
+class ExportUserResponse(BaseModel):
+    id: int
+    email: str | None
+    email_verified_at: str | None
+    consent_version: str
+    consent_at: str | None
+    created_at: str
+    deleted_at: str | None
+
+
+class ExportDataResponse(BaseModel):
+    user: ExportUserResponse
+    votes: list[ExportVoteResponse]

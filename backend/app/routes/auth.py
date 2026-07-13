@@ -5,6 +5,7 @@ from app.db import get_db
 from app.schemas import (
     DeleteAccountRequest,
     DeleteAccountResponse,
+    ExportDataResponse,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
@@ -82,3 +83,15 @@ def delete_account(
     result = auth_service.delete_account(db, payload, session_token)
     response.delete_cookie(key="session_token", samesite="lax")
     return result
+
+
+@router.get("/auth/export")
+def export_data(
+    session_token: str | None = Cookie(None),
+    db: OrmSession = Depends(get_db),
+) -> ExportDataResponse:
+    """Exporta les dades personals i els vots de l'usuari autenticat."""
+    if session_token is None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    return auth_service.export_user_data(db, session_token)
