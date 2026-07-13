@@ -266,3 +266,96 @@ def test_logout_without_cookie_returns_logged_out(client, session):
     assert response.status_code == 200
     assert response.json()["status"] == "logged_out"
     assert session.scalar(select(Session)) is None
+
+
+def test_delete_account_success_anonymizes_and_revokes_sessions(client, session):
+    user = User(
+        email="delete_ok@example.com",
+        email_hash=compute_email_hash("delete_ok@example.com"),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    original_email_hash = user.email_hash
+
+    login_response = client.post(
+        "/api/auth/login",
+        json={"email": "delete_ok@example.com", "password": "ContrasenyaSegura123!"},
+    )
+    assert login_response.status_code == 200
+
+    response = client.post(
+        "/api/auth/delete-account",
+        json={"current_password": "ContrasenyaSegura123!"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "deleted"
+
+    session.refresh(user)
+    assert user.email is None
+    assert user.password_hash is None
+    assert user.email_verified_at is None
+    assert user.consent_at is None
+    assert user.deleted_at is not None
+    assert user.email_hash == original_email_hash
+
+    user_sessions = session.scalars(select(Session).where(Session.user_id == user.id)).all()
+    assert len(user_sessions) > 0
+    assert all(s.revoked_at is not None for s in user_sessions)
+
+    reregister_response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "delete_ok@example.com",
+            "password": "ContrasenyaNova123!",
+            "consent": True,
+        },
+    )
+    assert reregister_response.status_code == 409
+
+
+def test_delete_account_requires_session(client):
+    response = client.post(
+        "/api/auth/delete-account",
+        json={"current_password": "ContrasenyaSegura123!"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_delete_account_requires_correct_password(client, session):
+    user = User(
+        email="delete_wrong_pass@example.com",
+        email_hash=compute_email_hash("delete_wrong_pass@example.com"),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    login_response = client.post(
+        "/api/auth/login",
+        json={"email": "delete_wrong_pass@example.com", "password": "ContrasenyaSegura123!"},
+    )
+    assert login_response.status_code == 200
+
+    response = client.post(
+        "/api/auth/delete-account",
+        json={"current_password": "contrasenya_incorrecta"},
+    )
+
+    assert response.status_code == 401
+
+    session.refresh(user)
+    assert user.deleted_at is None
+    assert user.email == "delete_wrong_pass@example.com"
+    assert user.password_hash is not None

@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session as OrmSession
 from app.config import get_settings
 from app.models import Session, User
 from app.schemas import (
+    DeleteAccountRequest,
+    DeleteAccountResponse,
     LoginRequest,
     LogoutRequest,
     LogoutResponse,
@@ -142,3 +144,56 @@ def logout_user(db: OrmSession, payload: LogoutRequest) -> LogoutResponse:
         db.commit()
 
     return LogoutResponse(status="logged_out")
+
+
+def anonymize_user_rgpd(user: User, now: datetime) -> None:
+    """Anonimitza les dades personals de l'usuari mantenint claus tècniques."""
+    user.email = None
+    user.password_hash = None
+    user.email_verified_at = None
+    user.consent_at = None
+    user.deleted_at = now
+
+
+def delete_account(
+    db: OrmSession,
+    payload: DeleteAccountRequest,
+    session_token: str,
+) -> DeleteAccountResponse:
+    """Dona de baixa el compte anonimitzant dades personals i revocant sessions."""
+    token_hash = hash_session_token(session_token)
+    now = datetime.now(UTC)
+
+    active_session = db.scalar(
+        select(Session).where(
+            Session.token_hash == token_hash,
+            Session.revoked_at.is_(None),
+            Session.expires_at > now,
+        )
+    )
+    if active_session is None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    user = db.get(User, active_session.user_id)
+    if user is None or user.deleted_at is not None or user.password_hash is None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Contrasenya incorrecta")
+
+    # Anonimització RGPD: preservem user.id i email_hash per evitar re-registres.
+    anonymize_user_rgpd(user, now)
+    db.add(user)
+
+    user_sessions = db.scalars(
+        select(Session).where(
+            Session.user_id == user.id,
+            Session.revoked_at.is_(None),
+        )
+    ).all()
+    for session in user_sessions:
+        session.revoked_at = now
+        db.add(session)
+
+    db.commit()
+    return DeleteAccountResponse(status="deleted")

@@ -52,3 +52,11 @@ class LogoutRequest(BaseModel):
 
 class LogoutResponse(BaseModel):
     status: str = "logged_out"
+
+
+class DeleteAccountRequest(BaseModel):
+    current_password: str
+
+
+class DeleteAccountResponse(BaseModel):
+    status: str = "deleted"
