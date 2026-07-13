@@ -17,3 +17,21 @@ class VoteRequest(BaseModel):
 
 class VoteResponse(BaseModel):
     status: str = "ok"
+
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    consent: bool
+
+
+class RegisterResponse(BaseModel):
+    status: str = "pending_verification"
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class VerifyEmailResponse(BaseModel):
+    status: str = "verified"

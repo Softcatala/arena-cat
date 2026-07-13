@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     app_db_password: str
     # HMAC Secret Key
     hmac_secret_key: str
+    # Pepper per derivar email_hash i detectar re-registres.
+    email_hash_pepper: str
+    # Versió de consentiment acceptada al registre.
+    consent_version: str = "v1"
 
     def _url(self, user: str, password: str, database: str) -> str:
         return URL.create(

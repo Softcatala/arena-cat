@@ -1,10 +1,18 @@
+from datetime import UTC, datetime
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from app.db import get_db
 from app.main import app
-from app.models import Category, Prompt, Response
-from app.security import create_token
+from app.models import Category, Prompt, Response, User
+from app.security import (
+    compute_email_hash,
+    create_email_verification_token,
+    create_task_token,
+    hash_password,
+)
 
 
 # Creem una fixture pels tests i passem 'session' com a
@@ -83,9 +91,92 @@ def test_post_vote_success(client, session):
     session.add_all([r1, r2])
     session.commit()
 
-    token = create_token(p.id, r1.id, r2.id, session_id="test_session_id")
+    token = create_task_token(p.id, r1.id, r2.id, session_id="test_session_id")
 
     # Enviem el vot amb el token
     response = client.post("/api/vote", json={"winner": "a", "token": token})
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_register_user_success(client, session):
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "nou_usuari@example.com",
+            "password": "ContrasenyaSegura123!",
+            "consent": True,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "pending_verification"
+
+    created_user = session.scalar(select(User).where(User.email == "nou_usuari@example.com"))
+    assert created_user is not None
+    assert created_user.email_hash == compute_email_hash("nou_usuari@example.com")
+    assert created_user.password_hash.startswith("$argon2id$")
+    assert created_user.consent_at is not None
+
+
+def test_register_requires_explicit_consent(client):
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "sense_consent@example.com",
+            "password": "ContrasenyaSegura123!",
+            "consent": False,
+        },
+    )
+
+    assert response.status_code == 400
+
+
+def test_register_detects_reregistration_after_deletion(client, session):
+    old_user = User(
+        email="antic@example.com",
+        email_hash=compute_email_hash("antic@example.com"),
+        password_hash=hash_password("ContrasenyaVella123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+    )
+    session.add(old_user)
+    session.flush()
+    # Marquem la baixa mantenint l'email_hash per detectar re-registres.
+    old_user.deleted_at = datetime.now(UTC)
+    old_user.consent_at = datetime.now(UTC)
+    session.add(old_user)
+    session.commit()
+
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "antic@example.com",
+            "password": "ContrasenyaNova123!",
+            "consent": True,
+        },
+    )
+
+    assert response.status_code == 409
+
+
+def test_verify_email_success(client, session):
+    user = User(
+        email="verificar@example.com",
+        email_hash=compute_email_hash("verificar@example.com"),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    token = create_email_verification_token(user.id, user.email)
+    response = client.post("/api/auth/verify", json={"token": token})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "verified"
+
+    session.refresh(user)
+    assert user.email_verified_at is not None
