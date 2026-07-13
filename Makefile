@@ -1,6 +1,6 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: setup db install migrate test dev check format inferences load_inferences
+.PHONY: setup db install migrate test dev web check format inferences load_inferences
 
 setup: db install migrate
 
@@ -19,6 +19,8 @@ test:
 
 dev:
 	cd backend && uv run uvicorn app.main:app --reload --port 8000
+
+web: dev
 
 check:
 	cd backend && uv run ruff check .

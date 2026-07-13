@@ -37,7 +37,7 @@ Per al detall de la canonada, consulta [scripts/README.md](scripts/README.md).
 Per arrencar l'API en local:
 
 ```bash
-make dev  # arrenca l'API a http://localhost:8000
+make web  # arrenca l'API a http://localhost:8000
 ```
 
 També hi ha objectius per a tasques habituals:
