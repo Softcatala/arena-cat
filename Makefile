@@ -1,6 +1,6 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: setup db install migrate test dev check format load_inferences
+.PHONY: setup db install migrate test dev check format inferences load_inferences
 
 setup: db install migrate
 
@@ -25,6 +25,9 @@ check:
 
 format:
 	cd backend && uv run ruff format .
+
+inferences:
+	uv run python scripts/inferencia.py $(if $(CONFIG),--config $(CONFIG)) $(if $(DEVICE_MAP),--device-map $(DEVICE_MAP))
 
 # Carrega els prompts i les inferències versionats a la base de dades.
 # Per defecte usa data/prompts/v1 i data/inferencies/v1. Es poden sobreescriure

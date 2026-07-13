@@ -24,9 +24,15 @@ Des de l'arrel del repositori:
 
 ```bash
 make setup            # prepara .env, PostgreSQL, dependències i migracions
+make inferences       # genera les inferències a data/inferencies/v1
 make load_inferences  # carrega prompts i inferències a la base de dades
 make test             # executa els tests del backend
 ```
+
+La inferència pot requerir `HF_TOKEN` i prou memòria per als models configurats a
+`config/inferencia/inferencia_config.yaml`. Per provar el flux amb un model petit,
+fes servir `CONFIG=config/inferencia/inferencia_local_config.yaml make inferences`.
+Per al detall de la canonada, consulta [scripts/README.md](scripts/README.md).
 
 Per arrencar l'API en local:
 
