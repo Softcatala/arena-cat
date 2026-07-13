@@ -13,7 +13,12 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 Requisits: Docker, Docker Compose i [`uv`](https://docs.astral.sh/uv/).
 
 Si ja tens un `.env` antic, revisa'l contra `.env.example`: `make setup` no el
-sobreescriu per no perdre secrets locals.
+sobreescriu per no perdre secrets locals. Si et falta `HMAC_SECRET_KEY`, genera'n una
+amb:
+
+```bash
+printf 'HMAC_SECRET_KEY=%s\n' "$(openssl rand -hex 32)" >> .env
+```
 
 Des de l'arrel del repositori:
 
