@@ -19,6 +19,7 @@ class VoteResponse(BaseModel):
     status: str = "ok"
 
 
+
 class RegisterRequest(BaseModel):
     email: str
     password: str
@@ -86,3 +87,26 @@ class ExportUserResponse(BaseModel):
 class ExportDataResponse(BaseModel):
     user: ExportUserResponse
     votes: list[ExportVoteResponse]
+
+class PairwiseStat(BaseModel):
+    model_a: str
+    model_b: str
+    wins_a: int
+    wins_b: int
+    ties: int
+    neither: int
+    win_rate_a: float | None
+
+class RankingResponse(BaseModel):
+    category_code: str
+    n_votes_total: int
+    n_votes_decisive: int
+    n_ties: int
+    n_neither: int
+    models: list[str]
+    best_model: str | None
+    bt_skills: dict[str, float]
+    raw_pairwise: list[PairwiseStat]
+    cycle_detected: bool
+    cycle_path: list[str]
+
