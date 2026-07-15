@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     email_hash_pepper: str
     # Versió de consentiment acceptada al registre.
     consent_version: str = "v1"
+    # Orígens CORS permesos (separats per comes) quan usem cookies de sessió.
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
 
     def _url(self, user: str, password: str, database: str) -> str:
         return URL.create(
@@ -57,6 +59,11 @@ class Settings(BaseSettings):
     def database_test_url(self) -> str:
         """Base de dades aïllada per als tests."""
         return self._url(self.postgres_user, self.postgres_password, f"{self.postgres_db}_test")
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Llista d'orígens CORS obtinguda de `cors_origins`."""
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache
