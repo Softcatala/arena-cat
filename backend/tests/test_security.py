@@ -6,9 +6,7 @@ from app.security import create_task_token, verify_task_token
 
 def test_verify_task_token():
     """Prova de verificar un token vàlid."""
-    token = create_task_token(
-        prompt_id=1, response_a_id=2, response_b_id=3, session_id="test_session_id"
-    )
+    token = create_task_token(prompt_id=1, response_a_id=2, response_b_id=3, user_id=7)
     payload = verify_task_token(token)
 
     # Comprovem que ha retornat els camps esperats i que existeix el camp exp.
@@ -22,9 +20,7 @@ def test_verify_task_token():
 def test_verify_manipulated_payload():
     """Prova de verificar un token manipulat."""
     # Creem un token vàlid.
-    token = create_task_token(
-        prompt_id=1, response_a_id=2, response_b_id=3, session_id="test_session_id"
-    )
+    token = create_task_token(prompt_id=1, response_a_id=2, response_b_id=3, user_id=7)
     payload_b64, signature_b64 = token.split(".")
 
     # Descodifiquem i alterem el payload.

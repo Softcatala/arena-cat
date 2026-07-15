@@ -34,12 +34,32 @@ def client(session):
     app.dependency_overrides.clear()
 
 
-def test_get_task_empty_db(client):
-    """Prova què passa si demanem una tasca quan la db està buida."""
-    # Fem la petició GET a la API
-    response = client.get(
-        "/api/task", params={"category_code": "correccio", "session_id": "test_session_id"}
+def _create_and_login_verified_user(client, session, email: str) -> User:
+    user = User(
+        email=email,
+        email_hash=compute_email_hash(email),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
     )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    response = client.post(
+        "/api/auth/login",
+        json={"email": email, "password": "ContrasenyaSegura123!"},
+    )
+    assert response.status_code == 200
+    return user
+
+
+def test_get_task_empty_db(client, session):
+    """Prova què passa si demanem una tasca quan la db està buida."""
+    _create_and_login_verified_user(client, session, "task_empty@example.com")
+    # Fem la petició GET a la API
+    response = client.get("/api/task", params={"category_code": "correccio"})
 
     # Comprovem el status code
     assert response.status_code == 404
@@ -65,18 +85,29 @@ def test_get_task_with_data(client, session):
     session.add_all([r1, r2])
     session.commit()
 
+    _create_and_login_verified_user(client, session, "task_data@example.com")
+
     # Fem la petició GET a la API
-    response = client.get(
-        "/api/task", params={"category_code": "test_cat", "session_id": "test_session_id"}
-    )
+    response = client.get("/api/task", params={"category_code": "test_cat"})
     assert response.status_code == 200
     data = response.json()
     assert data["prompt"] == "El gat es blau"
     assert "token" in data
 
 
-def test_post_vote_invalid_token(client):
+def test_get_task_requires_auth(client):
+    response = client.get("/api/task", params={"category_code": "correccio"})
+    assert response.status_code == 401
+
+
+def test_post_vote_invalid_token(client, session):
     """Prova d'enviar un vot amb un token inventat."""
+    _create_and_login_verified_user(client, session, "vote_invalid@example.com")
+    response = client.post("/api/vote", json={"winner": "a", "token": "inventat"})
+    assert response.status_code == 401
+
+
+def test_post_vote_requires_auth(client):
     response = client.post("/api/vote", json={"winner": "a", "token": "inventat"})
     assert response.status_code == 401
 
@@ -92,12 +123,33 @@ def test_post_vote_success(client, session):
     session.add_all([r1, r2])
     session.commit()
 
-    token = create_task_token(p.id, r1.id, r2.id, session_id="test_session_id")
+    user = _create_and_login_verified_user(client, session, "vote_ok@example.com")
+
+    token = create_task_token(p.id, r1.id, r2.id, user_id=user.id)
 
     # Enviem el vot amb el token
     response = client.post("/api/vote", json={"winner": "a", "token": token})
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_post_vote_rejects_token_from_other_user(client, session):
+    p = Prompt(version="v1", code="test_p3", category_id=1, text="Hola món")
+    session.add(p)
+    session.commit()
+    r1 = Response(prompt_id=p.id, model="model_A", text="A")
+    r2 = Response(prompt_id=p.id, model="model_B", text="B")
+    session.add_all([r1, r2])
+    session.commit()
+
+    owner_user = _create_and_login_verified_user(client, session, "owner_vote@example.com")
+    owner_token = create_task_token(p.id, r1.id, r2.id, user_id=owner_user.id)
+    client.post("/api/auth/logout")
+
+    _create_and_login_verified_user(client, session, "other_vote@example.com")
+    response = client.post("/api/vote", json={"winner": "a", "token": owner_token})
+
+    assert response.status_code == 403
 
 
 def test_register_user_success(client, session):

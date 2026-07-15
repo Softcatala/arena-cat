@@ -86,15 +86,13 @@ def verify_email_verification_token(token: str) -> dict | None:
     return payload
 
 
-def create_task_token(
-    prompt_id: int, response_a_id: int, response_b_id: int, session_id: str
-) -> str:
+def create_task_token(prompt_id: int, response_a_id: int, response_b_id: int, user_id: int) -> str:
     """Crea un token JWT per a una tasca donada.
     Args:
         prompt_id: identificador del prompt
         response_a_id: identificador de la resposta A
         response_b_id: identificador de la resposta B
-        session_id: identificador de la sessió
+        user_id: identificador de l'usuari
 
     Returns:
         str: token JWT
@@ -106,7 +104,7 @@ def create_task_token(
         "prompt_id": prompt_id,
         "response_a_id": response_a_id,
         "response_b_id": response_b_id,
-        "session_id": session_id,
+        "user_id": user_id,
         "exp": exp,
     }
     return _sign_payload(payload, settings.hmac_secret_key)
