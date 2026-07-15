@@ -11,7 +11,16 @@ from sqlalchemy.orm import Session
 from app import models
 from app.config import get_settings
 from app.db import Base
+from app.rate_limit import auth_rate_limiter, vote_rate_limiter
 from app.seeds import INITIAL_CATEGORIES
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiters():
+    """Neteja l'estat dels limitadors en memòria abans de cada test per aïllar-los."""
+    auth_rate_limiter.reset()
+    vote_rate_limiter.reset()
+    yield
 
 
 @pytest.fixture(scope="session")

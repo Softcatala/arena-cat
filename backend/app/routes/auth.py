@@ -2,6 +2,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from sqlalchemy.orm import Session as OrmSession
 
 from app.db import get_db
+from app.rate_limit import rate_limit_auth
 from app.schemas import (
     DeleteAccountRequest,
     DeleteAccountResponse,
@@ -20,19 +21,19 @@ from app.services import auth_service
 router = APIRouter()
 
 
-@router.post("/auth/register")
+@router.post("/auth/register", dependencies=[Depends(rate_limit_auth)])
 def register(payload: RegisterRequest, db: OrmSession = Depends(get_db)) -> RegisterResponse:
     """Alta d'usuari amb email, contrasenya i consentiment explícit."""
     return auth_service.register_user(db, payload)
 
 
-@router.post("/auth/verify")
+@router.post("/auth/verify", dependencies=[Depends(rate_limit_auth)])
 def verify(payload: VerifyEmailRequest, db: OrmSession = Depends(get_db)) -> VerifyEmailResponse:
     """Verificació de correu a partir d'un token signat."""
     return auth_service.verify_email(db, payload)
 
 
-@router.post("/auth/login")
+@router.post("/auth/login", dependencies=[Depends(rate_limit_auth)])
 def login(
     payload: LoginRequest, response: Response, db: OrmSession = Depends(get_db)
 ) -> LoginResponse:

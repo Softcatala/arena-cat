@@ -475,3 +475,55 @@ def test_export_data_requires_session(client):
     response = client.get("/api/auth/export")
 
     assert response.status_code == 401
+
+
+def test_auth_rate_limit_returns_429(client, monkeypatch):
+    """Supera el límit de peticions d'autenticació i espera un 429."""
+    from app import rate_limit
+
+    monkeypatch.setattr(rate_limit.auth_rate_limiter, "max_requests", 3)
+
+    # Les primeres peticions passen el limitador (el token invàlid dona 400).
+    for _ in range(3):
+        resp = client.post("/api/auth/verify", json={"token": "token_invalid"})
+        assert resp.status_code == 400
+
+    # La següent supera el límit.
+    resp = client.post("/api/auth/verify", json={"token": "token_invalid"})
+    assert resp.status_code == 429
+    assert resp.headers.get("Retry-After") is not None
+
+
+def test_vote_rate_limit_returns_429(client, session, monkeypatch):
+    """Supera el límit de vots d'un usuari autenticat i espera un 429."""
+    from app import rate_limit
+
+    monkeypatch.setattr(rate_limit.vote_rate_limiter, "max_requests", 2)
+
+    _create_and_login_verified_user(client, session, "rate_limit_vote@example.com")
+
+    # Les primeres peticions passen el limitador (el token invàlid dona 401).
+    for _ in range(2):
+        resp = client.post("/api/vote", json={"winner": "a", "token": "token_invalid"})
+        assert resp.status_code == 401
+
+    # La següent supera el límit.
+    resp = client.post("/api/vote", json={"winner": "a", "token": "token_invalid"})
+    assert resp.status_code == 429
+    assert resp.headers.get("Retry-After") is not None
+
+
+def test_vote_rate_limit_is_per_user(client, session, monkeypatch):
+    """El límit de vots és per usuari: un altre usuari no queda afectat."""
+    from app import rate_limit
+
+    monkeypatch.setattr(rate_limit.vote_rate_limiter, "max_requests", 1)
+
+    _create_and_login_verified_user(client, session, "rl_user_a@example.com")
+    assert client.post("/api/vote", json={"winner": "a", "token": "x"}).status_code == 401
+    assert client.post("/api/vote", json={"winner": "a", "token": "x"}).status_code == 429
+
+    # En canviar d'usuari, el límit es compta per separat.
+    client.post("/api/auth/logout")
+    _create_and_login_verified_user(client, session, "rl_user_b@example.com")
+    assert client.post("/api/vote", json={"winner": "a", "token": "x"}).status_code == 401

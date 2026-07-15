@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     consent_version: str = "v1"
     # Orígens CORS permesos (separats per comes) quan usem cookies de sessió.
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
+    # Límit de peticions d'autenticació (registre, login, verificació) per IP i finestra.
+    auth_rate_limit_max: int = 10
+    auth_rate_limit_window_seconds: int = 60
+    # Límit de vots per usuari autenticat i finestra.
+    vote_rate_limit_max: int = 60
+    vote_rate_limit_window_seconds: int = 60
 
     def _url(self, user: str, password: str, database: str) -> str:
         return URL.create(
