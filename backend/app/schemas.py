@@ -21,7 +21,7 @@ class VoteResponse(BaseModel):
     status: str = "ok"
 
 
-<<<<<<< HEAD
+
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -95,8 +95,8 @@ class ExportDataResponse(BaseModel):
     user: ExportUserResponse
     votes: list[ExportVoteResponse]
 
-=======
->>>>>>> a73e100 (test: afegir tests api ranking)
+
+
 class PairwiseStat(BaseModel):
     model_a: str
     model_b: str

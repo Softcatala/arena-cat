@@ -19,13 +19,17 @@ Optionally run `cd backend && uv run pre-commit install` to install the lint/for
 
 ## Structure
 
-```
+```text
 app/
   config.py     # connection settings (.env)
   db.py         # SQLAlchemy engine and base class
   models.py     # data models
+  schemas.py    # Pydantic models for API validation
+  routes/       # FastAPI endpoints (task, vote, ranking)
+  services/     # logic and database operations
+  ranking/      # ranking module
 migrations/     # Alembic migrations
-tests/          # model tests
+tests/          # tests
 ```
 
 ## Data model
@@ -45,6 +49,83 @@ On first startup, `docker compose` provisions:
 - **arena_cat_test** — test database, derived from `POSTGRES_DB` (`${POSTGRES_DB}_test`).
 - **arena_app** — application role with limited permissions (DML only). Migrations run
   with the superuser.
+
+## API
+
+El backend de FastAPI exposa els següents endpoints:
+
+### `GET /api/task`
+
+Obté una nova tasca (un prompt amb dues respostes de models diferents) per a que un usuari l'avaluï.
+
+**Paràmetres de la URL:**
+- `category_code` (string, obligatori): La categoria de la tasca sol·licitada (p. ex., `correccio`).
+- `session_id` (string, obligatori): L'identificador de sessió de l'usuari per evitar repetir tasques.
+
+**Resposta (200 OK):**
+```json
+{
+  "prompt": "El gat es blau",
+  "response_a": "El gat és blau.",
+  "response_b": "El gat es color blau.",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+
+### `POST /api/vote`
+
+Registra el vot d'un usuari sobre una tasca prèviament demanada.
+
+**Body (JSON):**
+- `winner` (string): Quin model ha guanyat. Valors possibles: `"a"`, `"b"`, `"tie"` o `"neither"`.
+- `token` (string): El JWT generat per l'endpoint `/api/task` (conté els IDs del prompt i les respostes).
+ 
+**Resposta (200 OK):**
+```json
+{
+  "status": "ok"
+}
+```
+
+
+### `GET /api/ranking`
+
+Retorna el rànquing actual de models per a una categoria específica.
+
+**Paràmetres de la URL:**
+- `category_code` (string, obligatori): El codi de la categoria a consultar.
+
+**Resposta (200 OK):**
+```json
+{
+  "category_code": "correccio",
+  "n_votes_total": 390,
+  "n_votes_decisive": 358,
+  "n_ties": 23,
+  "n_neither": 9,
+  "models": ["gemma-3-4b-it", "qwen-3.5-9b", "salamandra-7b-instruct"],
+  "best_model": "gemma-3-4b-it",
+  "bt_skills": {
+    "gemma-3-4b-it": 0.27,
+    "qwen-3.5-9b": -0.04,
+    "salamandra-7b-instruct": -0.23
+  },
+  "raw_pairwise": [
+    {
+      "model_a": "gemma-3-4b-it",
+      "model_b": "qwen-3.5-9b",
+      "wins_a": 40,
+      "wins_b": 25,
+      "ties": 5,
+      "neither": 2,
+      "win_rate_a": 0.615
+    }
+  ],
+  "cycle_detected": false,
+  "cycle_path": []
+}
+```
 
 ## Tests
 
