@@ -9,7 +9,7 @@ Estratègia per defecte: **quota-balanced randomization**.
   cel·la.
 - Tria uniformement entre les cel·les que actualment tenen menys vots.
 - Randomitza l'ordre A/B per evitar biaix de posició.
-- Si es passa `session_id`, exclou les cel·les en les quals aquesta sessió
+- Si es passa `user_id`, exclou les cel·les en les quals aquest usuari
   ja ha votat per evitar repeticions.
 
 Aquesta estratègia és preferible a la iid uniform (que genera variància
@@ -72,10 +72,10 @@ def _existing_vote_counts(session: Session, prompt_ids: list[int]) -> Counter:
     return counts
 
 
-def _cells_voted_by_session(
-    session: Session, prompt_ids: list[int], session_id: str
+def _cells_voted_by_user(
+    session: Session, prompt_ids: list[int], user_id: int
 ) -> set[tuple[int, str, str]]:
-    """Retorna les cel·les (prompt_id, model_a, model_b) on `session_id` ja ha votat.
+    """Retorna les cel·les (prompt_id, model_a, model_b) on `user_id` ja ha votat.
 
     Servirà per excloure-les del proper sampling i no demanar el mateix dues
     vegades a la mateixa persona.
@@ -89,7 +89,7 @@ def _cells_voted_by_session(
         .join(response_a, Vote.response_a_id == response_a.id)
         .join(response_b, Vote.response_b_id == response_b.id)
         .where(Vote.prompt_id.in_(prompt_ids))
-        .where(Vote.session_id == session_id)
+        .where(Vote.user_id == user_id)
     )
     voted: set[tuple[int, str, str]] = set()
     for prompt_id, model_a, model_b in session.execute(stmt).all():
@@ -100,7 +100,7 @@ def _cells_voted_by_session(
 def select_next_task(
     session: Session,
     category_code: str,
-    session_id: str | None = None,
+    user_id: int | None = None,
     seed: int | None = None,
 ) -> dict | None:
     """Tria la propera tasca a mostrar a un avaluador.
@@ -117,9 +117,9 @@ def select_next_task(
         - Quan totes les cel·les igualen recompte, esdevé aleatori uniforme.
         - Randomitza l'ordre A/B per evitar biaix de posició.
 
-    Si es passa `session_id`, exclou les cel·les on aquesta sessió ja ha
+    Si es passa `user_id`, exclou les cel·les on aquest usuari ja ha
     votat: una mateixa persona no veurà dos cops la mateixa (prompt, parella).
-    Quan una sessió ja ha votat a TOTES les cel·les de la categoria, retorna
+    Quan un usuari ja ha votat a TOTES les cel·les de la categoria, retorna
     None — la microservei interpretarà això com "aquest avaluador ja ha
     completat aquesta categoria, mostra-li una altra cosa o agraeix-li la
     contribució".
@@ -137,9 +137,9 @@ def select_next_task(
     Args:
         session: sessió SQLAlchemy ja oberta.
         category_code: codi de la categoria (e.g. "correccio", "reformulacio").
-        session_id: identificador anònim de la sessió de l'usuari. Si es
-            proporciona, exclou les cel·les en les quals aquesta sessió ja
-            ha votat. Si és None, no es filtra per sessió.
+        user_id: identificador de l'usuari autenticat. Si es proporciona,
+            exclou les cel·les en les quals aquest usuari ja ha votat. Si és
+            None, no es filtra per usuari.
         seed: opcional, per reproduïbilitat als tests.
 
     Returns:
@@ -159,7 +159,7 @@ def select_next_task(
 
         Retorna None en dos casos:
             - La categoria no té cap prompt amb almenys dues respostes.
-            - `session_id` ha votat a totes les cel·les disponibles.
+            - `user_id` ha votat a totes les cel·les disponibles.
 
         Els identificadors de model (`model_a`, `model_b`) NO es retornen:
         l'avaluació és cega. La microservei pot recuperar-los des de Response
@@ -185,11 +185,11 @@ def select_next_task(
 
     prompt_ids = [p.id for p, _ in prompts_with_responses]
 
-    # Si tenim session_id, excloem les cel·les que aquesta sessió ja ha votat.
-    # Si la sessió ja ha votat a totes les cel·les, retornem None per indicar
+    # Si tenim user_id, excloem les cel·les que aquest usuari ja ha votat.
+    # Si l'usuari ja ha votat a totes les cel·les, retornem None per indicar
     # que aquest avaluador ja ha completat la categoria.
-    if session_id is not None:
-        already_voted = _cells_voted_by_session(session, prompt_ids, session_id)
+    if user_id is not None:
+        already_voted = _cells_voted_by_user(session, prompt_ids, user_id)
         cells = [c for c in cells if c not in already_voted]
         if not cells:
             return None
