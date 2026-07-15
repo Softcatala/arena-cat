@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.services import ranking_service
 from app.schemas import RankingResponse
+from app.services import ranking_service
 
 router = APIRouter()
 

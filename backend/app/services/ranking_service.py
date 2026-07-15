@@ -1,9 +1,10 @@
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 
-from app.ranking.ranking import compute_ranking
 from app.models import Category
+from app.ranking.ranking import compute_ranking
+
 
 def get_ranking_per_category(db: Session, category_code: str) -> dict:
     """
