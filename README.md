@@ -8,6 +8,15 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 
 🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](docs/simulador.md). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
+## Client HTML de proves
+
+El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
+votació contra l'API local. Amb el backend arrencat a `http://localhost:8000`,
+obre [`html/index.html`](html/index.html) al navegador, tria una categoria i
+carrega una tasca.
+
+Abans d'usar-lo, cal haver carregat prompts i inferències a la base de dades
+amb `make load_inferences`.
 ## Posada en marxa local
 
 Requisits: Docker, Docker Compose i [`uv`](https://docs.astral.sh/uv/).
