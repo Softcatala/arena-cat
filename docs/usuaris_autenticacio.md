@@ -219,9 +219,9 @@ Tots els endpoints pengen del prefix d'autenticació definit a
 
 | Mètode | Ruta | Cos de petició | Resposta | Errors |
 | --- | --- | --- | --- | --- |
-| `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification" }` | 400 (sense consentiment), 409 (correu ja registrat), 429 (límit de peticions) |
-| `POST` | `/auth/verify` | `{ token }` | `{ status: "verified" }` | 400 (token invàlid), 404 (usuari no trobat), 429 (límit de peticions) |
-| `POST` | `/auth/login` | `{ email, password }` | `{ status: "logged_in" }` + cookie | 401 (credencials), 403 (correu no verificat), 429 (límit de peticions) |
+| `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification" }` | 400 (sense consentiment), 409 (correu ja registrat) |
+| `POST` | `/auth/verify` | `{ token }` | `{ status: "verified" }` | 400 (token invàlid), 404 (usuari no trobat) |
+| `POST` | `/auth/login` | `{ email, password }` | `{ status: "logged_in" }` + cookie | 401 (credencials), 403 (correu no verificat) |
 | `POST` | `/auth/logout` | *(cookie)* | `{ status: "logged_out" }` | — |
 | `POST` | `/auth/delete-account` | `{ current_password }` + cookie | `{ status: "deleted" }` | 401 (sessió/contrasenya) |
 | `GET` | `/auth/export` | *(cookie)* | `{ user, votes }` | 401 (sessió) |
@@ -270,29 +270,11 @@ La cookie de sessió que estableix el login té els atributs següents:
 > ⚠️ **Producció:** cal establir `secure=True` perquè la cookie només viatgi per HTTPS.
 > Igualment, cal configurar `cors_origins` amb els dominis reals del *frontend*.
 
-### Limitació de peticions (*rate limiting*)
-
-Els endpoints sensibles estan protegits contra l'abús per un limitador de peticions bàsic
-en memòria (finestra lliscant), implementat a [`backend/app/rate_limit.py`](../backend/app/rate_limit.py).
-Quan se supera el límit, el backend respon amb **HTTP 429** i una capçalera `Retry-After`.
-
-| Grup | Endpoints | Clau | Límit per defecte |
-| --- | --- | --- | --- |
-| Autenticació | `/auth/register`, `/auth/verify`, `/auth/login` | IP del client | `auth_rate_limit_max` per `auth_rate_limit_window_seconds` (10 / 60 s) |
-| Votació | `/vote` | Usuari autenticat | `vote_rate_limit_max` per `vote_rate_limit_window_seconds` (60 / 60 s) |
-
-Els límits es configuren des de [`backend/app/config.py`](../backend/app/config.py) (per
-tant, també via `.env`). L'estat es guarda a la memòria del procés: és suficient per a un
-desplegament d'una sola instància; amb diverses instàncies caldria un magatzem compartit
-(p. ex. Redis).
-
 ### Limitacions de la v1 i notes de producció
 
 - **Sense servei de correu:** el token de verificació s'escriu al *log*; cal integrar un
   servei d'enviament abans de sortir a producció.
 - **Cookie no `Secure`:** vegeu la nota anterior.
-- **Rate limiting en memòria:** no es comparteix entre instàncies ni sobreviu a un
-  reinici; per a producció multi-instància cal un magatzem compartit.
 - **Neteja de sessions:** les sessions caducades es filtren en consulta, però no hi ha una
   tasca que elimini físicament les files expirades o revocades.
 - **Secrets:** `hmac_secret_key`, `session_secret` i `email_hash_pepper` han de ser valors

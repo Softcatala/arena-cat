@@ -4,14 +4,13 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.deps import get_current_verified_user
 from app.models import User
-from app.rate_limit import rate_limit_vote
 from app.schemas import VoteRequest, VoteResponse
 from app.services import vote_service
 
 router = APIRouter()
 
 
-@router.post("/vote", dependencies=[Depends(rate_limit_vote)])
+@router.post("/vote")
 def post_vote(
     vote_req: VoteRequest,
     db: Session = Depends(get_db),
