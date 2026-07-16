@@ -16,8 +16,8 @@ Setup de servidor + PostgreSQL
 ------------------------------
 Des de l'arrel del repositori:
 
-    cp .env.example .env                     # si encara no el tens
-    docker compose up -d --wait              # aixeca PostgreSQL
+    cp .env.example .env
+    docker compose up -d --wait
 
 Des de `backend/`:
 
