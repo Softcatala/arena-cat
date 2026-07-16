@@ -1,15 +1,15 @@
 import base64
 import json
 
-from app.security import create_token, verify_token
+from app.security import create_task_token, verify_task_token
 
 
-def test_verify_token():
+def test_verify_task_token():
     """Prova de verificar un token vàlid."""
-    token = create_token(
+    token = create_task_token(
         prompt_id=1, response_a_id=2, response_b_id=3, session_id="test_session_id"
     )
-    payload = verify_token(token)
+    payload = verify_task_token(token)
 
     # Comprovem que ha retornat els camps esperats i que existeix el camp exp.
     assert payload is not None
@@ -22,7 +22,7 @@ def test_verify_token():
 def test_verify_manipulated_payload():
     """Prova de verificar un token manipulat."""
     # Creem un token vàlid.
-    token = create_token(
+    token = create_task_token(
         prompt_id=1, response_a_id=2, response_b_id=3, session_id="test_session_id"
     )
     payload_b64, signature_b64 = token.split(".")
@@ -41,4 +41,4 @@ def test_verify_manipulated_payload():
     token_alterat = f"{payload_b64_alterat}.{signature_b64}"
 
     # Comprovem que la funció detecta la manipulació i retorna None.
-    assert verify_token(token_alterat) is None
+    assert verify_task_token(token_alterat) is None

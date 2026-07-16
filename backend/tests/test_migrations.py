@@ -12,7 +12,14 @@ from sqlalchemy.engine import make_url
 from app.config import get_settings
 
 _BACKEND = Path(__file__).resolve().parents[1]
-TABLES = {"categories", "prompts", "responses", "votes"}
+TABLES = {
+    "categories",
+    "prompts",
+    "responses",
+    "votes",
+    "users",
+    "sessions",
+}
 ENUMS = {"winner"}
 
 

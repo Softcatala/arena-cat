@@ -31,9 +31,31 @@ erDiagram
         timestamptz created_at
     }
 
+    users {
+        bigint id PK
+        varchar(255) email
+        varchar(64) email_hash
+        text password_hash
+        timestamptz email_verified_at
+        varchar(32) consent_version
+        timestamptz consent_at
+        timestamptz created_at
+        timestamptz deleted_at
+    }
+
+    sessions {
+        bigint id PK
+        bigint user_id FK
+        varchar(64) token_hash
+        timestamptz created_at
+        timestamptz expires_at
+        timestamptz revoked_at
+    }
+
     votes {
         bigint id PK
         integer prompt_id FK
+        bigint user_id FK
         integer response_a_id FK
         integer response_b_id FK
         winner winner
@@ -45,6 +67,8 @@ erDiagram
     categories ||--o{ prompts : "category_id"
     prompts ||--o{ responses : "prompt_id"
     prompts ||--o{ votes : "prompt_id"
+    users ||--o{ sessions : "user_id"
+    users ||--o{ votes : "user_id"
     responses ||--o{ votes : "response_a_id"
     responses ||--o{ votes : "response_b_id"
 ```
@@ -59,12 +83,20 @@ erDiagram
 | responses | UNIQUE | `uq_responses_prompt_model` | `(prompt_id, model)` |
 | responses | UNIQUE | `uq_responses_prompt_id_id` | `(prompt_id, id)` |
 | responses | FK | — | `prompt_id → prompts.id` `ON DELETE CASCADE` |
+| users | UNIQUE | — | `(email)` |
+| users | UNIQUE | — | `(email_hash)` |
+| users | CHECK | `ck_users_active_have_credentials` | `deleted_at IS NOT NULL OR (email IS NOT NULL AND email_hash IS NOT NULL AND password_hash IS NOT NULL AND consent_at IS NOT NULL)` |
+| sessions | FK | — | `user_id → users.id` |
+| sessions | UNIQUE | — | `(token_hash)` |
+| sessions | INDEX | `ix_sessions_user_id` | `user_id` |
 | votes | CHECK | `ck_votes_responses_different` | `response_a_id <> response_b_id` |
 | votes | FK | — | `prompt_id → prompts.id` |
+| votes | FK | `fk_votes_user_id_users` | `user_id → users.id` `ON DELETE SET NULL` |
 | votes | FK | `fk_votes_response_a` | `(prompt_id, response_a_id) → responses(prompt_id, id)` |
 | votes | FK | `fk_votes_response_b` | `(prompt_id, response_b_id) → responses(prompt_id, id)` |
 | votes | INDEX | `ix_votes_prompt_id` | `prompt_id` |
 | votes | INDEX | `ix_votes_created_at` | `created_at` |
+| votes | INDEX | `ix_votes_user_id` | `user_id` |
 
 ## Enums
 

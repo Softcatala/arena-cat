@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.ranking.sampler import select_next_task
 from app.schemas import TaskResponse
-from app.security import create_token
+from app.security import create_task_token
 
 
 def get_next_task_for_user(category_code: str, session_id: str, db: Session) -> TaskResponse:
@@ -32,7 +32,7 @@ def get_next_task_for_user(category_code: str, session_id: str, db: Session) -> 
     response_b_id = task["response_b_id"]
 
     # Creem el token amb els identificadors
-    token = create_token(prompt_id, response_a_id, response_b_id, session_id)
+    token = create_task_token(prompt_id, response_a_id, response_b_id, session_id)
 
     # Retornem la tasca i el token
     return TaskResponse(

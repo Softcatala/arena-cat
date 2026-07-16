@@ -4,12 +4,12 @@ from sqlalchemy.orm import Session
 
 from app.models import Vote
 from app.schemas import VoteRequest, VoteResponse
-from app.security import verify_token
+from app.security import verify_task_token
 
 
 def submit_vote(db: Session, vote_req: VoteRequest):
     """"""
-    payload = verify_token(vote_req.token)
+    payload = verify_task_token(vote_req.token)
     if not payload:
         raise HTTPException(status_code=401, detail="El token és invàlid o ha caducat")
 

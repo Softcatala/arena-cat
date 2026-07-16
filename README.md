@@ -185,6 +185,13 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                     <sub><b>Isaac Nicolas</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/santo0">
+                    <img src="https://avatars.githubusercontent.com/u/30506769?v=4" width="100;" alt="santo0"/>
+                    <br />
+                    <sub><b>Martí</b></sub>
+                </a>
+            </td>
 		</tr>
 	<tbody>
 </table>

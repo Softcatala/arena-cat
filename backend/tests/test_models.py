@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import inspect, select, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
-from app.models import Category, Prompt, Response, Vote, Winner
+from app.models import Category, Prompt, Response, User, Vote, Winner
 
 
 def _category(session, code="traduccio"):
@@ -165,6 +165,19 @@ def test_votes_indexes(engine):
     names = {idx["name"] for idx in inspect(engine).get_indexes("votes")}
     assert "ix_votes_prompt_id" in names
     assert "ix_votes_created_at" in names
+    assert "ix_votes_user_id" in names
+
+
+def test_sessions_indexes(engine):
+    names = {idx["name"] for idx in inspect(engine).get_indexes("sessions")}
+    assert "ix_sessions_user_id" in names
+
+
+def test_user_check_constraint_requires_credentials_when_active(session):
+    user = User(consent_version="v1")
+    session.add(user)
+    with pytest.raises(IntegrityError):
+        session.flush()
 
 
 def test_created_at_is_set_automatically(session):
