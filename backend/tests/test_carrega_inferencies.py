@@ -89,6 +89,19 @@ def test_prompts_load_in_natural_order(session, dirs):
     assert codes_by_id == ["traduccio_1", "traduccio_2", "traduccio_10"]
 
 
+def test_versioned_v1_prompts_follow_loader_naming_convention(session, tmp_path):
+    """Els prompts publicats han de començar pel codi de la categoria."""
+    repo_root = Path(__file__).resolve().parents[2]
+    prompts_dir = repo_root / "data" / "prompts" / "v1"
+    inferencies_dir = tmp_path / "inferencies" / "v1"
+    inferencies_dir.mkdir(parents=True)
+
+    summary = loader.run_load(session, prompts_dir, inferencies_dir)
+
+    assert summary.prompts.errors == 0
+    assert summary.prompts.inserted == 20
+
+
 def test_load_is_idempotent(session, dirs):
     prompts_dir, inferencies_dir = dirs
     write_prompt(prompts_dir, "correccio_1")
