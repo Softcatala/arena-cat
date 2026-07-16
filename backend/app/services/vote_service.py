@@ -8,7 +8,18 @@ from app.security import verify_task_token
 
 
 def submit_vote(db: Session, vote_req: VoteRequest, user: User):
-    """"""
+    """Registra el vot d'un usuari a partir d'un token de tasca vàlid.
+
+    Verifica el token, comprova que correspon a l'usuari autenticat i desa el vot.
+
+    Args:
+        db: sessió SQLAlchemy.
+        vote_req: cos de la petició amb el guanyador i el token de la tasca.
+        user: usuari autenticat i verificat que emet el vot.
+
+    Returns:
+        VoteResponse: objecte amb l'estat ("ok").
+    """
     payload = verify_task_token(vote_req.token)
     if not payload:
         raise HTTPException(status_code=401, detail="El token és invàlid o ha caducat")

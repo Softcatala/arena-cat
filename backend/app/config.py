@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
@@ -34,6 +35,11 @@ class Settings(BaseSettings):
     consent_version: str = "v1"
     # Orígens CORS permesos (separats per comes) quan usem cookies de sessió.
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
+    # Configuració de la cookie i la sessió d'autenticació.
+    session_ttl_hours: int = 24
+    cookie_name: str = "session_token"
+    cookie_secure: bool = False  # Cal posar-ho a True a producció amb HTTPS.
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
     def _url(self, user: str, password: str, database: str) -> str:
         return URL.create(
@@ -64,6 +70,11 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         """Llista d'orígens CORS obtinguda de `cors_origins`."""
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def cookie_max_age(self) -> int:
+        """Durada de la cookie de sessió en segons, derivada del TTL de sessió."""
+        return self.session_ttl_hours * 3600
 
 
 @lru_cache

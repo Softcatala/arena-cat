@@ -1,41 +1,32 @@
-from datetime import UTC, datetime
+"""Dependències d'autenticació reutilitzables per als endpoints de FastAPI.
 
-from fastapi import Cookie, Depends, HTTPException
-from sqlalchemy import select
+Exposa àlies `Annotated` per injectar la sessió de base de dades i l'usuari
+autenticat (verificat o no) directament a la signatura dels handlers.
+"""
+
+from typing import Annotated
+
+from fastapi import Cookie, Depends
 from sqlalchemy.orm import Session as OrmSession
 
+from app.config import get_settings
 from app.db import get_db
-from app.models import Session as UserSession
 from app.models import User
-from app.security import hash_session_token
+from app.services import auth_service
+
+DbSession = Annotated[OrmSession, Depends(get_db)]
+SessionCookie = Annotated[str | None, Cookie(alias=get_settings().cookie_name)]
 
 
-def get_current_verified_user(
-    session_token: str | None = Cookie(None),
-    db: OrmSession = Depends(get_db),
-) -> User:
-    """Retorna l'usuari autenticat i verificat a partir de la cookie de sessió."""
-    if session_token is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+def get_current_user(db: DbSession, session_token: SessionCookie = None) -> User:
+    """Retorna l'usuari autenticat a partir de la cookie de sessió."""
+    return auth_service.resolve_session_user(db, session_token)
 
-    token_hash = hash_session_token(session_token)
-    now = datetime.now(UTC)
 
-    active_session = db.scalar(
-        select(UserSession).where(
-            UserSession.token_hash == token_hash,
-            UserSession.revoked_at.is_(None),
-            UserSession.expires_at > now,
-        )
-    )
-    if active_session is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+def get_current_verified_user(db: DbSession, session_token: SessionCookie = None) -> User:
+    """Retorna l'usuari autenticat exigint que tingui l'email verificat."""
+    return auth_service.resolve_session_user(db, session_token, require_verified=True)
 
-    user = db.get(User, active_session.user_id)
-    if user is None or user.deleted_at is not None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
 
-    if user.email_verified_at is None:
-        raise HTTPException(status_code=403, detail="Cal verificar l'email per continuar")
-
-    return user
+CurrentUser = Annotated[User, Depends(get_current_user)]
+CurrentVerifiedUser = Annotated[User, Depends(get_current_verified_user)]

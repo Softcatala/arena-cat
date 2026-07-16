@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
-from sqlalchemy.orm import Session as OrmSession
+from fastapi import APIRouter, Cookie, Response
 
-from app.db import get_db
+from app.config import get_settings
+from app.deps import CurrentUser, DbSession
 from app.schemas import (
     DeleteAccountRequest,
     DeleteAccountResponse,
@@ -21,32 +21,30 @@ router = APIRouter()
 
 
 @router.post("/auth/register")
-def register(payload: RegisterRequest, db: OrmSession = Depends(get_db)) -> RegisterResponse:
+def register(payload: RegisterRequest, db: DbSession) -> RegisterResponse:
     """Alta d'usuari amb email, contrasenya i consentiment explícit."""
     return auth_service.register_user(db, payload)
 
 
 @router.post("/auth/verify")
-def verify(payload: VerifyEmailRequest, db: OrmSession = Depends(get_db)) -> VerifyEmailResponse:
+def verify(payload: VerifyEmailRequest, db: DbSession) -> VerifyEmailResponse:
     """Verificació de correu a partir d'un token signat."""
     return auth_service.verify_email(db, payload)
 
 
 @router.post("/auth/login")
-def login(
-    payload: LoginRequest, response: Response, db: OrmSession = Depends(get_db)
-) -> LoginResponse:
+def login(payload: LoginRequest, response: Response, db: DbSession) -> LoginResponse:
     """Autenticació d'usuari amb email i contrasenya. Retorna cookie de sessió."""
     _, raw_token = auth_service.login_user(db, payload)
 
-    # Configura la cookie de sessió: HttpOnly, Secure (a producció), SameSite=Lax
+    settings = get_settings()
     response.set_cookie(
-        key="session_token",
+        key=settings.cookie_name,
         value=raw_token,
         httponly=True,
-        secure=False,  # Cal posar-ho a True a producció amb HTTPS
-        samesite="lax",
-        max_age=86400,  # 24 hores
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        max_age=settings.cookie_max_age,
     )
 
     return LoginResponse(status="logged_in")
@@ -55,16 +53,14 @@ def login(
 @router.post("/auth/logout")
 def logout(
     response: Response,
-    session_token: str | None = Cookie(None),
-    db: OrmSession = Depends(get_db),
+    db: DbSession,
+    session_token: str | None = Cookie(default=None, alias=get_settings().cookie_name),
 ) -> LogoutResponse:
     """Tanca la sessió de l'usuari revocant el token."""
     if session_token is not None:
-        payload = LogoutRequest(token=session_token)
-        auth_service.logout_user(db, payload)
+        auth_service.logout_user(db, LogoutRequest(token=session_token))
 
-    # Esborra la cookie
-    response.delete_cookie(key="session_token", samesite="lax")
+    response.delete_cookie(key=get_settings().cookie_name, samesite=get_settings().cookie_samesite)
 
     return LogoutResponse(status="logged_out")
 
@@ -73,25 +69,17 @@ def logout(
 def delete_account(
     payload: DeleteAccountRequest,
     response: Response,
-    session_token: str | None = Cookie(None),
-    db: OrmSession = Depends(get_db),
+    current_user: CurrentUser,
+    db: DbSession,
 ) -> DeleteAccountResponse:
     """Dona de baixa el compte anonimitzant dades personals."""
-    if session_token is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
-
-    result = auth_service.delete_account(db, payload, session_token)
-    response.delete_cookie(key="session_token", samesite="lax")
+    result = auth_service.delete_account(db, current_user, payload.current_password)
+    settings = get_settings()
+    response.delete_cookie(key=settings.cookie_name, samesite=settings.cookie_samesite)
     return result
 
 
 @router.get("/auth/export")
-def export_data(
-    session_token: str | None = Cookie(None),
-    db: OrmSession = Depends(get_db),
-) -> ExportDataResponse:
+def export_data(current_user: CurrentUser, db: DbSession) -> ExportDataResponse:
     """Exporta les dades personals i els vots de l'usuari autenticat."""
-    if session_token is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
-
-    return auth_service.export_user_data(db, session_token)
+    return auth_service.export_user_data(db, current_user)
