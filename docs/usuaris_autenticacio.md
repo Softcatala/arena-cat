@@ -6,8 +6,7 @@ model de dades, criptografia, fluxos d'autenticació, autorització, endpoints i
 > Codi de referència: [`backend/app/models.py`](../backend/app/models.py),
 > [`backend/app/security.py`](../backend/app/security.py),
 > [`backend/app/services/auth_service.py`](../backend/app/services/auth_service.py),
-> [`backend/app/routes/auth.py`](../backend/app/routes/auth.py),
-> [`backend/app/deps.py`](../backend/app/deps.py).
+> [`backend/app/routes/auth.py`](../backend/app/routes/auth.py).
 
 ## Visió general
 
@@ -134,7 +133,10 @@ fitxer `.env` (mai s'ha de versionar):
 | `session_secret` | Hash dels tokens de sessió. |
 | `email_hash_pepper` | Derivació de `email_hash`. |
 | `consent_version` | Versió de consentiment que es registra a l'alta (per defecte `v1`). |
-| `cors_origins` | Orígens permesos per CORS quan s'usen cookies de sessió. |
+| `session_ttl_hours` | Durada de la sessió i de la cookie associada. |
+| `cookie_name` | Nom de la cookie de sessió. |
+| `cookie_secure` | Si la cookie només viatja per HTTPS (`true` a producció). |
+| `cookie_samesite` | Política `SameSite` de la cookie (`lax`, `strict` o `none`). |
 
 ## Flux d'autenticació
 
@@ -200,10 +202,12 @@ sequenceDiagram
 
 ## Autorització
 
-La dependència [`get_current_verified_user`](../backend/app/deps.py) protegeix els
-endpoints que requereixen un usuari autenticat i verificat (per exemple, obtenir tasques a
+La funció [`resolve_session_user`](../backend/app/services/auth_service.py) resol l'usuari
+a partir de la cookie de sessió i protegeix els endpoints que requereixen un usuari
+autenticat i verificat (per exemple, obtenir tasques a
 [`routes/task.py`](../backend/app/routes/task.py) i votar a
-[`routes/vote.py`](../backend/app/routes/vote.py)). Comprova, en aquest ordre:
+[`routes/vote.py`](../backend/app/routes/vote.py)). Amb `require_verified=True` comprova,
+en aquest ordre:
 
 1. Que hi hagi cookie `session_token` (si no → HTTP 401).
 2. Que existeixi una sessió activa (`revoked_at IS NULL` i `expires_at` al futur) → HTTP 401.
@@ -211,6 +215,7 @@ endpoints que requereixen un usuari autenticat i verificat (per exemple, obtenir
 4. Que el correu estigui verificat (`email_verified_at` no nul) → HTTP 403.
 
 Si totes les comprovacions passen, retorna l'objecte `User` per injectar-lo a l'endpoint.
+Els endpoints d'exportació i baixa reutilitzen la mateixa funció sense exigir verificació.
 
 ## Referència d'endpoints
 
@@ -267,8 +272,8 @@ La cookie de sessió que estableix el login té els atributs següents:
 - `max_age=86400` — 24 h, coherent amb el TTL de la sessió al servidor.
 - `Secure` — **actualment `False`** per permetre proves en local sense HTTPS.
 
-> ⚠️ **Producció:** cal establir `secure=True` perquè la cookie només viatgi per HTTPS.
-> Igualment, cal configurar `cors_origins` amb els dominis reals del *frontend*.
+> ⚠️ **Producció:** cal establir `cookie_secure=true` perquè la cookie només viatgi per HTTPS.
+> El CORS es gestiona al *reverse proxy* (Traefik), no a l'aplicació.
 
 ### Limitacions de la v1 i notes de producció
 

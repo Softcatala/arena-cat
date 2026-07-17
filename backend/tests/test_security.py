@@ -1,7 +1,11 @@
 import base64
 import json
 
-from app.security import create_task_token, verify_task_token
+from app.security import (
+    create_email_verification_token,
+    create_task_token,
+    verify_task_token,
+)
 
 
 def test_verify_task_token():
@@ -14,7 +18,16 @@ def test_verify_task_token():
     assert payload["prompt_id"] == 1
     assert payload["response_a_id"] == 2
     assert payload["response_b_id"] == 3
+    assert payload["purpose"] == "task"
     assert "exp" in payload
+
+
+def test_verify_task_token_rejects_other_purpose():
+    """Un token de verificació de correu no ha de passar com a token de tasca."""
+    email_token = create_email_verification_token(user_id=7, email="user@example.com")
+
+    # Tot i estar signat correctament, no té purpose="task".
+    assert verify_task_token(email_token) is None
 
 
 def test_verify_manipulated_payload():

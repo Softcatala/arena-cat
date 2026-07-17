@@ -105,6 +105,7 @@ def create_task_token(prompt_id: int, response_a_id: int, response_b_id: int, us
         "response_a_id": response_a_id,
         "response_b_id": response_b_id,
         "user_id": user_id,
+        "purpose": "task",
         "exp": exp,
     }
     return _sign_payload(payload, settings.hmac_secret_key)
@@ -113,13 +114,28 @@ def create_task_token(prompt_id: int, response_a_id: int, response_b_id: int, us
 def verify_task_token(token: str) -> dict | None:
     """
     Verifica un token de tasca HMAC i retorna el payload si és vàlid.
+
+    A banda de la signatura i la caducitat, comprova que el token és realment un
+    token de tasca (`purpose == "task"`) i que conté tots els camps obligatoris
+    amb el tipus correcte. Així s'evita acceptar tokens signats amb un altre
+    propòsit (p. ex. verificació de correu).
+
     Args:
         token: token HMAC a verificar
     Returns:
         dict | None: payload del token si és vàlid, None en cas contrari
     """
     settings = get_settings()
-    return _verify_signed_payload(token, settings.hmac_secret_key)
+    payload = _verify_signed_payload(token, settings.hmac_secret_key)
+    if not payload:
+        return None
+    if payload.get("purpose") != "task":
+        return None
+    required_int_fields = ("prompt_id", "response_a_id", "response_b_id", "user_id")
+    for field in required_int_fields:
+        if not isinstance(payload.get(field), int):
+            return None
+    return payload
 
 
 def new_session_token() -> str:

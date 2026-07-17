@@ -44,6 +44,12 @@ def submit_vote(db: Session, vote_req: VoteRequest, user: User):
         db.commit()
     except IntegrityError as err:
         db.rollback()
+        # L'índex únic uq_votes_user_prompt_pair garanteix que un usuari no pot
+        # votar dues vegades la mateixa parella de respostes (idempotència).
+        if "uq_votes_user_prompt_pair" in str(err.orig):
+            raise HTTPException(
+                status_code=409, detail="Ja has votat aquesta parella de respostes"
+            ) from err
         raise HTTPException(status_code=400, detail="El vot no s'ha pogut processar") from err
 
     return VoteResponse(status="ok")

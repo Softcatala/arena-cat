@@ -33,12 +33,10 @@ class Settings(BaseSettings):
     email_hash_pepper: str
     # Versió de consentiment acceptada al registre.
     consent_version: str = "v1"
-    # Orígens CORS permesos (separats per comes) quan usem cookies de sessió.
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
     # Configuració de la cookie i la sessió d'autenticació.
-    session_ttl_hours: int = 24
-    cookie_name: str = "session_token"
-    cookie_secure: bool = False  # Cal posar-ho a True a producció amb HTTPS.
+    session_ttl_hours: int
+    cookie_name: str
+    cookie_secure: bool
     cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
     def _url(self, user: str, password: str, database: str) -> str:
@@ -65,11 +63,6 @@ class Settings(BaseSettings):
     def database_test_url(self) -> str:
         """Base de dades aïllada per als tests."""
         return self._url(self.postgres_user, self.postgres_password, f"{self.postgres_db}_test")
-
-    @property
-    def cors_origins_list(self) -> list[str]:
-        """Llista d'orígens CORS obtinguda de `cors_origins`."""
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property
     def cookie_max_age(self) -> int:
