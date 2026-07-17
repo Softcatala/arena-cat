@@ -59,7 +59,9 @@ def client(session):
         yield session
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
+    # Base URL amb HTTPS perquè el client accepti i reenviï cookies marcades com a
+    # `Secure` (com passa en producció amb `COOKIE_SECURE=true`).
+    with TestClient(app, base_url="https://testserver") as test_client:
         yield test_client
     app.dependency_overrides.clear()
 
