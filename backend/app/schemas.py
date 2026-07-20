@@ -21,8 +21,6 @@ class VoteResponse(BaseModel):
     status: str = "ok"
 
 
-
-
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
@@ -96,7 +94,6 @@ class ExportDataResponse(BaseModel):
     votes: list[ExportVoteResponse]
 
 
-
 class PairwiseStat(BaseModel):
     model_a: str
     model_b: str
@@ -119,4 +116,3 @@ class RankingResponse(BaseModel):
     raw_pairwise: list[PairwiseStat]
     cycle_detected: bool
     cycle_path: list[str]
-
