@@ -423,3 +423,49 @@ def test_export_data_requires_session(client):
     response = client.get("/api/auth/export")
 
     assert response.status_code == 401
+
+
+def test_get_ranking_unkwnown_category(client):
+    """Prova què passa quan intentem obtenir el rànquing d'una categoria no existent."""
+    category_code = "cat_inexistent"
+    response = client.get(f"/api/ranking?category_code={category_code}")
+    assert response.status_code == 404
+    assert response.json()["detail"] == f"No existeix la categoria: {category_code}."
+
+
+def test_get_ranking_empty_category(client, session):
+    """Prova què passa quan intentem obtenir el rànquing d'una categoria buida."""
+    # Creem una categoria sense vots
+    c = Category(code="test_cat", name="Categoria de prova")
+    session.add(c)
+    session.commit()
+
+    response = client.get(f"/api/ranking?category_code={c.code}")
+    assert response.json()["best_model"] is None
+    assert response.json()["bt_skills"] == {}
+
+
+def test_get_ranking_full_category(client, session):
+    """Prova què passa quan intentem obtenir el rànquing d'una categoria amb vots."""
+    # Recuperem la categoria 'correccio'
+    c = session.scalar(select(Category).where(Category.code == "correccio"))
+
+    # Inserim dades falses
+    p = Prompt(version="v1", code="correccio", category_id=c.id, text="El gat es blau")
+    session.add(p)
+    session.commit()
+
+    r1 = Response(prompt_id=p.id, model="model_1", text="El gat és blau")
+    r2 = Response(prompt_id=p.id, model="model_2", text="El gat es color blau")
+    session.add_all([r1, r2])
+    session.commit()
+
+    v1 = Vote(prompt_id=p.id, response_a_id=r1.id, response_b_id=r2.id, winner="a")
+    session.add(v1)
+    session.commit()
+
+    # Obtenim resposta
+    response = client.get(f"/api/ranking?category_code={c.code}")
+    assert response.status_code == 200
+    assert response.json()["best_model"] == "model_1"
+    assert response.json()["bt_skills"] != {}
