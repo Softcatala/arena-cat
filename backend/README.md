@@ -39,6 +39,11 @@ tests/          # model tests
 
 ER diagram of the schema: [docs/db_schema.md](../docs/db_schema.md).
 
+## Users and authentication
+
+Detailed documentation of user management and authentication (data model, cryptography,
+auth flows, endpoints and GDPR): [docs/usuaris_autenticacio.md](../docs/usuaris_autenticacio.md).
+
 ## Databases and roles
 
 On first startup, `docker compose` provisions:

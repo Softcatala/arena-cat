@@ -97,6 +97,7 @@ erDiagram
 | votes | INDEX | `ix_votes_prompt_id` | `prompt_id` |
 | votes | INDEX | `ix_votes_created_at` | `created_at` |
 | votes | INDEX | `ix_votes_user_id` | `user_id` |
+| votes | UNIQUE INDEX | `uq_votes_user_prompt_pair` | `(user_id, prompt_id, least(response_a_id, response_b_id), greatest(response_a_id, response_b_id))` |
 
 ## Enums
 

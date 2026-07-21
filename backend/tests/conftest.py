@@ -4,14 +4,22 @@ Cada test s'executa dins d'una transacció que es desfà al final (rollback),
 de manera que queden aïllats entre si.
 """
 
+from datetime import UTC, datetime
+
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from app import models
 from app.config import get_settings
-from app.db import Base
+from app.db import Base, get_db
+from app.main import app
+from app.models import User
+from app.security import compute_email_hash, hash_password
 from app.seeds import INITIAL_CATEGORIES
+
+DEFAULT_PASSWORD = "ContrasenyaSegura123!"
 
 
 @pytest.fixture(scope="session")
@@ -41,3 +49,72 @@ def session(engine):
         sess.close()
         transaction.rollback()
         connection.close()
+
+
+@pytest.fixture
+def client(session):
+    """TestClient de FastAPI amb la dependència `get_db` apuntant a la sessió de test."""
+
+    def override_get_db():
+        yield session
+
+    app.dependency_overrides[get_db] = override_get_db
+    # Base URL amb HTTPS perquè el client accepti i reenviï cookies marcades com a
+    # `Secure` (com passa en producció amb `COOKIE_SECURE=true`).
+    with TestClient(app, base_url="https://testserver") as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def create_user(session):
+    """Fàbrica per crear usuaris de prova (verificats o no) directament a la base de dades."""
+
+    def _create(
+        email: str,
+        *,
+        verified: bool = True,
+        password: str = DEFAULT_PASSWORD,
+        consent_version: str = "v1",
+    ) -> User:
+        user = User(
+            email=email,
+            email_hash=compute_email_hash(email),
+            password_hash=hash_password(password),
+            consent_version=consent_version,
+            consent_at=datetime.now(UTC),
+            email_verified_at=datetime.now(UTC) if verified else None,
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user
+
+    return _create
+
+
+@pytest.fixture
+def login(client):
+    """Fàbrica per iniciar sessió via l'API; deixa la cookie de sessió al client."""
+
+    def _login(email: str, password: str = DEFAULT_PASSWORD):
+        response = client.post(
+            "/api/auth/login",
+            json={"email": email, "password": password},
+        )
+        assert response.status_code == 200
+        return response
+
+    return _login
+
+
+@pytest.fixture
+def logged_in_user(create_user, login):
+    """Crea un usuari verificat i n'inicia la sessió, retornant l'usuari."""
+
+    def _make(email: str, password: str = DEFAULT_PASSWORD) -> User:
+        user = create_user(email, verified=True, password=password)
+        login(email, password)
+        return user
+
+    return _make

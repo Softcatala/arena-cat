@@ -11,9 +11,11 @@ logging.basicConfig(
 
 app = FastAPI(title="arena-cat backend")
 
+# CORS permissiu per a desenvolupament local
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=".*",
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

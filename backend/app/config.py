@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
@@ -32,6 +33,11 @@ class Settings(BaseSettings):
     email_hash_pepper: str
     # Versió de consentiment acceptada al registre.
     consent_version: str = "v1"
+    # Configuració de la cookie i la sessió d'autenticació.
+    session_ttl_hours: int
+    cookie_name: str
+    cookie_secure: bool
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
     def _url(self, user: str, password: str, database: str) -> str:
         return URL.create(
@@ -57,6 +63,11 @@ class Settings(BaseSettings):
     def database_test_url(self) -> str:
         """Base de dades aïllada per als tests."""
         return self._url(self.postgres_user, self.postgres_password, f"{self.postgres_db}_test")
+
+    @property
+    def cookie_max_age(self) -> int:
+        """Durada de la cookie de sessió en segons, derivada del TTL de sessió."""
+        return self.session_ttl_hours * 3600
 
 
 @lru_cache

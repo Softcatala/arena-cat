@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session as OrmSession
 from app.config import get_settings
 from app.models import Session, User, Vote
 from app.schemas import (
-    DeleteAccountRequest,
     DeleteAccountResponse,
     ExportDataResponse,
     ExportUserResponse,
@@ -33,6 +32,58 @@ from app.security import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _commit(db: OrmSession, *, status_code: int = 500, detail: str = "Error intern") -> None:
+    """Fa commit de la transacció i, si falla per integritat, la desfà i llança HTTP."""
+    try:
+        db.commit()
+    except IntegrityError as err:
+        db.rollback()
+        raise HTTPException(status_code=status_code, detail=detail) from err
+
+
+def resolve_session_user(
+    db: OrmSession, session_token: str | None, *, require_verified: bool = False
+) -> User:
+    """Resol la sessió activa d'una cookie i en retorna l'usuari.
+
+    Comprova que el token existeix, que la sessió no està revocada ni caducada i
+    que l'usuari existeix i no està donat de baixa. Amb `require_verified`, exigeix
+    a més que l'email estigui verificat.
+
+    Args:
+        db: sessió SQLAlchemy.
+        session_token: token de sessió en clar rebut a la cookie (pot ser None).
+        require_verified: si és cert, exigeix email verificat (403 altrament).
+
+    Returns:
+        User: l'usuari propietari de la sessió activa.
+    """
+    if session_token is None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    token_hash = hash_session_token(session_token)
+    now = datetime.now(UTC)
+
+    active_session = db.scalar(
+        select(Session).where(
+            Session.token_hash == token_hash,
+            Session.revoked_at.is_(None),
+            Session.expires_at > now,
+        )
+    )
+    if active_session is None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    user = db.get(User, active_session.user_id)
+    if user is None or user.deleted_at is not None:
+        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
+
+    if require_verified and user.email_verified_at is None:
+        raise HTTPException(status_code=403, detail="Cal verificar l'email per continuar")
+
+    return user
 
 
 def register_user(db: OrmSession, payload: RegisterRequest) -> RegisterResponse:
@@ -60,11 +111,7 @@ def register_user(db: OrmSession, payload: RegisterRequest) -> RegisterResponse:
     )
 
     db.add(user)
-    try:
-        db.commit()
-    except IntegrityError as err:
-        db.rollback()
-        raise HTTPException(status_code=409, detail="No s'ha pogut completar el registre") from err
+    _commit(db, status_code=409, detail="No s'ha pogut completar el registre")
 
     db.refresh(user)
 
@@ -94,13 +141,13 @@ def verify_email(db: OrmSession, payload: VerifyEmailRequest) -> VerifyEmailResp
     if user.email_verified_at is None:
         user.email_verified_at = datetime.now(UTC)
         db.add(user)
-        db.commit()
+        _commit(db)
 
     return VerifyEmailResponse(status="verified")
 
 
 def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
-    """Autenticar usuario, crear sessió i retornar user i raw token."""
+    """Autentica l'usuari, crea una sessió i retorna l'usuari i el token en clar."""
     email = payload.email.strip().lower()
 
     user = db.scalar(select(User).where(User.email == email))
@@ -119,7 +166,8 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     # Crea la sessió
     raw_token = new_session_token()
     token_hash = hash_session_token(raw_token)
-    expires_at = datetime.now(UTC) + timedelta(hours=24)  # TTL de sessió de 24 hores
+    ttl_hours = get_settings().session_ttl_hours
+    expires_at = datetime.now(UTC) + timedelta(hours=ttl_hours)
 
     session = Session(
         user_id=user.id,
@@ -128,11 +176,7 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     )
 
     db.add(session)
-    try:
-        db.commit()
-    except IntegrityError as err:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="No s'ha pogut crear la sessió") from err
+    _commit(db, detail="No s'ha pogut crear la sessió")
 
     return user, raw_token
 
@@ -144,7 +188,7 @@ def logout_user(db: OrmSession, payload: LogoutRequest) -> LogoutResponse:
     if session is not None:
         session.revoked_at = datetime.now(UTC)
         db.add(session)
-        db.commit()
+        _commit(db)
 
     return LogoutResponse(status="logged_out")
 
@@ -160,28 +204,13 @@ def anonymize_user_rgpd(user: User, now: datetime) -> None:
 
 def delete_account(
     db: OrmSession,
-    payload: DeleteAccountRequest,
-    session_token: str,
+    user: User,
+    current_password: str,
 ) -> DeleteAccountResponse:
     """Dona de baixa el compte anonimitzant dades personals i revocant sessions."""
-    token_hash = hash_session_token(session_token)
     now = datetime.now(UTC)
 
-    active_session = db.scalar(
-        select(Session).where(
-            Session.token_hash == token_hash,
-            Session.revoked_at.is_(None),
-            Session.expires_at > now,
-        )
-    )
-    if active_session is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
-
-    user = db.get(User, active_session.user_id)
-    if user is None or user.deleted_at is not None or user.password_hash is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
-
-    if not verify_password(payload.current_password, user.password_hash):
+    if not verify_password(current_password, user.password_hash):
         raise HTTPException(status_code=401, detail="Contrasenya incorrecta")
 
     # Anonimització RGPD: preservem user.id i email_hash per evitar re-registres.
@@ -198,57 +227,17 @@ def delete_account(
         session.revoked_at = now
         db.add(session)
 
-    db.commit()
+    _commit(db)
     return DeleteAccountResponse(status="deleted")
 
 
-def export_user_data(db: OrmSession, session_token: str) -> ExportDataResponse:
+def export_user_data(db: OrmSession, user: User) -> ExportDataResponse:
     """Exporta les dades personals i els vots de l'usuari autenticat."""
-    token_hash = hash_session_token(session_token)
-    now = datetime.now(UTC)
-
-    active_session = db.scalar(
-        select(Session).where(
-            Session.token_hash == token_hash,
-            Session.revoked_at.is_(None),
-            Session.expires_at > now,
-        )
-    )
-    if active_session is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
-
-    user = db.get(User, active_session.user_id)
-    if user is None:
-        raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
-
     votes = db.scalars(
         select(Vote).where(Vote.user_id == user.id).order_by(Vote.created_at.asc())
     ).all()
 
-    user_export = ExportUserResponse(
-        id=user.id,
-        email=user.email,
-        email_verified_at=user.email_verified_at.isoformat() if user.email_verified_at else None,
-        consent_version=user.consent_version,
-        consent_at=user.consent_at.isoformat() if user.consent_at else None,
-        created_at=user.created_at.isoformat(),
-        deleted_at=user.deleted_at.isoformat() if user.deleted_at else None,
+    return ExportDataResponse(
+        user=ExportUserResponse.model_validate(user),
+        votes=[ExportVoteResponse.model_validate(vote) for vote in votes],
     )
-
-    votes_export = [
-        ExportVoteResponse(
-            id=vote.id,
-            prompt_id=vote.prompt_id,
-            response_a_id=vote.response_a_id,
-            response_b_id=vote.response_b_id,
-            winner=vote.winner,
-            session_id=vote.session_id,
-            response_time_s=(
-                float(vote.response_time_s) if vote.response_time_s is not None else None
-            ),
-            created_at=vote.created_at.isoformat(),
-        )
-        for vote in votes
-    ]
-
-    return ExportDataResponse(user=user_export, votes=votes_export)
