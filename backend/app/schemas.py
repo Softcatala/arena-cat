@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models import Winner
 
@@ -20,8 +22,8 @@ class VoteResponse(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
     consent: bool
 
 
@@ -38,7 +40,7 @@ class VerifyEmailResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
@@ -63,6 +65,8 @@ class DeleteAccountResponse(BaseModel):
 
 
 class ExportVoteResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     prompt_id: int
     response_a_id: int
@@ -70,17 +74,19 @@ class ExportVoteResponse(BaseModel):
     winner: Winner
     session_id: str | None
     response_time_s: float | None
-    created_at: str
+    created_at: datetime
 
 
 class ExportUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     email: str | None
-    email_verified_at: str | None
+    email_verified_at: datetime | None
     consent_version: str
-    consent_at: str | None
-    created_at: str
-    deleted_at: str | None
+    consent_at: datetime | None
+    created_at: datetime
+    deleted_at: datetime | None
 
 
 class ExportDataResponse(BaseModel):

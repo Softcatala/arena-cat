@@ -3,13 +3,30 @@
 from __future__ import annotations
 
 from collections import Counter
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 
-from app.models import Category, Prompt, Response, Vote, Winner
+from app.models import Category, Prompt, Response, User, Vote, Winner
 from app.ranking.sampler import select_next_task
+from app.security import compute_email_hash, hash_password
 
 MODELS = ["gemma-3-4b-it", "qwen-3.5-9b", "salamandra-7b-instruct"]
+
+
+def _create_user(session, email):
+    """Crea un usuari actiu i verificat i retorna la instància."""
+    user = User(
+        email=email,
+        email_hash=compute_email_hash(email),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
+    )
+    session.add(user)
+    session.flush()
+    return user
 
 
 def _category(session, code="correccio"):
@@ -91,15 +108,15 @@ def test_select_next_task_balances_cells(session):
 
 
 def test_select_next_task_excludes_cells_voted_by_session(session):
-    """Si una sessió ja ha votat una cel·la, no se li ha de tornar a oferir."""
+    """Si un usuari ja ha votat una cel·la, no se li ha de tornar a oferir."""
     _seed_prompts(session, "correccio", n_prompts=2)
     # 2 prompts × 3 parelles = 6 cel·les en total.
 
-    # Una sessió vota 3 cel·les concretes.
-    session_id = "sessio-A"
+    # Un usuari vota 3 cel·les concretes.
+    user = _create_user(session, "sampler-a@example.com")
     voted_cells: set[tuple[int, str, str]] = set()
     for _ in range(3):
-        task = select_next_task(session, "correccio", session_id=session_id, seed=_)
+        task = select_next_task(session, "correccio", user_id=user.id, seed=_)
         assert task is not None
         ra = session.get(Response, task["response_a_id"])
         rb = session.get(Response, task["response_b_id"])
@@ -107,72 +124,74 @@ def test_select_next_task_excludes_cells_voted_by_session(session):
         session.add(
             Vote(
                 prompt_id=task["prompt_id"],
+                user_id=user.id,
                 response_a_id=task["response_a_id"],
                 response_b_id=task["response_b_id"],
                 winner=Winner.a,
-                session_id=session_id,
             )
         )
         session.flush()
 
     assert len(voted_cells) == 3  # cap repetició entre els 3 vots
 
-    # Les properes crides amb la MATEIXA sessió no han de retornar cap de les 3 cel·les ja votades.
+    # Les properes crides amb el MATEIX usuari no han de retornar cap de les 3 cel·les ja votades.
     for i in range(5):
-        task = select_next_task(session, "correccio", session_id=session_id, seed=100 + i)
+        task = select_next_task(session, "correccio", user_id=user.id, seed=100 + i)
         assert task is not None
         ra = session.get(Response, task["response_a_id"])
         rb = session.get(Response, task["response_b_id"])
         cell = (task["prompt_id"], *sorted((ra.model, rb.model)))
-        assert cell not in voted_cells, f"Sampler ha tornat a oferir {cell} a {session_id}"
+        assert cell not in voted_cells, f"Sampler ha tornat a oferir {cell} a l'usuari {user.id}"
 
 
 def test_select_next_task_returns_none_when_session_completes_category(session):
-    """Quan una sessió ha votat totes les cel·les, la funció retorna None."""
+    """Quan un usuari ha votat totes les cel·les, la funció retorna None."""
     _seed_prompts(session, "traduccio", n_prompts=1)
     # 1 prompt × 3 parelles = 3 cel·les.
 
-    session_id = "sessio-completa"
-    # Votem cada cel·la una vegada des de la mateixa sessió.
+    user = _create_user(session, "sampler-complet@example.com")
+    # Votem cada cel·la una vegada des del mateix usuari.
     for i in range(3):
-        task = select_next_task(session, "traduccio", session_id=session_id, seed=i)
+        task = select_next_task(session, "traduccio", user_id=user.id, seed=i)
         assert task is not None
         session.add(
             Vote(
                 prompt_id=task["prompt_id"],
+                user_id=user.id,
                 response_a_id=task["response_a_id"],
                 response_b_id=task["response_b_id"],
                 winner=Winner.a,
-                session_id=session_id,
             )
         )
         session.flush()
 
-    # Quarta crida: ja no queden cel·les noves per a aquesta sessió.
-    task = select_next_task(session, "traduccio", session_id=session_id, seed=999)
+    # Quarta crida: ja no queden cel·les noves per a aquest usuari.
+    task = select_next_task(session, "traduccio", user_id=user.id, seed=999)
     assert task is None
 
 
 def test_select_next_task_different_sessions_are_independent(session):
-    """Una sessió A no afecta el que veu una sessió B."""
+    """Un usuari A no afecta el que veu un usuari B."""
     _seed_prompts(session, "reformulacio", n_prompts=1)
-    # Sessió A vota totes les 3 cel·les.
+    # Usuari A vota totes les 3 cel·les.
+    user_a = _create_user(session, "sampler-indep-a@example.com")
     for i in range(3):
-        task = select_next_task(session, "reformulacio", session_id="sessio-A", seed=i)
+        task = select_next_task(session, "reformulacio", user_id=user_a.id, seed=i)
         assert task is not None
         session.add(
             Vote(
                 prompt_id=task["prompt_id"],
+                user_id=user_a.id,
                 response_a_id=task["response_a_id"],
                 response_b_id=task["response_b_id"],
                 winner=Winner.a,
-                session_id="sessio-A",
             )
         )
         session.flush()
 
-    # Sessió A ja no pot votar més.
-    assert select_next_task(session, "reformulacio", session_id="sessio-A", seed=0) is None
-    # Sessió B sí pot votar — encara no ha vist cap cel·la.
-    task_b = select_next_task(session, "reformulacio", session_id="sessio-B", seed=0)
+    # Usuari A ja no pot votar més.
+    assert select_next_task(session, "reformulacio", user_id=user_a.id, seed=0) is None
+    # Usuari B sí pot votar — encara no ha vist cap cel·la.
+    user_b = _create_user(session, "sampler-indep-b@example.com")
+    task_b = select_next_task(session, "reformulacio", user_id=user_b.id, seed=0)
     assert task_b is not None

@@ -25,6 +25,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -172,6 +173,14 @@ class Vote(Base):
         Index("ix_votes_prompt_id", "prompt_id"),
         Index("ix_votes_created_at", "created_at"),
         Index("ix_votes_user_id", "user_id"),
+        Index(
+            "uq_votes_user_prompt_pair",
+            "user_id",
+            "prompt_id",
+            func.least(text("response_a_id"), text("response_b_id")),
+            func.greatest(text("response_a_id"), text("response_b_id")),
+            unique=True,
+        ),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)

@@ -86,15 +86,13 @@ def verify_email_verification_token(token: str) -> dict | None:
     return payload
 
 
-def create_task_token(
-    prompt_id: int, response_a_id: int, response_b_id: int, session_id: str
-) -> str:
+def create_task_token(prompt_id: int, response_a_id: int, response_b_id: int, user_id: int) -> str:
     """Crea un token JWT per a una tasca donada.
     Args:
         prompt_id: identificador del prompt
         response_a_id: identificador de la resposta A
         response_b_id: identificador de la resposta B
-        session_id: identificador de la sessió
+        user_id: identificador de l'usuari
 
     Returns:
         str: token JWT
@@ -106,7 +104,8 @@ def create_task_token(
         "prompt_id": prompt_id,
         "response_a_id": response_a_id,
         "response_b_id": response_b_id,
-        "session_id": session_id,
+        "user_id": user_id,
+        "purpose": "task",
         "exp": exp,
     }
     return _sign_payload(payload, settings.hmac_secret_key)
@@ -115,13 +114,28 @@ def create_task_token(
 def verify_task_token(token: str) -> dict | None:
     """
     Verifica un token de tasca HMAC i retorna el payload si és vàlid.
+
+    A banda de la signatura i la caducitat, comprova que el token és realment un
+    token de tasca (`purpose == "task"`) i que conté tots els camps obligatoris
+    amb el tipus correcte. Així s'evita acceptar tokens signats amb un altre
+    propòsit (p. ex. verificació de correu).
+
     Args:
         token: token HMAC a verificar
     Returns:
         dict | None: payload del token si és vàlid, None en cas contrari
     """
     settings = get_settings()
-    return _verify_signed_payload(token, settings.hmac_secret_key)
+    payload = _verify_signed_payload(token, settings.hmac_secret_key)
+    if not payload:
+        return None
+    if payload.get("purpose") != "task":
+        return None
+    required_int_fields = ("prompt_id", "response_a_id", "response_b_id", "user_id")
+    for field in required_int_fields:
+        if not isinstance(payload.get(field), int):
+            return None
+    return payload
 
 
 def new_session_token() -> str:

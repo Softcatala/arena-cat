@@ -11,13 +11,16 @@ i comprova que el sistema la descobreix.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import numpy as np
 from sqlalchemy import select
 
-from app.models import Category, Prompt, Response, Vote, Winner
+from app.models import Category, Prompt, Response, User, Vote, Winner
 from app.ranking.confidence import assess_confidence
 from app.ranking.ranking import compute_ranking
 from app.ranking.sampler import select_next_task
+from app.security import compute_email_hash, hash_password
 
 MODELS = ["gemma-3-4b-it", "qwen-3.5-9b", "salamandra-7b-instruct"]
 
@@ -68,7 +71,9 @@ def _planted_winner(rng, model_a, model_b, favored_model, win_prob):
     return Winner.a if rng.random() < 0.5 else Winner.b
 
 
-def _record_vote(db_session, prompt_id, response_a_id, response_b_id, winner, session_id):
+def _record_vote(
+    db_session, prompt_id, response_a_id, response_b_id, winner, session_id=None, user_id=None
+):
     """Insereix un vot a la base de dades de tests."""
     db_session.add(
         Vote(
@@ -77,9 +82,25 @@ def _record_vote(db_session, prompt_id, response_a_id, response_b_id, winner, se
             response_b_id=response_b_id,
             winner=winner,
             session_id=session_id,
+            user_id=user_id,
         )
     )
     db_session.flush()
+
+
+def _create_user(db_session, email):
+    """Crea un usuari actiu i verificat i retorna la instància."""
+    user = User(
+        email=email,
+        email_hash=compute_email_hash(email),
+        password_hash=hash_password("ContrasenyaSegura123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+        email_verified_at=datetime.now(UTC),
+    )
+    db_session.add(user)
+    db_session.flush()
+    return user
 
 
 def _assert_running_against_test_database(db_session):
@@ -370,25 +391,27 @@ def test_no_session_repeats_a_pair_in_multi_session_campaign(session):
     # Ni el RNG ens atura. Som i serem
     rng = np.random.default_rng(seed=1714)
 
-    # Per a cada sessió, mantenim un set de cel·les que ja ha vist.
+    # Un usuari real per sessió (la FK votes.user_id -> users.id ho exigeix).
+    users = [_create_user(session, f"scale-multi-{s:02d}@example.com") for s in range(n_sessions)]
+
+    # Per a cada usuari, mantenim un set de cel·les que ja ha vist.
     # Si en algun moment el sampler retorna una cel·la repetida, fallem.
-    cells_seen_by_session: dict[str, set[tuple[int, str, str]]] = {
-        f"sessio-{s:02d}": set() for s in range(n_sessions)
-    }
+    cells_seen_by_session: dict[int, set[tuple[int, str, str]]] = {user.id: set() for user in users}
     skipped_full_sessions = 0
 
     for i in range(n_votes):
-        session_id = f"sessio-{i % n_sessions:02d}"
+        user = users[i % n_sessions]
+        user_id = user.id
 
-        task = select_next_task(session, "reformulacio", session_id=session_id, seed=i)
+        task = select_next_task(session, "reformulacio", user_id=user_id, seed=i)
 
-        # Si la sessió ja ha completat totes les cel·les, el sampler retorna None.
+        # Si l'usuari ja ha completat totes les cel·les, el sampler retorna None.
         # Comptem aquests casos per assegurar-nos que el límit es respecta de manera neta.
         if task is None:
             skipped_full_sessions += 1
-            assert len(cells_seen_by_session[session_id]) == 15, (
-                f"Sampler ha retornat None per a {session_id} però la sessió només "
-                f"ha vist {len(cells_seen_by_session[session_id])} cel·les (de 15)"
+            assert len(cells_seen_by_session[user_id]) == 15, (
+                f"Sampler ha retornat None per a l'usuari {user_id} però la sessió només "
+                f"ha vist {len(cells_seen_by_session[user_id])} cel·les (de 15)"
             )
             continue
 
@@ -396,13 +419,13 @@ def test_no_session_repeats_a_pair_in_multi_session_campaign(session):
         response_b = session.get(Response, task["response_b_id"])
         cell = (task["prompt_id"], *sorted((response_a.model, response_b.model)))
 
-        # INVARIANT CRÍTIC: aquesta sessió no ha vist mai aquesta cel·la.
-        assert cell not in cells_seen_by_session[session_id], (
-            f"VIOLACIÓ: la sessió {session_id} ha rebut una cel·la repetida {cell}. "
-            f"Aquest vot és el número {i}; la sessió ja havia vist "
-            f"{len(cells_seen_by_session[session_id])} cel·les."
+        # INVARIANT CRÍTIC: aquest usuari no ha vist mai aquesta cel·la.
+        assert cell not in cells_seen_by_session[user_id], (
+            f"VIOLACIÓ: l'usuari {user_id} ha rebut una cel·la repetida {cell}. "
+            f"Aquest vot és el número {i}; l'usuari ja havia vist "
+            f"{len(cells_seen_by_session[user_id])} cel·les."
         )
-        cells_seen_by_session[session_id].add(cell)
+        cells_seen_by_session[user_id].add(cell)
 
         winner = _planted_winner(rng, response_a.model, response_b.model, favored_model, win_prob)
         _record_vote(
@@ -411,18 +434,18 @@ def test_no_session_repeats_a_pair_in_multi_session_campaign(session):
             response_a_id=task["response_a_id"],
             response_b_id=task["response_b_id"],
             winner=winner,
-            session_id=session_id,
+            user_id=user_id,
         )
 
     # Comprovacions post-campanya:
-    # 1) Cada sessió ha vist ≤ 15 cel·les úniques (no podria veure'n més).
-    for sid, seen in cells_seen_by_session.items():
+    # 1) Cada usuari ha vist ≤ 15 cel·les úniques (no podria veure'n més).
+    for uid, seen in cells_seen_by_session.items():
         assert len(seen) <= 15, (
-            f"La sessió {sid} ha vist {len(seen)} cel·les úniques (>15, impossible)"
+            f"L'usuari {uid} ha vist {len(seen)} cel·les úniques (>15, impossible)"
         )
 
-    # 2) Amb 30 sessions repartint-se 600 vots, cada sessió rep ~20 vots.
-    #    Però com que només hi ha 15 cel·les, algunes sessions hauran arribat
+    # 2) Amb 30 usuaris repartint-se 600 vots, cada usuari rep ~20 vots.
+    #    Però com que només hi ha 15 cel·les, alguns usuaris hauran arribat
     #    al sostre i hauran rebut None. Comprovem que això és coherent.
     total_unique_cells_seen = sum(len(s) for s in cells_seen_by_session.values())
     assert total_unique_cells_seen + skipped_full_sessions == n_votes, (

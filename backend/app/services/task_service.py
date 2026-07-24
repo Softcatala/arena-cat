@@ -1,24 +1,25 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.models import User
 from app.ranking.sampler import select_next_task
 from app.schemas import TaskResponse
 from app.security import create_task_token
 
 
-def get_next_task_for_user(category_code: str, session_id: str, db: Session) -> TaskResponse:
+def get_next_task_for_user(category_code: str, user: User, db: Session) -> TaskResponse:
     """Retorna la propera tasca per a un usuari
 
     Args:
         db: sessió SQLAlchemy
         category_code: codi de la categoria (e.g. "correccio", "reformulacio")
-        session_id: identificador de la sessió
+        user: usuari autenticat i verificat
 
     Returns:
         TaskResponse: objecte amb el prompt, les dues respostes i el token
     """
     # Obtenim la propera tasca via el mòdul ranking
-    task = select_next_task(db, category_code, session_id)
+    task = select_next_task(db, category_code, user.id)
 
     # Retornem excepció en cas de que no quedin tasques disponibles
     if task is None:
@@ -32,7 +33,7 @@ def get_next_task_for_user(category_code: str, session_id: str, db: Session) -> 
     response_b_id = task["response_b_id"]
 
     # Creem el token amb els identificadors
-    token = create_task_token(prompt_id, response_a_id, response_b_id, session_id)
+    token = create_task_token(prompt_id, response_a_id, response_b_id, user.id)
 
     # Retornem la tasca i el token
     return TaskResponse(

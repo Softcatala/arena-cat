@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
-from app.db import get_db
+from app.deps import CurrentVerifiedUser, DbSession
 from app.schemas import VoteRequest, VoteResponse
 from app.services import vote_service
 
@@ -9,13 +8,18 @@ router = APIRouter()
 
 
 @router.post("/vote")
-def post_vote(vote_req: VoteRequest, db: Session = Depends(get_db)) -> VoteResponse:
+def post_vote(
+    vote_req: VoteRequest,
+    current_user: CurrentVerifiedUser,
+    db: DbSession,
+) -> VoteResponse:
     """
     Envia un vot a la base de dades
     Args:
+        vote_req: objecte amb el vot (winner, token)
+        current_user: usuari autenticat i verificat (injectat via dependència)
         db: sessió SQLAlchemy
-        vote_req: objecte amb el vot (prompt_id, response_a_id, response_b_id, winner, session_id)
     Returns:
         VoteResponse: objecte amb el status ("ok")
     """
-    return vote_service.submit_vote(db, vote_req)
+    return vote_service.submit_vote(db, vote_req, current_user)

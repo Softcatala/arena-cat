@@ -33,6 +33,16 @@
         line-height: 1.15;
       }
 
+      h2.section {
+        margin: 0 0 14px;
+        font-size: 18px;
+      }
+
+      h3 {
+        margin: 0 0 12px;
+        font-size: 15px;
+      }
+
       label {
         display: grid;
         gap: 6px;
@@ -70,6 +80,12 @@
         color: #17202a;
       }
 
+      button.danger {
+        background: #ffffff;
+        color: #a32626;
+        border-color: #e0a3a3;
+      }
+
       button:disabled {
         cursor: not-allowed;
         opacity: 0.55;
@@ -88,6 +104,62 @@
         border-radius: 8px;
         background: #ffffff;
         padding: 18px;
+        margin-bottom: 18px;
+      }
+
+      .auth-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .checkbox {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #3d4a57;
+      }
+
+      .checkbox input {
+        width: auto;
+        min-height: auto;
+      }
+
+      .divider {
+        margin: 18px 0;
+        border: none;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .hint {
+        margin: 0 0 10px;
+        font-size: 13px;
+        color: #526171;
+      }
+
+      .inline-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .delete-confirm {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .hidden {
+        display: none;
       }
 
       .task {
@@ -135,7 +207,8 @@
 
       @media (max-width: 720px) {
         .controls,
-        .answers {
+        .answers,
+        .auth-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -148,7 +221,7 @@
       <section class="controls" aria-label="Controls">
         <label>
           API
-          <input id="apiBase" value="http://localhost:8000" />
+          <input id="apiBase" value="http://127.0.0.1:8000" />
         </label>
 
         <label>
@@ -160,15 +233,95 @@
           </select>
         </label>
 
-        <button id="loadTask" type="button">Carrega tasca</button>
+        <button id="loadTask" type="button" disabled>Carrega tasca</button>
+      </section>
+
+      <!-- Panell d'autenticació: registre, verificació i inici de sessió -->
+      <section id="authPanel" class="panel" aria-label="Autenticació">
+        <h2 class="section">Autenticació</h2>
+
+        <div class="auth-grid">
+          <div>
+            <h3>Registre</h3>
+            <div class="field-row">
+              <label>
+                Email
+                <input id="registerEmail" type="email" autocomplete="email" />
+              </label>
+              <label>
+                Contrasenya (mínim 8 caràcters)
+                <input id="registerPassword" type="password" autocomplete="new-password" />
+              </label>
+              <span class="checkbox">
+                <input id="registerConsent" type="checkbox" />
+                Accepto el consentiment explícit del tractament de dades
+              </span>
+            </div>
+            <button id="registerButton" type="button">Registra'm</button>
+          </div>
+
+          <div>
+            <h3>Inici de sessió</h3>
+            <div class="field-row">
+              <label>
+                Email
+                <input id="loginEmail" type="email" autocomplete="email" />
+              </label>
+              <label>
+                Contrasenya
+                <input id="loginPassword" type="password" autocomplete="current-password" />
+              </label>
+            </div>
+            <button id="loginButton" type="button">Inicia sessió</button>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <div>
+          <h3>Verificació de correu</h3>
+          <p class="hint">
+            En desenvolupament (v1) el token de verificació s'escriu al log del backend.
+            Enganxa'l aquí per verificar el compte.
+          </p>
+          <div class="field-row">
+            <label>
+              Token de verificació
+              <input id="verifyToken" type="text" />
+            </label>
+          </div>
+          <button id="verifyButton" type="button">Verifica el correu</button>
+        </div>
+      </section>
+
+      <!-- Barra de sessió activa -->
+      <section id="sessionBar" class="panel hidden" aria-label="Sessió">
+        <div class="inline-actions">
+          <span id="sessionInfo">Sessió activa.</span>
+          <button id="exportButton" class="secondary" type="button">Exporta les meves dades</button>
+          <button id="deleteButton" class="danger" type="button">Dona de baixa el compte</button>
+          <button id="logoutButton" class="secondary" type="button">Tanca sessió</button>
+        </div>
+
+        <!-- Confirmació de baixa: demana la contrasenya actual (acció irreversible). -->
+        <div id="deleteConfirm" class="delete-confirm hidden">
+          <p class="hint">
+            Introdueix la contrasenya actual per confirmar-ho.
+          </p>
+          <div class="field-row">
+            <label>
+              Contrasenya actual
+              <input id="deletePassword" type="password" autocomplete="current-password" />
+            </label>
+          </div>
+          <div class="inline-actions">
+            <button id="deleteConfirmButton" class="danger" type="button">Confirma la baixa</button>
+            <button id="deleteCancelButton" class="secondary" type="button">Cancel·la</button>
+          </div>
+        </div>
       </section>
 
       <section class="panel task" aria-live="polite">
-        <label>
-          Sessio
-          <input id="sessionId" />
-        </label>
-
         <div>
           <strong>Prompt</strong>
           <p id="prompt" class="prompt">Cap tasca carregada.</p>
@@ -197,104 +350,6 @@
       <p id="status" class="status"></p>
     </main>
 
-    <script>
-      const apiBaseInput = document.querySelector("#apiBase");
-      const categoryInput = document.querySelector("#category");
-      const sessionIdInput = document.querySelector("#sessionId");
-      const loadTaskButton = document.querySelector("#loadTask");
-      const promptOutput = document.querySelector("#prompt");
-      const responseAOutput = document.querySelector("#responseA");
-      const responseBOutput = document.querySelector("#responseB");
-      const statusOutput = document.querySelector("#status");
-      const voteButtons = [...document.querySelectorAll("[data-winner]")];
-
-      let currentToken = null;
-
-      sessionIdInput.value =
-        localStorage.getItem("arena-cat-session-id") ||
-        globalThis.crypto?.randomUUID?.() ||
-        `session-${Date.now()}`;
-
-      function apiUrl(path) {
-        return `${apiBaseInput.value.replace(/\/$/, "")}${path}`;
-      }
-
-      function setStatus(message, isError = false) {
-        statusOutput.textContent = message;
-        statusOutput.classList.toggle("error", isError);
-      }
-
-      function setVoteButtons(enabled) {
-        voteButtons.forEach((button) => {
-          button.disabled = !enabled;
-        });
-      }
-
-      async function loadTask() {
-        currentToken = null;
-        setVoteButtons(false);
-        setStatus("Carregant...");
-        localStorage.setItem("arena-cat-session-id", sessionIdInput.value);
-
-        const params = new URLSearchParams({
-          category_code: categoryInput.value,
-          session_id: sessionIdInput.value,
-        });
-
-        try {
-          const response = await fetch(apiUrl(`/api/task?${params}`));
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.detail || `HTTP ${response.status}`);
-          }
-
-          currentToken = data.token;
-          promptOutput.textContent = data.prompt;
-          responseAOutput.textContent = data.response_a;
-          responseBOutput.textContent = data.response_b;
-          setVoteButtons(true);
-          setStatus("Tasca carregada.");
-        } catch (error) {
-          promptOutput.textContent = "Cap tasca carregada.";
-          responseAOutput.textContent = "-";
-          responseBOutput.textContent = "-";
-          setStatus(error.message, true);
-        }
-      }
-
-      async function vote(winner) {
-        if (!currentToken) {
-          return;
-        }
-
-        setVoteButtons(false);
-        setStatus("Enviant vot...");
-
-        try {
-          const response = await fetch(apiUrl("/api/vote"), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ winner, token: currentToken }),
-          });
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.detail || `HTTP ${response.status}`);
-          }
-
-          setStatus(`Vot desat: ${data.status}.`);
-          await loadTask();
-        } catch (error) {
-          setVoteButtons(true);
-          setStatus(error.message, true);
-        }
-      }
-
-      loadTaskButton.addEventListener("click", loadTask);
-      voteButtons.forEach((button) => {
-        button.addEventListener("click", () => vote(button.dataset.winner));
-      });
-    </script>
+    <script src="app.js"></script>
   </body>
 </html>
