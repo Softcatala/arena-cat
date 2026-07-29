@@ -1,0 +1,28 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: Es comunica a tots els propietaris que, en la reunió celebrada el dia 14
+    de maig, la comunitat va acordar per majoria simple aprovar la derrama extraordinària
+    per a la reparació de la façana. Si no s’abona l’import en el termini convingut,
+    es procedirà d’acord amb la normativa de propietat horitzontal vigent.
+prompt:
+  id: traduccio_2
+  path: data/prompts/v1/traduccio_2.txt
+  sha256: d14d93c80f327008eb160b92daecd8bca5caec0db87ab2c6553dc4c8fe89b9e3
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

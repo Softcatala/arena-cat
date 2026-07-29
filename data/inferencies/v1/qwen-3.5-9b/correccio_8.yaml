@@ -1,0 +1,30 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen-3.5-9b
+  model_name: Qwen/Qwen3.5-9B
+  revision: main
+output:
+  answer: No entenc com has pogut actuar d'aquesta manera. Em vas prometre que podia
+    confiar en tu i, al final, has fet exactament el contrari. Has explicat coses
+    que eren personals sense demanar-me permís i ara m'he quedat en una situació molt
+    incòmoda. Em sento decebut i molt enfadat perquè esperava més respecte per part
+    teva. Si realment valores la nostra amistat, hauries de reconèixer l'error i demanar
+    disculpes. Ara mateix necessito distància.
+prompt:
+  id: correccio_8
+  path: data/prompts/v1/correccio_8.txt
+  sha256: 3a78a37977ed441d299344d4307d717b3dbfae383b26f71a24b986162e40c2d4
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

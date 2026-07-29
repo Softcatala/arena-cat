@@ -1,0 +1,28 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: Des que surto a córrer pel matí em trobo molt millor, tot i que al principi
+    em va costar agafar el ritme. Ara vaig a la sala de gimnasia tres dies a la setmana
+    per posar-me en forma. La meva entrenadora diu que, si continuo així, en un mes
+    notaré un canvi molt gros.
+prompt:
+  id: traduccio_10
+  path: data/prompts/v1/traduccio_10.txt
+  sha256: 96b6d8d5feffc34444bd31e9b6959d027994b6054b1554135aa3881561a88873
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

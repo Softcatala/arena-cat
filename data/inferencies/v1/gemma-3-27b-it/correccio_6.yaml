@@ -1,0 +1,32 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: Cada vegada hi ha més joves que passen moltes hores jugant a l’ordinador.
+    Tot i que els videojocs poden ser una forma d’entreteniment, un ús excessiu pot
+    provocar diversos problemes. Passar massa temps davant de la pantalla pot reduir
+    l’activitat física, afectar el rendiment escolar i dificultar el desenvolupament
+    de relacions socials. A més, dormir poc o descuidar altres responsabilitats pot
+    tenir conseqüències negatives per a la salut i el benestar. Per aquest motiu,
+    és important mantenir un equilibri entre el temps dedicat als videojocs, els estudis,
+    l’exercici físic i les activitats socials.
+prompt:
+  id: correccio_6
+  path: data/prompts/v1/correccio_6.txt
+  sha256: 19751642c85a125cd3e29548bfb74b6997a52311c3ad86d161190b8618de838c
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

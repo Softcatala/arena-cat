@@ -1,0 +1,34 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct
+  model_name: BSC-LT/salamandra-7b-instruct
+  revision: main
+output:
+  answer: 'Aquest seria el text corregit:
+
+    Tarragoona és una ciutat situada a la costa mediterrànea, coneguda pel seu ric
+    patrimoni històric i cultural. Fou una de les principals ciutats de l’imperi romà
+    a la península ibérica, fet que es reflexa en monuments com l’amfiteatre, les
+    muralles i el circ romà. El seu conjunt arqueologic ha estat declarat Patrimoni
+    Mundial per la Unesco. A partde la seva historia, Tarragoona destaca per les seves
+    platges, el seu port i la gastronomíade baseada en producte del mar. Les festes
+    de santa tecla i els castells son dues de les traditions mes representants de
+    la ciutat.'
+prompt:
+  id: correccio_2
+  path: data/prompts/v1/correccio_2.txt
+  sha256: 29a06952a3234435075d7d5c9fb3ff18988db3445954bcd87d9c27099f4a5e70
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

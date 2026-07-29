@@ -1,0 +1,30 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct
+  model_name: BSC-LT/salamandra-7b-instruct
+  revision: main
+output:
+  answer: 'Pues oiga, chic@s, ya sabemos que este viernes es festivo y no curramos,
+    así que qué tal si nos plantamos allí prontito pa pillar un buen rinconcillo antes
+    de que lo abarque to dios. Y como supongo que habrá algún padre con críos... pues
+    tienen una zona de juego por ahí cerquita. Yo me encargo del chiringuito playero:
+    sombrilla y birras frescas, pero eso sí, alguno tendrá que llevar algo de comer
+    no vaya a ser que pille hambre la parienta. A ver quién se apunta.'
+prompt:
+  id: traduccio_4
+  path: data/prompts/v1/traduccio_4.txt
+  sha256: 49c6552f3424e19a1c5be1e5a6a6deefcc4bbd3570c0d8b82821f37c536235a8
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

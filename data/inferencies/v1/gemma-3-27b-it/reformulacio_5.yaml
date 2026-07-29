@@ -1,0 +1,32 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: Ahir a la tarda, mentre gaudia d'un agradable passeig amb el meu gos per
+    la platja de la Pineda, vaig observar un grup de nens, els fills dels meus veïns,
+    immersos en el joc a la sorra. Era una imatge molt bonica i tranquil·la, que em
+    va fer pensar en l'arribada de l'estiu i en la vida social que caracteritza la
+    nostra zona durant els mesos més càlids. Segur que, com passa cada any, la casa
+    on visc es tornarà a omplir de familiars i amics que vénen a passar les vacances
+    a Reus i a gaudir de les nostres platges. Aquesta dinamització és molt positiva
+    per a la ciutat i sempre esperem amb il·lusió la temporada estival.
+prompt:
+  id: reformulacio_5
+  path: data/prompts/v1/reformulacio_5.txt
+  sha256: 768f7c4ee89e80eae25b6ab770e7b3c0f71ccd24d4f96557bcffd9e2c9039436
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

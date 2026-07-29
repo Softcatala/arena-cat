@@ -1,0 +1,30 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen-3.5-9b
+  model_name: Qwen/Qwen3.5-9B
+  revision: main
+output:
+  answer: Ahir al vespre, durant una tranquil·la sortida al carrer, vaig sortir amb
+    el meu gos a passejar per la platja i, mentre caminava pels darrers metres de
+    sorra, vaig trobar casualment un grup de nens del veí que jugaven amb moltes ganes.
+    Aquesta escena em fa recordar immediatament que aquest estiu la casa es tornarà
+    a omplir de gent, arribant de nou els familiars i amics, tal com succeeix cada
+    any sense falta, convertint-nos de nou en un lloc ple de vida i rialles.
+prompt:
+  id: reformulacio_5
+  path: data/prompts/v1/reformulacio_5.txt
+  sha256: 768f7c4ee89e80eae25b6ab770e7b3c0f71ccd24d4f96557bcffd9e2c9039436
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'
