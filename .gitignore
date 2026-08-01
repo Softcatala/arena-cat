@@ -16,4 +16,6 @@ __pycache__/
 .hf-cache/
 arena_cat.egg-info
 
+# Sortides generades
+data/inferencies/
 
