@@ -120,7 +120,7 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 
 `scripts/carrega_inferencies.py` publica els fitxers disponibles localment a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/v1/*.txt` (text pla, clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/v1/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
 
-Les inferències de referència es conserven a la branca `dades_inferencia`, separades de les branques de codi. Si les tens en un worktree paral·lel, apunta-hi el carregador amb `INFERENCIES_DIR`.
+Les inferències de referència es conserven a la branca `dades_inferencia`, separades de les branques de codi. El target `make load_reference_inferences` crea o reutilitza un worktree paral·lel i apunta el carregador a les dades de referència.
 
 És **idempotent**: tornar-lo a executar no duplica files. Cada fila es classifica com a inserida o omesa (ja existeix amb el mateix contingut), i n'imprimeix un resum a la sortida estàndard. **No modifica files existents**: si un prompt o una resposta ja existeix amb la mateixa clau però amb un contingut diferent, ho registra com a error i exigeix publicar-ho amb una versió nova en comptes de sobreescriure-ho. Sobreescriure el text d'una resposta invalidaria semànticament els vots que hi apunten (mantenen el `response_id` però votaven un text que hauria canviat). Igualment, si un fitxer no compleix l'esquema (categoria o prompt desconegut, camps obligatoris absents, YAML d'inferència mal format, o prompt buit), registra un error clar. En tots els casos d'error acaba amb codi de sortida 1 sense aturar la resta de la càrrega.
 
@@ -139,10 +139,10 @@ PROMPTS_DIR=data/prompts/v2 INFERENCIES_DIR=data/inferencies/v2 make load_infere
 Per usar el worktree de `dades_inferencia`:
 
 ```bash
-INFERENCIES_DIR=../arena-cat-dades-inferencia/data/inferencies/v1 make load_inferences
+make load_reference_inferences
 ```
 
-El target només és un embolcall d'aquesta comanda, que reaprofita l'entorn i el model de dades del backend amb `--project backend` i també es pot cridar directament:
+El target `load_inferences` només és un embolcall d'aquesta comanda, que reaprofita l'entorn i el model de dades del backend amb `--project backend` i també es pot cridar directament:
 
 ```bash
 uv --project backend run python scripts/carrega_inferencies.py \

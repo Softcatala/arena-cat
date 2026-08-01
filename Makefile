@@ -1,6 +1,10 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: setup db install migrate test dev web http check format inferences load_inferences
+.PHONY: setup db install migrate test dev web http check format inferences load_inferences load_reference_inferences
+
+REFERENCE_INFERENCES_WORKTREE ?= ../arena-cat-dades-inferencia
+REFERENCE_INFERENCES_BRANCH ?= dades_inferencia
+REFERENCE_INFERENCES_DIR ?= $(REFERENCE_INFERENCES_WORKTREE)/data/inferencies/v1
 
 setup: db install migrate
 
@@ -44,3 +48,10 @@ load_inferences:
 		$(if $(PROMPTS_DIR),--prompts-dir $(PROMPTS_DIR)) \
 		$(if $(INFERENCIES_DIR),--inferencies-dir $(INFERENCIES_DIR)) \
 		$(if $(VERSION),--version $(VERSION))
+
+# Crea, si cal, un worktree amb les inferències de referència i les carrega.
+load_reference_inferences:
+	@if [ ! -e "$(REFERENCE_INFERENCES_WORKTREE)/.git" ]; then \
+		git worktree add "$(REFERENCE_INFERENCES_WORKTREE)" "$(REFERENCE_INFERENCES_BRANCH)"; \
+	fi
+	$(MAKE) load_inferences INFERENCIES_DIR="$(REFERENCE_INFERENCES_DIR)"
