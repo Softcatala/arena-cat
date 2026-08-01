@@ -91,6 +91,11 @@
         opacity: 0.55;
       }
 
+      button:active:not(:disabled) {
+        filter: brightness(0.8);
+        transform: translateY(1px);
+      }
+
       .controls {
         display: grid;
         grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) auto;
