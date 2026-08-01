@@ -33,9 +33,18 @@ Des de l'arrel del repositori:
 
 ```bash
 make setup            # prepara .env, PostgreSQL, dependències i migracions
-make inferences       # genera les inferències a data/inferencies/v1
+make inferences       # genera les inferències locals a data/inferencies/v1
 make load_inferences  # carrega prompts i inferències a la base de dades
 make test             # executa els tests del backend
+```
+
+Les inferències generades no es versionen en aquesta branca. Les dades de
+referència de la prova de concepte es mantenen a la branca `dades_inferencia`.
+Per carregar-les sense regenerar-les, pots tenir-la en un worktree separat:
+
+```bash
+git worktree add ../arena-cat-dades-inferencia dades_inferencia
+INFERENCIES_DIR=../arena-cat-dades-inferencia/data/inferencies/v1 make load_inferences
 ```
 
 La inferència pot requerir `HF_TOKEN` i prou memòria per als models configurats a
