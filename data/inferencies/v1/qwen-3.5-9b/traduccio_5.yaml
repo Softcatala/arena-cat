@@ -1,0 +1,28 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen-3.5-9b
+  model_name: Qwen/Qwen3.5-9B
+  revision: main
+output:
+  answer: Per la present, li fem constar que el seu encàrreg patirà un retard en la
+    seua lliurament degut a problemes logístics. Si el retard s'allargués per més
+    de vuit dies, li correspondre el dret a cancel·lar el seu encàrreg sense cap mena
+    de despesa, d'acord amb allò establert en les nostres Condicions Generals de Venda.
+prompt:
+  id: traduccio_5
+  path: data/prompts/v1/traduccio_5.txt
+  sha256: 849e2f189187c0f105d5f0dfe8ade06f428c0943efd1bcd7de72ba2a716fbd7d
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

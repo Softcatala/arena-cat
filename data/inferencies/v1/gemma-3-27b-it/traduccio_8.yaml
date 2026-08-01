@@ -1,0 +1,28 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: El llogater es compromet a abonar l'import de 600 euros en concepte de lloguer
+    abans del dia cinc de cada mes. En cas de no pagament, el propietari podrà reclamar
+    l'import degut juntament amb els interessos corresponents, d'acord amb el que
+    s'estableix en el contracte d'arrendament.
+prompt:
+  id: traduccio_8
+  path: data/prompts/v1/traduccio_8.txt
+  sha256: d7334359b49044da4a086d280fdb276d92c208d17baa0dddd1626a17d618c2fb
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

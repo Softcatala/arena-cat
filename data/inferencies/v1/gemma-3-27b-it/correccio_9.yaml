@@ -1,0 +1,32 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: He llegit dos llibres aquest estiu i, tot i que tots dos m’han agradat,
+    són força diferents. El primer té una història plena d’acció i manté l’interès
+    des de la primera pàgina. Els personatges són molt dinàmics i sempre hi passa
+    alguna cosa inesperada. En canvi, el segon és més tranquil i reflexiu. Se centra
+    en les emocions dels protagonistes i fa pensar sobre les decisions que prenem
+    a la vida. Personalment, m’ho he passat millor amb el primer perquè és més entretingut,
+    però crec que el segon deixa una empremta més profunda. Depèn molt del que busqui
+    cada lector.
+prompt:
+  id: correccio_9
+  path: data/prompts/v1/correccio_9.txt
+  sha256: 5ec3c60ca2f407c6800c2ab5fb89a52dba6c57d8b2af28dbcdec75367d6e838d
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

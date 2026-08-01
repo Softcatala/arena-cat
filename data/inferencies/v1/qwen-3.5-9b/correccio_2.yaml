@@ -1,0 +1,32 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen-3.5-9b
+  model_name: Qwen/Qwen3.5-9B
+  revision: main
+output:
+  answer: Tarragona és una ciutat situada a la costa mediterrània, coneguda pel seu
+    ric patrimoni històric i cultural. Va ser una de les principals ciutats de l'Imperi
+    Romà a la Península Ibèrica, fet que es reflecteix en monuments com l'amfiteatre,
+    les muralles i el circ romà. El seu conjunt arqueològic ha estat declarat Patrimoni
+    Mundial per la UNESCO. A més de la seva història, Tarragona destaca per les seves
+    platges, el seu port i la gastronomia basada en productes del mar. Les festes
+    de Santa Tecla i els castells són dues de les tradicions més representatives de
+    la ciutat.
+prompt:
+  id: correccio_2
+  path: data/prompts/v1/correccio_2.txt
+  sha256: 29a06952a3234435075d7d5c9fb3ff18988db3445954bcd87d9c27099f4a5e70
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

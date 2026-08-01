@@ -1,0 +1,32 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct
+  model_name: BSC-LT/salamandra-7b-instruct
+  revision: main
+output:
+  answer: Les neveres son electrodoméstics indispensables a la majoria dels domicilis.
+    La seua funcio principal és conservar els aliments a una temperatura baixa per
+    mantindre'ls frescos durant mes temps y reducir el risc que es facen malbe. Actualment,
+    hi han models de diferents tamanys y característiques, algunos con congelador
+    integrado, o funcions d'ahorro energetic. Una buena organitzacio dels aliments
+    a l'interior facilita trobar-los y contribueix a una millor conservacio. També
+    és recomendable netejar la nevera periòdicament i evitar deixar-la oberta durante
+    massa estona per ahorrar energia.
+prompt:
+  id: correccio_3
+  path: data/prompts/v1/correccio_3.txt
+  sha256: daccd885c8bfa5a3d7c39858ae2660af22d28d4869e97746556a5fda700b1460
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

@@ -1,0 +1,27 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct
+  model_name: BSC-LT/salamandra-7b-instruct
+  revision: main
+output:
+  answer: Hi havia una vegada un minúscul pardalet que volia poder volar. El desitjà
+    tant que fins i tot va cridar totes les mosques per demanar-los ajuda. I així
+    és com aquell cuc ara és amo i senyor dels viatges aeris!
+prompt:
+  id: traduccio_3
+  path: data/prompts/v1/traduccio_3.txt
+  sha256: cb772cfd8291f63b105b3e2d201aa2a8fe810f58a7e1147ef6234cd93658df47
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

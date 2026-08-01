@@ -1,0 +1,54 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: '**A l''Il·lustríssim Ajuntament de [Nom del Municipi]**
+
+
+    **Assumpte: Queixa per avaria d''enllumenat públic i perill a la via pública**
+
+
+    Em permeto adreçar-me a Vostès per presentar una queixa formal respecte a la manca
+    d''enllumenat públic al carrer [Nom del Carrer]. Aquesta situació persisteix des
+    de fa tres setmanes, generant una situació de perill i inseguretat durant les
+    hores de nit.
+
+
+    A més, ahir, dia [Data], es va produir la caiguda d''un fanal situat al número
+    [Número] del mateix carrer, degut a un clot existent a la vorera.
+
+
+    Sol·licito que es prenguin les mesures necessàries per a la reparació urgent de
+    l''enllumenat i l''eliminació del perill a la via pública.
+
+
+    Atentament,
+
+
+    [El seu Nom i Cognoms]
+
+    [El seu Adreça]
+
+    [El seu Telèfon de Contacte]
+
+    [La seva Adreça Electrònica (opcional)]'
+prompt:
+  id: reformulacio_3
+  path: data/prompts/v1/reformulacio_3.txt
+  sha256: 983c08d58f44c65aa8c97328128222822aed2d2472e1f91d8161039971dbfac9
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'

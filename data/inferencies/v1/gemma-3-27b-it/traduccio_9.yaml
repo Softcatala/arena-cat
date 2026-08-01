@@ -1,0 +1,28 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-3-27b-it
+  model_name: google/gemma-3-27b-it
+  revision: main
+output:
+  answer: Quan arriba la nit, la nina s'embolica amb el pijama que més li agrada i
+    se'n va al llit amb el seu osset de peluix. Des de la finestra es veu el cel ple
+    d'estrelles i una d'elles li fa una cançó de bressol molt, molt baixeta, perquè
+    pugui dormir bé.
+prompt:
+  id: traduccio_9
+  path: data/prompts/v1/traduccio_9.txt
+  sha256: cb3dad80ad7aa20f879d72a0e9a00a56e748ef033d6c002f5d901556de6e8066
+reasoning:
+  content: null
+run:
+  git_commit: 473623282664f292ead96e245e210e767958d403
+  seed: 42
+  timestamp: '2026-07-29T14:18:16.310191Z'
