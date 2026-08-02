@@ -1,10 +1,15 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: run test check format inferences load_inferences load_reference_inferences
+.PHONY: setup run test check format inferences load_inferences load_reference_inferences
 
 REFERENCE_INFERENCES_WORKTREE ?= ../arena-cat-dades-inferencia
 REFERENCE_INFERENCES_BRANCH ?= dades_inferencia
 REFERENCE_INFERENCES_DIR ?= $(REFERENCE_INFERENCES_WORKTREE)/data/inferencies/v1
+
+setup:
+	test -f .env || cp .env.example .env
+	docker compose up -d postgres --wait
+	cd backend && uv sync && uv run alembic upgrade head
 
 run:
 	test -f .env || cp .env.example .env

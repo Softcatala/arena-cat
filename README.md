@@ -11,7 +11,7 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 ## Client HTML de proves
 
 El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
-votació contra l'API local. `make run` arrenca l'API i serveix el client a
+votació contra l'API local. `make run` arrenca PostgreSQL, l'API i serveix el client a
 `http://127.0.0.1:5500/index.html`.
 Cal evitar obrir el fitxer amb `file://`, perquè el navegador no reenviarà la
 cookie de sessió al backend.
@@ -24,9 +24,9 @@ amb `make load_inferences`.
 Requisits: Docker i Docker Compose. [`uv`](https://docs.astral.sh/uv/) només cal
 per executar scripts, tests i eines de desenvolupament fora dels contenidors.
 
-Si ja tens un `.env` antic, revisa'l contra `.env.example`: `make run` no el
-sobreescriu per no perdre secrets locals. Si et falta `HMAC_SECRET_KEY`, genera'n una
-amb:
+Si ja tens un `.env` antic, revisa'l contra `.env.example`: els targets `make`
+no el sobreescriuen per no perdre secrets locals. Si et falta `HMAC_SECRET_KEY`,
+genera'n una amb:
 
 ```bash
 printf 'HMAC_SECRET_KEY=%s\n' "$(openssl rand -hex 32)" >> .env
@@ -35,7 +35,8 @@ printf 'HMAC_SECRET_KEY=%s\n' "$(openssl rand -hex 32)" >> .env
 Des de l'arrel del repositori:
 
 ```bash
-make run  # arrenca PostgreSQL, aplica migracions, arrenca l'API i serveix el client HTML
+make setup  # crea la base de dades local i aplica les migracions
+make run    # arrenca PostgreSQL, l'API i serveix el client HTML
 ```
 
 L'API queda disponible a `http://127.0.0.1:8000` i el client HTML a
