@@ -101,7 +101,6 @@
         grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) auto;
         gap: 12px;
         align-items: end;
-        margin-bottom: 18px;
       }
 
       .panel {
@@ -244,24 +243,6 @@
     <main>
       <h1>Arena Cat</h1>
 
-      <section class="controls" aria-label="Controls">
-        <label>
-          API
-          <input id="apiBase" value="http://127.0.0.1:8000" />
-        </label>
-
-        <label>
-          Categoria
-          <select id="category">
-            <option value="correccio">Correccio</option>
-            <option value="reformulacio">Reformulacio</option>
-            <option value="traduccio">Traduccio</option>
-          </select>
-        </label>
-
-        <button id="loadTask" type="button" disabled>Carrega tasca</button>
-      </section>
-
       <!-- Panell d'autenticació: registre, verificació i inici de sessió -->
       <section id="authPanel" class="panel" aria-label="Autenticació">
         <h2 class="section">Autenticació</h2>
@@ -303,7 +284,6 @@
             <pre id="loginResult" class="call-result" aria-live="polite"></pre>
           </div>
         </div>
-
       </section>
 
       <!-- Barra de sessió activa -->
@@ -334,6 +314,26 @@
       </section>
 
       <section class="panel task" aria-live="polite">
+        <section class="controls" aria-label="Controls">
+          <label>
+            API
+            <input id="apiBase" value="http://127.0.0.1:8000" />
+          </label>
+
+          <label>
+            Categoria
+            <select id="category">
+              <option value="correccio">Correccio</option>
+              <option value="reformulacio">Reformulacio</option>
+              <option value="traduccio">Traduccio</option>
+            </select>
+          </label>
+
+          <button id="loadTask" type="button" disabled>Carrega tasca</button>
+        </section>
+
+        <p id="status" class="status"></p>
+
         <div>
           <strong>Prompt</strong>
           <p id="prompt" class="prompt">Cap tasca carregada.</p>
@@ -358,8 +358,6 @@
           <button data-winner="neither" class="secondary" type="button" disabled>Cap de les dues respostes és adequada</button>
         </div>
       </section>
-
-      <p id="status" class="status"></p>
     </main>
 
     <script src="app.js"></script>

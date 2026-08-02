@@ -33,6 +33,10 @@ const deleteCancelButton = document.querySelector("#deleteCancelButton");
 let currentToken = null;
 let loggedIn = false;
 
+if (apiBaseInput.value === "http://127.0.0.1:8000" && window.location.hostname === "localhost") {
+  apiBaseInput.value = "http://localhost:8000";
+}
+
 function apiUrl(path) {
   return `${apiBaseInput.value.replace(/\/$/, "")}${path}`;
 }
