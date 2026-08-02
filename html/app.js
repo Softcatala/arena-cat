@@ -213,10 +213,10 @@ function handleAuthError(error) {
 }
 
 async function register() {
-  setStatus("Registrant...");
+  setStatus("");
   setCallResult(registerResult, "");
   try {
-    const data = await apiFetch("/api/auth/register", {
+    await apiFetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -225,23 +225,15 @@ async function register() {
         consent: registerConsent.checked,
       }),
     }, registerResult);
-    if (data.status === "pending_verification") {
-      setStatus(
-        "Registre correcte (pending_verification). Cal verificar el correu fora d'aquest client abans d'iniciar sessió.",
-      );
-    } else {
-      setStatus(`Registre correcte (${data.status}). Ja pots iniciar sessió.`);
-    }
   } catch (error) {
     if (!error.status) {
       setCallResult(registerResult, `Error de xarxa/CORS\n${error.message}`, true);
     }
-    setStatus(error.message, true);
   }
 }
 
 async function login() {
-  setStatus("Iniciant sessió...");
+  setStatus("");
   setCallResult(loginResult, "");
   try {
     await apiFetch("/api/auth/login", {
@@ -254,13 +246,11 @@ async function login() {
     }, loginResult);
     setLoggedIn(true, { keepAuthPanel: true });
     sessionInfo.textContent = `Sessió activa (${loginEmail.value.trim()}).`;
-    setStatus("Sessió iniciada. Carrega una tasca per començar.");
   } catch (error) {
     if (!error.status) {
       setCallResult(loginResult, `Error de xarxa/CORS\n${error.message}`, true);
     }
     setLoggedIn(false);
-    setStatus(error.message, true);
   }
 }
 
