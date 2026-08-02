@@ -80,7 +80,11 @@ def resolve_session_user(
     if user is None or user.deleted_at is not None:
         raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
 
-    if require_verified and user.email_verified_at is None:
+    if (
+        require_verified
+        and get_settings().require_email_verification
+        and user.email_verified_at is None
+    ):
         raise HTTPException(status_code=403, detail="Cal verificar l'email per continuar")
 
     return user
@@ -102,18 +106,25 @@ def register_user(db: OrmSession, payload: RegisterRequest) -> RegisterResponse:
 
     password_hash = hash_password(payload.password)
 
+    settings = get_settings()
+    now = datetime.now(UTC)
+
     user = User(
         email=email,
         email_hash=email_hash,
         password_hash=password_hash,
-        consent_version=get_settings().consent_version,
-        consent_at=datetime.now(UTC),
+        consent_version=settings.consent_version,
+        consent_at=now,
+        email_verified_at=None if settings.require_email_verification else now,
     )
 
     db.add(user)
     _commit(db, status_code=409, detail="No s'ha pogut completar el registre")
 
     db.refresh(user)
+
+    if not settings.require_email_verification:
+        return RegisterResponse(status="verified")
 
     verification_token = create_email_verification_token(user.id, email)
     # v1: no hi ha servei d'email; deixem el token al log perquè es pugui provar el flux.
@@ -154,7 +165,7 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     if user is None or user.deleted_at is not None:
         raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
-    if user.email_verified_at is None:
+    if get_settings().require_email_verification and user.email_verified_at is None:
         raise HTTPException(
             status_code=403,
             detail="Email no verificat. Verifica el teu email primer.",

@@ -1,7 +1,9 @@
 from datetime import UTC, datetime
 
+import pytest
 from sqlalchemy import select
 
+from app.config import get_settings
 from app.models import Category, Prompt, Response, Session, User, Vote, Winner
 from app.security import (
     compute_email_hash,
@@ -10,6 +12,14 @@ from app.security import (
     hash_session_token,
 )
 from tests.conftest import DEFAULT_PASSWORD
+
+
+@pytest.fixture
+def require_email_verification(monkeypatch):
+    monkeypatch.setenv("REQUIRE_EMAIL_VERIFICATION", "true")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 def test_register_user_success(client, session):
@@ -23,13 +33,36 @@ def test_register_user_success(client, session):
     )
 
     assert response.status_code == 200
-    assert response.json()["status"] == "pending_verification"
+    assert response.json() == {"status": "verified"}
 
     created_user = session.scalar(select(User).where(User.email == "nou_usuari@example.com"))
     assert created_user is not None
     assert created_user.email_hash == compute_email_hash("nou_usuari@example.com")
     assert created_user.password_hash.startswith("$argon2id$")
     assert created_user.consent_at is not None
+    assert created_user.email_verified_at is not None
+
+
+def test_register_requires_email_verification_when_enabled(
+    client, session, require_email_verification
+):
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "verificacio_obligatoria@example.com",
+            "password": DEFAULT_PASSWORD,
+            "consent": True,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "pending_verification"}
+
+    created_user = session.scalar(
+        select(User).where(User.email == "verificacio_obligatoria@example.com")
+    )
+    assert created_user is not None
+    assert created_user.email_verified_at is None
 
 
 def test_register_requires_explicit_consent(client):
@@ -131,7 +164,7 @@ def test_login_success_sets_cookie_and_creates_session(client, session, create_u
     assert stored_session.revoked_at is None
 
 
-def test_login_requires_verified_email(client, create_user):
+def test_login_requires_verified_email(client, create_user, require_email_verification):
     create_user("login_unverified@example.com", verified=False)
 
     response = client.post(

@@ -150,6 +150,27 @@
         color: #526171;
       }
 
+      .call-result {
+        margin: 10px 0 0;
+        padding: 10px;
+        border: 1px solid #d8e0e8;
+        border-radius: 6px;
+        background: #f8fafc;
+        font:
+          12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          monospace;
+        white-space: pre-wrap;
+      }
+
+      .call-result:empty {
+        display: none;
+      }
+
+      .call-result.error {
+        border-color: #e0a3a3;
+        background: #fff7f7;
+      }
+
       .inline-actions {
         display: flex;
         flex-wrap: wrap;
@@ -263,6 +284,7 @@
               </span>
             </div>
             <button id="registerButton" type="button">Registra'm</button>
+            <pre id="registerResult" class="call-result" aria-live="polite"></pre>
           </div>
 
           <div>
@@ -278,25 +300,10 @@
               </label>
             </div>
             <button id="loginButton" type="button">Inicia sessió</button>
+            <pre id="loginResult" class="call-result" aria-live="polite"></pre>
           </div>
         </div>
 
-        <hr class="divider" />
-
-        <div>
-          <h3>Verificació de correu</h3>
-          <p class="hint">
-            En desenvolupament (v1) el token de verificació s'escriu al log del backend.
-            Enganxa'l aquí per verificar el compte.
-          </p>
-          <div class="field-row">
-            <label>
-              Token de verificació
-              <input id="verifyToken" type="text" />
-            </label>
-          </div>
-          <button id="verifyButton" type="button">Verifica el correu</button>
-        </div>
       </section>
 
       <!-- Barra de sessió activa -->

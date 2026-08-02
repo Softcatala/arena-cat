@@ -54,17 +54,17 @@ uv run python scripts/seed_mock_tasks.py
    de ser `http://localhost:8000`. No barregis `127.0.0.1` amb `localhost`.)
 
 4. **Registra't**: introdueix email i contrasenya (mínim 8 caràcters), marca el
-   consentiment i prem *Registra'm*.
+   consentiment i prem *Registra'm*. El client mostra el resultat HTTP de la
+   crida sota el botó.
 
-5. **Verifica el correu**: a la v1 no hi ha servei de correu; el token de
-   verificació s'escriu al log del backend. Recupera'l i enganxa'l al camp
-   *Token de verificació*:
+5. **Verifica el correu fora d'aquest client si el backend ho exigeix**: amb
+   `REQUIRE_EMAIL_VERIFICATION=false` (valor per defecte), pots iniciar sessió
+   directament. Amb `REQUIRE_EMAIL_VERIFICATION=true`, el token s'escriu al log
+   del backend:
 
    ```bash
    docker logs arena-cat-api-1 2>&1 | grep "Email verification token"
    ```
-
-   Prem *Verifica el correu*.
 
 6. **Inicia sessió** amb el mateix email i contrasenya. La cookie de sessió es
    desa automàticament.
@@ -100,8 +100,8 @@ Amb la sessió iniciada, la barra de sessió ofereix dues accions RGPD:
   docker compose up -d --force-recreate api
   ```
 
-- **`403` en iniciar sessió**: el compte existeix però el correu no està
-  verificat. Completa el pas de verificació.
+- **`403` en iniciar sessió**: si `REQUIRE_EMAIL_VERIFICATION=true`, el compte
+  existeix però el correu no està verificat. Completa el pas de verificació.
 
 - **`404` en carregar una tasca**: no hi ha tasques disponibles per a la
   categoria (o ja les has votat totes). Carrega'n de fictícies amb

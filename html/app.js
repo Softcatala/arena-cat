@@ -15,13 +15,12 @@ const registerEmail = document.querySelector("#registerEmail");
 const registerPassword = document.querySelector("#registerPassword");
 const registerConsent = document.querySelector("#registerConsent");
 const registerButton = document.querySelector("#registerButton");
+const registerResult = document.querySelector("#registerResult");
 
 const loginEmail = document.querySelector("#loginEmail");
 const loginPassword = document.querySelector("#loginPassword");
 const loginButton = document.querySelector("#loginButton");
-
-const verifyToken = document.querySelector("#verifyToken");
-const verifyButton = document.querySelector("#verifyButton");
+const loginResult = document.querySelector("#loginResult");
 
 const logoutButton = document.querySelector("#logoutButton");
 const exportButton = document.querySelector("#exportButton");
@@ -43,6 +42,11 @@ function setStatus(message, isError = false) {
   statusOutput.classList.toggle("error", isError);
 }
 
+function setCallResult(output, message, isError = false) {
+  output.textContent = message;
+  output.classList.toggle("error", isError);
+}
+
 function setVoteButtons(enabled) {
   voteButtons.forEach((button) => {
     button.disabled = !enabled;
@@ -50,9 +54,9 @@ function setVoteButtons(enabled) {
 }
 
 // Reflecteix l'estat d'autenticació a la interfície.
-function setLoggedIn(isLoggedIn) {
+function setLoggedIn(isLoggedIn, options = {}) {
   loggedIn = isLoggedIn;
-  authPanel.classList.toggle("hidden", isLoggedIn);
+  authPanel.classList.toggle("hidden", isLoggedIn && !options.keepAuthPanel);
   sessionBar.classList.toggle("hidden", !isLoggedIn);
   loadTaskButton.disabled = !isLoggedIn;
   if (!isLoggedIn) {
@@ -65,8 +69,13 @@ function setLoggedIn(isLoggedIn) {
   }
 }
 
+function formatHttpResult(status, data) {
+  const body = data === null ? "(sense cos)" : JSON.stringify(data, null, 2);
+  return `HTTP ${status}\n${body}`;
+}
+
 // Wrapper de fetch que sempre inclou la cookie de sessió i parseja el cos.
-async function apiFetch(path, options = {}) {
+async function apiFetch(path, options = {}, resultOutput = null) {
   const response = await fetch(apiUrl(path), {
     credentials: "include",
     ...options,
@@ -79,9 +88,14 @@ async function apiFetch(path, options = {}) {
     data = null;
   }
 
+  if (resultOutput) {
+    setCallResult(resultOutput, formatHttpResult(response.status, data), !response.ok);
+  }
+
   if (!response.ok) {
     const detail = (data && data.detail) || `HTTP ${response.status}`;
-    const error = new Error(detail);
+    const message = typeof detail === "string" ? detail : JSON.stringify(detail);
+    const error = new Error(message);
     error.status = response.status;
     throw error;
   }
@@ -103,6 +117,7 @@ function handleAuthError(error) {
 
 async function register() {
   setStatus("Registrant...");
+  setCallResult(registerResult, "");
   try {
     const data = await apiFetch("/api/auth/register", {
       method: "POST",
@@ -112,31 +127,25 @@ async function register() {
         password: registerPassword.value,
         consent: registerConsent.checked,
       }),
-    });
-    setStatus(
-      `Registre correcte (${data.status}). Revisa el log del backend per obtenir el token de verificació.`,
-    );
+    }, registerResult);
+    if (data.status === "pending_verification") {
+      setStatus(
+        "Registre correcte (pending_verification). Cal verificar el correu fora d'aquest client abans d'iniciar sessió.",
+      );
+    } else {
+      setStatus(`Registre correcte (${data.status}). Ja pots iniciar sessió.`);
+    }
   } catch (error) {
-    setStatus(error.message, true);
-  }
-}
-
-async function verify() {
-  setStatus("Verificant correu...");
-  try {
-    const data = await apiFetch("/api/auth/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: verifyToken.value.trim() }),
-    });
-    setStatus(`Correu verificat (${data.status}). Ja pots iniciar sessió.`);
-  } catch (error) {
+    if (!error.status) {
+      setCallResult(registerResult, `Error de xarxa/CORS\n${error.message}`, true);
+    }
     setStatus(error.message, true);
   }
 }
 
 async function login() {
   setStatus("Iniciant sessió...");
+  setCallResult(loginResult, "");
   try {
     await apiFetch("/api/auth/login", {
       method: "POST",
@@ -145,11 +154,14 @@ async function login() {
         email: loginEmail.value.trim(),
         password: loginPassword.value,
       }),
-    });
-    setLoggedIn(true);
+    }, loginResult);
+    setLoggedIn(true, { keepAuthPanel: true });
     sessionInfo.textContent = `Sessió activa (${loginEmail.value.trim()}).`;
     setStatus("Sessió iniciada. Carrega una tasca per començar.");
   } catch (error) {
+    if (!error.status) {
+      setCallResult(loginResult, `Error de xarxa/CORS\n${error.message}`, true);
+    }
     setLoggedIn(false);
     setStatus(error.message, true);
   }
@@ -270,7 +282,6 @@ async function vote(winner) {
 }
 
 registerButton.addEventListener("click", register);
-verifyButton.addEventListener("click", verify);
 loginButton.addEventListener("click", login);
 logoutButton.addEventListener("click", logout);
 exportButton.addEventListener("click", exportData);
