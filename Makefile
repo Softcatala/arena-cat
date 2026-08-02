@@ -10,7 +10,7 @@ setup: db install migrate
 
 db:
 	test -f .env || cp .env.example .env
-	docker compose up -d --wait
+	docker compose up -d --build --wait
 
 install:
 	cd backend && uv sync
