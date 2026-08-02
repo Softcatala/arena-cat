@@ -11,8 +11,8 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 ## Client HTML de proves
 
 El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
-votació contra l'API local. Amb el backend arrencat, serveix el client amb
-`make http` i obre `http://127.0.0.1:5500/index.html`.
+votació contra l'API local. `make run` arrenca l'API i serveix el client a
+`http://127.0.0.1:5500/index.html`.
 Cal evitar obrir el fitxer amb `file://`, perquè el navegador no reenviarà la
 cookie de sessió al backend.
 
@@ -21,9 +21,10 @@ amb `make load_inferences`.
 
 ## Posada en marxa local
 
-Requisits: Docker, Docker Compose i [`uv`](https://docs.astral.sh/uv/).
+Requisits: Docker i Docker Compose. [`uv`](https://docs.astral.sh/uv/) només cal
+per executar scripts, tests i eines de desenvolupament fora dels contenidors.
 
-Si ja tens un `.env` antic, revisa'l contra `.env.example`: `make setup` no el
+Si ja tens un `.env` antic, revisa'l contra `.env.example`: `make run` no el
 sobreescriu per no perdre secrets locals. Si et falta `HMAC_SECRET_KEY`, genera'n una
 amb:
 
@@ -34,9 +35,20 @@ printf 'HMAC_SECRET_KEY=%s\n' "$(openssl rand -hex 32)" >> .env
 Des de l'arrel del repositori:
 
 ```bash
-make setup            # prepara .env, PostgreSQL, dependències i migracions
-make load_reference_inferences  # carrega les inferències de referència
-make test             # executa els tests del backend
+make run  # arrenca PostgreSQL, aplica migracions, arrenca l'API i serveix el client HTML
+```
+
+L'API queda disponible a `http://127.0.0.1:8000` i el client HTML a
+`http://127.0.0.1:5500/index.html`.
+
+`make run` deixa els serveis en primer pla. Per aturar-los, prem `Ctrl+C`; per
+eliminar els contenidors aturats, executa `docker compose down`.
+
+Abans de provar el flux de votació, carrega les inferències de referència en una
+altra terminal:
+
+```bash
+make load_reference_inferences
 ```
 
 Les inferències generades no es versionen en aquesta branca. Les dades de
@@ -64,16 +76,10 @@ La inferència pot requerir `HF_TOKEN` i prou memòria per als models configurat
 fes servir `CONFIG=config/inferencia/inferencia_local_config.yaml make inferences`.
 Per al detall de la canonada, consulta [scripts/README.md](scripts/README.md).
 
-Per arrencar l'API en local:
-
-```bash
-make web  # arrenca l'API a http://localhost:8000
-```
-
 També hi ha objectius per a tasques habituals:
 
 ```bash
-make migrate  # aplica les migracions pendents
+make test     # executa els tests del backend
 make check    # executa Ruff
 make format   # formata el codi del backend amb Ruff
 ```

@@ -1,33 +1,19 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: setup db install migrate test dev web http check format inferences load_inferences load_reference_inferences
+.PHONY: run test check format inferences load_inferences load_reference_inferences
 
 REFERENCE_INFERENCES_WORKTREE ?= ../arena-cat-dades-inferencia
 REFERENCE_INFERENCES_BRANCH ?= dades_inferencia
 REFERENCE_INFERENCES_DIR ?= $(REFERENCE_INFERENCES_WORKTREE)/data/inferencies/v1
 
-setup: db install migrate
-
-db:
+run:
 	test -f .env || cp .env.example .env
-	docker compose up -d --build --wait
-
-install:
-	cd backend && uv sync
-
-migrate:
-	cd backend && uv run alembic upgrade head
+	docker compose up --build
 
 test:
+	test -f .env || cp .env.example .env
+	docker compose up -d postgres --wait
 	cd backend && uv run pytest -v
-
-dev:
-	cd backend && uv run uvicorn app.main:app --reload --port 8000
-
-web: dev
-
-http:
-	python3 -m http.server 5500 --bind 127.0.0.1 --directory html
 
 check:
 	cd backend && uv run ruff check .

@@ -13,7 +13,7 @@ From the repository root:
 
 ```bash
 cp .env.example .env              # adjust the passwords
-docker compose up -d --wait       # start PostgreSQL and provision roles and DB
+docker compose up -d postgres --wait  # start PostgreSQL and provision roles and DB
 ```
 
 From `backend/`:

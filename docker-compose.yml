@@ -1,6 +1,6 @@
-# Servidor SQL d'Arena Cat per a desenvolupament local.
-# Aixeca PostgreSQL 16 amb un volum persistent i provisiona el rol d'aplicació
-# i la base de dades de tests mitjançant infra/init-db.sh.
+# Entorn local d'Arena Cat.
+# Aixeca PostgreSQL 16, aplica les migracions, arrenca l'API i serveix el client HTML.
+# PostgreSQL provisiona el rol d'aplicació i la base de dades de tests mitjançant infra/init-db.sh.
 #
 # Les variables provenen del fitxer .env (vegeu .env.example).
 
@@ -17,7 +17,7 @@ services:
       APP_DB_USER: ${APP_DB_USER}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - arena-cat-pgdata:/var/lib/postgresql/data
       # L'script només s'executa en la primera inicialització (volum buit).
@@ -32,8 +32,11 @@ services:
 
   api:
     build: ./backend
+    command: >
+      sh -c "uv run alembic upgrade head &&
+      uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
-      - ${API_PORT:-8000}:8000
+      - "127.0.0.1:${API_PORT:-8000}:8000"
     env_file:
       - .env
     environment:
@@ -43,6 +46,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  client:
+    image: python:3.12-slim
+    working_dir: /srv/html
+    command: python3 -m http.server 5500 --bind 0.0.0.0
+    ports:
+      - "127.0.0.1:${HTML_PORT:-5500}:5500"
+    volumes:
+      - ./html:/srv/html:ro
+    depends_on:
+      - api
 
 volumes:
   arena-cat-pgdata:
