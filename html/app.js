@@ -37,6 +37,57 @@ if (apiBaseInput.value === "http://127.0.0.1:8000" && window.location.hostname =
   apiBaseInput.value = "http://localhost:8000";
 }
 
+function parseApiBase() {
+  try {
+    return new URL(apiBaseInput.value);
+  } catch {
+    return null;
+  }
+}
+
+function hostFamily(hostname) {
+  if (hostname === "localhost") {
+    return "localhost";
+  }
+  if (hostname === "::1" || hostname === "[::1]") {
+    return "::1";
+  }
+  if (hostname.startsWith("127.")) {
+    return "127";
+  }
+  return hostname;
+}
+
+function cookieSetupHint() {
+  const apiBase = parseApiBase();
+  if (!apiBase) {
+    return "L'URL de l'API no és vàlida.";
+  }
+
+  if (window.location.protocol === "file:") {
+    return "Serveix el client amb `make http`; amb `file://` el navegador no envia la cookie de sessió.";
+  }
+
+  const pageHost = window.location.hostname;
+  const apiHost = apiBase.hostname;
+  if (hostFamily(pageHost) !== hostFamily(apiHost)) {
+    return (
+      `La pàgina s'ha obert amb ${pageHost}, però l'API apunta a ${apiHost}. ` +
+      "Usa sempre 127.0.0.1 amb 127.0.0.1, o localhost amb localhost."
+    );
+  }
+
+  if (
+    apiBase.protocol === "http:" &&
+    !["localhost", "::1"].includes(apiHost) &&
+    !apiHost.startsWith("127.")
+  ) {
+    return "Si uses HTTP fora de localhost/127.0.0.1, posa COOKIE_SECURE=false al `.env` i reinicia el backend.";
+  }
+
+  return "Comprova que no hi hagi una cookie antiga bloquejada al navegador i que el backend s'hagi reiniciat després de canviar el `.env`.";
+}
+
 function apiUrl(path) {
   return `${apiBaseInput.value.replace(/\/$/, "")}${path}`;
 }
@@ -111,7 +162,7 @@ async function apiFetch(path, options = {}, resultOutput = null) {
 function handleAuthError(error) {
   if (error.status === 401) {
     setLoggedIn(false);
-    setStatus("Sessió invàlida o caducada. Torna a iniciar sessió.", true);
+    setStatus(`Sessió invàlida o caducada. ${cookieSetupHint()}`, true);
   } else if (error.status === 403) {
     setStatus("Cal verificar el correu abans de continuar.", true);
   } else {
@@ -147,6 +198,21 @@ async function register() {
   }
 }
 
+async function ensureSessionCookieWorks() {
+  try {
+    await apiFetch("/api/auth/session");
+  } catch (error) {
+    if (error.status === 401) {
+      const cookieError = new Error(
+        `El login ha anat bé, però el navegador no ha reenviat la cookie. ${cookieSetupHint()}`,
+      );
+      cookieError.status = 401;
+      throw cookieError;
+    }
+    throw error;
+  }
+}
+
 async function login() {
   setStatus("Iniciant sessió...");
   setCallResult(loginResult, "");
@@ -159,6 +225,7 @@ async function login() {
         password: loginPassword.value,
       }),
     }, loginResult);
+    await ensureSessionCookieWorks();
     setLoggedIn(true, { keepAuthPanel: true });
     sessionInfo.textContent = `Sessió activa (${loginEmail.value.trim()}).`;
     setStatus("Sessió iniciada. Carrega una tasca per començar.");

@@ -175,6 +175,21 @@ def test_login_requires_verified_email(client, create_user, require_email_verifi
     assert response.status_code == 403
 
 
+def test_session_status_returns_authenticated_user(client, logged_in_user):
+    logged_in_user("session_status@example.com")
+
+    response = client.get("/api/auth/session")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "authenticated"}
+
+
+def test_session_status_requires_session(client):
+    response = client.get("/api/auth/session")
+
+    assert response.status_code == 401
+
+
 def test_logout_revokes_session_and_clears_cookie(client, session, create_user, login):
     create_user("logout_ok@example.com")
 

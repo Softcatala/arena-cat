@@ -90,11 +90,9 @@ Amb la sessió iniciada, la barra de sessió ofereix dues accions RGPD:
   `localhost`). Evita obrir la pàgina amb `file://` (origen nul, sempre
   *cross-site*).
 
-- **La cookie no es desa sobre HTTP**: la cookie es marca com a `Secure`, cosa
-  que el navegador tolera a `localhost` i `127.0.0.1` perquè es consideren
-  contextos segurs. En qualsevol altre amfitrió (una IP de la xarxa local, un
-  nom de domini...) sobre HTTP la cookie es descarta. Per a desenvolupament HTTP
-  fora de `localhost`, posa `COOKIE_SECURE=false` al `.env` i recrea el servei:
+- **La cookie no es desa sobre HTTP**: si `COOKIE_SECURE=true`, el navegador pot
+  descartar la cookie en desenvolupament HTTP. Per a desenvolupament local HTTP,
+  deixa `COOKIE_SECURE=false` al `.env` i recrea el servei:
 
   ```bash
   docker compose up -d --force-recreate api

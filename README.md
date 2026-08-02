@@ -11,12 +11,14 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 ## Client HTML de proves
 
 El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
-votació contra l'API local. Amb el backend arrencat a `http://localhost:8000`,
-obre [`html/index.html`](html/index.html) al navegador, tria una categoria i
-carrega una tasca.
+votació contra l'API local. Amb el backend arrencat, serveix el client amb
+`make http` i obre `http://127.0.0.1:5500/index.html`.
+Cal evitar obrir el fitxer amb `file://`, perquè el navegador no reenviarà la
+cookie de sessió al backend.
 
 Abans d'usar-lo, cal haver carregat prompts i inferències a la base de dades
 amb `make load_inferences`.
+
 ## Posada en marxa local
 
 Requisits: Docker, Docker Compose i [`uv`](https://docs.astral.sh/uv/).
