@@ -48,10 +48,6 @@ class LoginResponse(BaseModel):
     status: str = "logged_in"
 
 
-class SessionStatusResponse(BaseModel):
-    status: str = "authenticated"
-
-
 class LogoutRequest(BaseModel):
     token: str
 

@@ -12,7 +12,6 @@ from app.schemas import (
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
-    SessionStatusResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
@@ -49,12 +48,6 @@ def login(payload: LoginRequest, response: Response, db: DbSession) -> LoginResp
     )
 
     return LoginResponse(status="logged_in")
-
-
-@router.get("/auth/session")
-def session_status(current_user: CurrentUser) -> SessionStatusResponse:
-    """Confirma que la cookie de sessió rebuda identifica un usuari actiu."""
-    return SessionStatusResponse(status="authenticated")
 
 
 @router.post("/auth/logout")
