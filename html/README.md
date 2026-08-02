@@ -12,14 +12,13 @@ El backend ha d'estar en marxa i amb dades per servir tasques. Des de l'arrel
 del repositori:
 
 ```bash
-cp .env.example .env
-docker compose up -d --wait
+make run
 ```
 
-I, si encara no hi ha tasques, carrega'n de fictícies (des de `backend/`):
+I, si encara no hi ha tasques, carrega'n de fictícies en una altra terminal:
 
 ```bash
-uv run python scripts/seed_mock_tasks.py
+docker compose exec api uv run python scripts/seed_mock_tasks.py
 ```
 
 ## Com fer-lo servir (amb `127.0.0.1`)
@@ -31,11 +30,10 @@ uv run python scripts/seed_mock_tasks.py
 > les cookies: si els barreges, l'inici de sessió sembla funcionar però la
 > càrrega de tasca retorna `401 Sessió invàlida o caducada`.
 
-1. Serveix la carpeta `html/` amb un servidor estàtic a `127.0.0.1` (des de
-   l'arrel del repositori):
+1. Arrenca el sistema des de l'arrel del repositori:
 
    ```bash
-   make http
+   make run
    ```
 
 2. Obre la pàgina al navegador:
@@ -63,7 +61,7 @@ uv run python scripts/seed_mock_tasks.py
    del backend:
 
    ```bash
-   docker logs arena-cat-api-1 2>&1 | grep "Email verification token"
+   docker compose logs api | grep "Email verification token"
    ```
 
 6. **Inicia sessió** amb el mateix email i contrasenya. La cookie de sessió es
@@ -103,4 +101,4 @@ Amb la sessió iniciada, la barra de sessió ofereix dues accions RGPD:
 
 - **`404` en carregar una tasca**: no hi ha tasques disponibles per a la
   categoria (o ja les has votat totes). Carrega'n de fictícies amb
-  `scripts/seed_mock_tasks.py`.
+  `docker compose exec api uv run python scripts/seed_mock_tasks.py`.

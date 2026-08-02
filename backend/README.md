@@ -12,17 +12,10 @@ PostgreSQL server, data model (SQLAlchemy) and migrations (Alembic) for Arena Ca
 From the repository root:
 
 ```bash
-cp .env.example .env              # adjust the passwords
-docker compose up -d --wait       # start PostgreSQL and provision roles and DB
+make setup  # create the local database and apply migrations
 ```
 
-From `backend/`:
-
-```bash
-uv sync                       # install the dependencies
-uv run alembic upgrade head   # create the schema in arena_cat
-uv run pre-commit install     # lint/format git hook (catches issues before CI)
-```
+Optionally run `cd backend && uv run pre-commit install` to install the lint/format git hook.
 
 ## Structure
 
