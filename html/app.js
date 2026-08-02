@@ -32,6 +32,8 @@ const deleteCancelButton = document.querySelector("#deleteCancelButton");
 
 let currentToken = null;
 let loggedIn = false;
+let voteUnlockTimer = null;
+const VOTE_WAIT_MS = 10_000;
 
 if (apiBaseInput.value === "http://127.0.0.1:8000" && window.location.hostname === "localhost") {
   apiBaseInput.value = "http://localhost:8000";
@@ -127,6 +129,26 @@ function setVoteButtons(enabled) {
   });
 }
 
+function clearVoteUnlockTimer() {
+  if (voteUnlockTimer) {
+    clearTimeout(voteUnlockTimer);
+    voteUnlockTimer = null;
+  }
+}
+
+function enableVoteButtonsAfterDelay() {
+  clearVoteUnlockTimer();
+  setVoteButtons(false);
+  setStatus("Tasca carregada. Pots votar d'aquí 10 segons.");
+  voteUnlockTimer = setTimeout(() => {
+    voteUnlockTimer = null;
+    if (currentToken) {
+      setVoteButtons(true);
+      setStatus("Tasca carregada. Ja pots votar.");
+    }
+  }, VOTE_WAIT_MS);
+}
+
 // Reflecteix l'estat d'autenticació a la interfície.
 function setLoggedIn(isLoggedIn, options = {}) {
   loggedIn = isLoggedIn;
@@ -134,6 +156,7 @@ function setLoggedIn(isLoggedIn, options = {}) {
   sessionBar.classList.toggle("hidden", !isLoggedIn);
   loadTaskButton.disabled = !isLoggedIn;
   if (!isLoggedIn) {
+    clearVoteUnlockTimer();
     currentToken = null;
     setVoteButtons(false);
     promptOutput.textContent = "Cap tasca carregada.";
@@ -309,6 +332,7 @@ async function deleteAccount() {
 }
 
 async function loadTask() {
+  clearVoteUnlockTimer();
   currentToken = null;
   setVoteButtons(false);
   setStatus("Carregant...");
@@ -323,8 +347,7 @@ async function loadTask() {
     promptOutput.textContent = data.prompt;
     renderResponse(responseAOutput, data.prompt, data.response_a);
     renderResponse(responseBOutput, data.prompt, data.response_b);
-    setVoteButtons(true);
-    setStatus("Tasca carregada.");
+    enableVoteButtonsAfterDelay();
   } catch (error) {
     promptOutput.textContent = "Cap tasca carregada.";
     responseAOutput.textContent = "-";

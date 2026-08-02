@@ -10,6 +10,7 @@ from argon2.exceptions import VerifyMismatchError
 from app.config import get_settings
 
 _password_hasher = PasswordHasher()
+TASK_VOTE_WAIT_SECONDS = 10
 
 
 def _sign_payload(payload: dict, secret: str) -> str:
@@ -86,7 +87,14 @@ def verify_email_verification_token(token: str) -> dict | None:
     return payload
 
 
-def create_task_token(prompt_id: int, response_a_id: int, response_b_id: int, user_id: int) -> str:
+def create_task_token(
+    prompt_id: int,
+    response_a_id: int,
+    response_b_id: int,
+    user_id: int,
+    *,
+    vote_after: datetime | None = None,
+) -> str:
     """Crea un token JWT per a una tasca donada.
     Args:
         prompt_id: identificador del prompt
@@ -98,7 +106,9 @@ def create_task_token(prompt_id: int, response_a_id: int, response_b_id: int, us
         str: token JWT
     """
     settings = get_settings()
-    exp = (datetime.now(UTC) + timedelta(hours=1)).timestamp()
+    now = datetime.now(UTC)
+    exp = (now + timedelta(hours=1)).timestamp()
+    vote_after = vote_after or now + timedelta(seconds=TASK_VOTE_WAIT_SECONDS)
 
     payload = {
         "prompt_id": prompt_id,
@@ -107,6 +117,7 @@ def create_task_token(prompt_id: int, response_a_id: int, response_b_id: int, us
         "user_id": user_id,
         "purpose": "task",
         "exp": exp,
+        "vote_after": vote_after.timestamp(),
     }
     return _sign_payload(payload, settings.hmac_secret_key)
 
@@ -135,6 +146,8 @@ def verify_task_token(token: str) -> dict | None:
     for field in required_int_fields:
         if not isinstance(payload.get(field), int):
             return None
+    if not isinstance(payload.get("vote_after"), int | float):
+        return None
     return payload
 
 
