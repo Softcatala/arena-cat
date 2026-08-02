@@ -35,8 +35,6 @@ Des de l'arrel del repositori:
 
 ```bash
 make setup            # prepara .env, PostgreSQL, dependències i migracions
-make inferences       # genera les inferències locals a data/inferencies/v1
-make load_inferences  # carrega prompts i inferències a la base de dades
 make load_reference_inferences  # carrega les inferències de referència
 make test             # executa els tests del backend
 ```
@@ -52,6 +50,14 @@ make load_reference_inferences
 El target crea, si cal, el worktree `../arena-cat-dades-inferencia` a partir de
 la branca `dades_inferencia` i reutilitza `make load_inferences` amb
 `INFERENCIES_DIR` apuntant a les dades del worktree.
+
+Si vols generar les inferències en local, substitueix
+`make load_reference_inferences` per:
+
+```bash
+make inferences       # genera les inferències locals a data/inferencies/v1
+make load_inferences  # carrega prompts i inferències a la base de dades
+```
 
 La inferència pot requerir `HF_TOKEN` i prou memòria per als models configurats a
 `config/inferencia/inferencia_config.yaml`. Per provar el flux amb un model petit,
