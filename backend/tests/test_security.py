@@ -20,6 +20,7 @@ def test_verify_task_token():
     assert payload["response_b_id"] == 3
     assert payload["purpose"] == "task"
     assert "exp" in payload
+    assert "vote_after" in payload
 
 
 def test_verify_task_token_rejects_other_purpose():

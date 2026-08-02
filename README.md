@@ -11,12 +11,14 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 ## Client HTML de proves
 
 El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
-votació contra l'API local. Amb el backend arrencat a `http://localhost:8000`,
-obre [`html/index.html`](html/index.html) al navegador, tria una categoria i
-carrega una tasca.
+votació contra l'API local. Amb el backend arrencat, serveix el client amb
+`make http` i obre `http://127.0.0.1:5500/index.html`.
+Cal evitar obrir el fitxer amb `file://`, perquè el navegador no reenviarà la
+cookie de sessió al backend.
 
 Abans d'usar-lo, cal haver carregat prompts i inferències a la base de dades
 amb `make load_inferences`.
+
 ## Posada en marxa local
 
 Requisits: Docker, Docker Compose i [`uv`](https://docs.astral.sh/uv/).
@@ -35,17 +37,21 @@ Des de l'arrel del repositori:
 make setup            # prepara .env, PostgreSQL, dependències i migracions
 make inferences       # genera les inferències locals a data/inferencies/v1
 make load_inferences  # carrega prompts i inferències a la base de dades
+make load_reference_inferences  # carrega les inferències de referència
 make test             # executa els tests del backend
 ```
 
 Les inferències generades no es versionen en aquesta branca. Les dades de
 referència de la prova de concepte es mantenen a la branca `dades_inferencia`.
-Per carregar-les sense regenerar-les, pots tenir-la en un worktree separat:
+Per carregar-les sense regenerar-les:
 
 ```bash
-git worktree add ../arena-cat-dades-inferencia dades_inferencia
-INFERENCIES_DIR=../arena-cat-dades-inferencia/data/inferencies/v1 make load_inferences
+make load_reference_inferences
 ```
+
+El target crea, si cal, el worktree `../arena-cat-dades-inferencia` a partir de
+la branca `dades_inferencia` i reutilitza `make load_inferences` amb
+`INFERENCIES_DIR` apuntant a les dades del worktree.
 
 La inferència pot requerir `HF_TOKEN` i prou memòria per als models configurats a
 `config/inferencia/inferencia_config.yaml`. Per provar el flux amb un model petit,

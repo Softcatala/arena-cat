@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     email_hash_pepper: str
     # Versió de consentiment acceptada al registre.
     consent_version: str = "v1"
+    # Exigeix verificació de correu abans d'iniciar sessió i votar.
+    require_email_verification: bool = False
     # Configuració de la cookie i la sessió d'autenticació.
     session_ttl_hours: int
     cookie_name: str

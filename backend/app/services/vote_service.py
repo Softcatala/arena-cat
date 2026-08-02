@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -26,6 +28,9 @@ def submit_vote(db: Session, vote_req: VoteRequest, user: User):
 
     if int(payload.get("user_id", -1)) != user.id:
         raise HTTPException(status_code=403, detail="El token no correspon a l'usuari autenticat")
+
+    if datetime.now(UTC).timestamp() < payload["vote_after"]:
+        raise HTTPException(status_code=425, detail="Espera almenys 10 segons abans de votar")
 
     prompt_id = payload["prompt_id"]
     response_a_id = payload["response_a_id"]

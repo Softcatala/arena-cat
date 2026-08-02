@@ -15,13 +15,12 @@ const registerEmail = document.querySelector("#registerEmail");
 const registerPassword = document.querySelector("#registerPassword");
 const registerConsent = document.querySelector("#registerConsent");
 const registerButton = document.querySelector("#registerButton");
+const registerResult = document.querySelector("#registerResult");
 
 const loginEmail = document.querySelector("#loginEmail");
 const loginPassword = document.querySelector("#loginPassword");
 const loginButton = document.querySelector("#loginButton");
-
-const verifyToken = document.querySelector("#verifyToken");
-const verifyButton = document.querySelector("#verifyButton");
+const loginResult = document.querySelector("#loginResult");
 
 const logoutButton = document.querySelector("#logoutButton");
 const exportButton = document.querySelector("#exportButton");
@@ -33,6 +32,12 @@ const deleteCancelButton = document.querySelector("#deleteCancelButton");
 
 let currentToken = null;
 let loggedIn = false;
+let voteUnlockTimer = null;
+const VOTE_WAIT_MS = 10_000;
+
+if (apiBaseInput.value === "http://127.0.0.1:8000" && window.location.hostname === "localhost") {
+  apiBaseInput.value = "http://localhost:8000";
+}
 
 function apiUrl(path) {
   return `${apiBaseInput.value.replace(/\/$/, "")}${path}`;
@@ -43,19 +48,115 @@ function setStatus(message, isError = false) {
   statusOutput.classList.toggle("error", isError);
 }
 
+function setCallResult(output, message, isError = false) {
+  output.textContent = message;
+  output.classList.toggle("error", isError);
+}
+
+function words(text) {
+  return text.match(/\S+/g) || [];
+}
+
+function correctionOriginalText(prompt) {
+  const newline = prompt.indexOf("\n");
+  if (newline >= 0) {
+    return prompt.slice(newline + 1).trim();
+  }
+  const colon = prompt.indexOf(":");
+  return colon >= 0 ? prompt.slice(colon + 1).trim() : prompt.trim();
+}
+
+function diffWords(original, revised) {
+  const source = words(original);
+  const target = words(revised);
+  const dp = Array.from({ length: source.length + 1 }, () => Array(target.length + 1).fill(0));
+
+  for (let i = source.length - 1; i >= 0; i -= 1) {
+    for (let j = target.length - 1; j >= 0; j -= 1) {
+      dp[i][j] =
+        source[i] === target[j]
+          ? dp[i + 1][j + 1] + 1
+          : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+
+  const changes = [];
+  let i = 0;
+  let j = 0;
+  while (i < source.length || j < target.length) {
+    if (i < source.length && j < target.length && source[i] === target[j]) {
+      changes.push({ type: "same", text: target[j] });
+      i += 1;
+      j += 1;
+    } else if (j < target.length && (i === source.length || dp[i][j + 1] > dp[i + 1][j])) {
+      changes.push({ type: "added", text: target[j] });
+      j += 1;
+    } else {
+      changes.push({ type: "removed", text: source[i] });
+      i += 1;
+    }
+  }
+  return changes;
+}
+
+function appendWord(output, text, tag = "") {
+  if (output.childNodes.length > 0) {
+    output.append(" ");
+  }
+  const node = tag ? document.createElement(tag) : document.createTextNode(text);
+  if (tag) {
+    node.textContent = text;
+  }
+  output.append(node);
+}
+
+function renderResponse(output, prompt, response) {
+  output.replaceChildren();
+  if (categoryInput.value !== "correccio") {
+    output.textContent = response;
+    return;
+  }
+
+  diffWords(correctionOriginalText(prompt), response).forEach((change) => {
+    const tag = change.type === "added" ? "ins" : change.type === "removed" ? "del" : "";
+    appendWord(output, change.text, tag);
+  });
+}
+
 function setVoteButtons(enabled) {
   voteButtons.forEach((button) => {
     button.disabled = !enabled;
   });
 }
 
+function clearVoteUnlockTimer() {
+  if (voteUnlockTimer) {
+    clearTimeout(voteUnlockTimer);
+    voteUnlockTimer = null;
+  }
+}
+
+function enableVoteButtonsAfterDelay() {
+  clearVoteUnlockTimer();
+  setVoteButtons(false);
+  setStatus("Tasca carregada. Pots votar d'aquí 10 segons.");
+  voteUnlockTimer = setTimeout(() => {
+    voteUnlockTimer = null;
+    if (currentToken) {
+      setVoteButtons(true);
+      setStatus("Tasca carregada. Ja pots votar.");
+    }
+  }, VOTE_WAIT_MS);
+}
+
 // Reflecteix l'estat d'autenticació a la interfície.
-function setLoggedIn(isLoggedIn) {
+function setLoggedIn(isLoggedIn, options = {}) {
   loggedIn = isLoggedIn;
-  authPanel.classList.toggle("hidden", isLoggedIn);
+  authPanel.classList.toggle("hidden", isLoggedIn && !options.keepAuthPanel);
   sessionBar.classList.toggle("hidden", !isLoggedIn);
   loadTaskButton.disabled = !isLoggedIn;
   if (!isLoggedIn) {
+    clearVoteUnlockTimer();
     currentToken = null;
     setVoteButtons(false);
     promptOutput.textContent = "Cap tasca carregada.";
@@ -65,8 +166,13 @@ function setLoggedIn(isLoggedIn) {
   }
 }
 
+function formatHttpResult(status, data) {
+  const body = data === null ? "(sense cos)" : JSON.stringify(data, null, 2);
+  return `HTTP ${status}\n${body}`;
+}
+
 // Wrapper de fetch que sempre inclou la cookie de sessió i parseja el cos.
-async function apiFetch(path, options = {}) {
+async function apiFetch(path, options = {}, resultOutput = null) {
   const response = await fetch(apiUrl(path), {
     credentials: "include",
     ...options,
@@ -79,9 +185,14 @@ async function apiFetch(path, options = {}) {
     data = null;
   }
 
+  if (resultOutput) {
+    setCallResult(resultOutput, formatHttpResult(response.status, data), !response.ok);
+  }
+
   if (!response.ok) {
     const detail = (data && data.detail) || `HTTP ${response.status}`;
-    const error = new Error(detail);
+    const message = typeof detail === "string" ? detail : JSON.stringify(detail);
+    const error = new Error(message);
     error.status = response.status;
     throw error;
   }
@@ -102,9 +213,10 @@ function handleAuthError(error) {
 }
 
 async function register() {
-  setStatus("Registrant...");
+  setStatus("");
+  setCallResult(registerResult, "");
   try {
-    const data = await apiFetch("/api/auth/register", {
+    await apiFetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -112,31 +224,17 @@ async function register() {
         password: registerPassword.value,
         consent: registerConsent.checked,
       }),
-    });
-    setStatus(
-      `Registre correcte (${data.status}). Revisa el log del backend per obtenir el token de verificació.`,
-    );
+    }, registerResult);
   } catch (error) {
-    setStatus(error.message, true);
-  }
-}
-
-async function verify() {
-  setStatus("Verificant correu...");
-  try {
-    const data = await apiFetch("/api/auth/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: verifyToken.value.trim() }),
-    });
-    setStatus(`Correu verificat (${data.status}). Ja pots iniciar sessió.`);
-  } catch (error) {
-    setStatus(error.message, true);
+    if (!error.status) {
+      setCallResult(registerResult, `Error de xarxa/CORS\n${error.message}`, true);
+    }
   }
 }
 
 async function login() {
-  setStatus("Iniciant sessió...");
+  setStatus("");
+  setCallResult(loginResult, "");
   try {
     await apiFetch("/api/auth/login", {
       method: "POST",
@@ -145,13 +243,14 @@ async function login() {
         email: loginEmail.value.trim(),
         password: loginPassword.value,
       }),
-    });
-    setLoggedIn(true);
+    }, loginResult);
+    setLoggedIn(true, { keepAuthPanel: true });
     sessionInfo.textContent = `Sessió activa (${loginEmail.value.trim()}).`;
-    setStatus("Sessió iniciada. Carrega una tasca per començar.");
   } catch (error) {
+    if (!error.status) {
+      setCallResult(loginResult, `Error de xarxa/CORS\n${error.message}`, true);
+    }
     setLoggedIn(false);
-    setStatus(error.message, true);
   }
 }
 
@@ -223,6 +322,7 @@ async function deleteAccount() {
 }
 
 async function loadTask() {
+  clearVoteUnlockTimer();
   currentToken = null;
   setVoteButtons(false);
   setStatus("Carregant...");
@@ -235,10 +335,9 @@ async function loadTask() {
     const data = await apiFetch(`/api/task?${params}`);
     currentToken = data.token;
     promptOutput.textContent = data.prompt;
-    responseAOutput.textContent = data.response_a;
-    responseBOutput.textContent = data.response_b;
-    setVoteButtons(true);
-    setStatus("Tasca carregada.");
+    renderResponse(responseAOutput, data.prompt, data.response_a);
+    renderResponse(responseBOutput, data.prompt, data.response_b);
+    enableVoteButtonsAfterDelay();
   } catch (error) {
     promptOutput.textContent = "Cap tasca carregada.";
     responseAOutput.textContent = "-";
@@ -270,7 +369,6 @@ async function vote(winner) {
 }
 
 registerButton.addEventListener("click", register);
-verifyButton.addEventListener("click", verify);
 loginButton.addEventListener("click", login);
 logoutButton.addEventListener("click", logout);
 exportButton.addEventListener("click", exportData);

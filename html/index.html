@@ -91,12 +91,16 @@
         opacity: 0.55;
       }
 
+      button:active:not(:disabled) {
+        filter: brightness(0.8);
+        transform: translateY(1px);
+      }
+
       .controls {
         display: grid;
         grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) auto;
         gap: 12px;
         align-items: end;
-        margin-bottom: 18px;
       }
 
       .panel {
@@ -145,6 +149,27 @@
         color: #526171;
       }
 
+      .call-result {
+        margin: 10px 0 0;
+        padding: 10px;
+        border: 1px solid #d8e0e8;
+        border-radius: 6px;
+        background: #f8fafc;
+        font:
+          12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          monospace;
+        white-space: pre-wrap;
+      }
+
+      .call-result:empty {
+        display: none;
+      }
+
+      .call-result.error {
+        border-color: #e0a3a3;
+        background: #fff7f7;
+      }
+
       .inline-actions {
         display: flex;
         flex-wrap: wrap;
@@ -189,6 +214,23 @@
         line-height: 1.5;
       }
 
+      .answer ins,
+      .answer del {
+        border-radius: 3px;
+        padding: 1px 3px;
+      }
+
+      .answer ins {
+        background: #dff5e8;
+        color: #126433;
+        text-decoration: none;
+      }
+
+      .answer del {
+        background: #ffe2e2;
+        color: #9b1c1c;
+      }
+
       .votes {
         display: flex;
         flex-wrap: wrap;
@@ -218,24 +260,6 @@
     <main>
       <h1>Arena Cat</h1>
 
-      <section class="controls" aria-label="Controls">
-        <label>
-          API
-          <input id="apiBase" value="http://127.0.0.1:8000" />
-        </label>
-
-        <label>
-          Categoria
-          <select id="category">
-            <option value="correccio">Correccio</option>
-            <option value="reformulacio">Reformulacio</option>
-            <option value="traduccio">Traduccio</option>
-          </select>
-        </label>
-
-        <button id="loadTask" type="button" disabled>Carrega tasca</button>
-      </section>
-
       <!-- Panell d'autenticació: registre, verificació i inici de sessió -->
       <section id="authPanel" class="panel" aria-label="Autenticació">
         <h2 class="section">Autenticació</h2>
@@ -258,6 +282,7 @@
               </span>
             </div>
             <button id="registerButton" type="button">Registra'm</button>
+            <pre id="registerResult" class="call-result" aria-live="polite"></pre>
           </div>
 
           <div>
@@ -273,24 +298,8 @@
               </label>
             </div>
             <button id="loginButton" type="button">Inicia sessió</button>
+            <pre id="loginResult" class="call-result" aria-live="polite"></pre>
           </div>
-        </div>
-
-        <hr class="divider" />
-
-        <div>
-          <h3>Verificació de correu</h3>
-          <p class="hint">
-            En desenvolupament (v1) el token de verificació s'escriu al log del backend.
-            Enganxa'l aquí per verificar el compte.
-          </p>
-          <div class="field-row">
-            <label>
-              Token de verificació
-              <input id="verifyToken" type="text" />
-            </label>
-          </div>
-          <button id="verifyButton" type="button">Verifica el correu</button>
         </div>
       </section>
 
@@ -322,6 +331,26 @@
       </section>
 
       <section class="panel task" aria-live="polite">
+        <section class="controls" aria-label="Controls">
+          <label>
+            API
+            <input id="apiBase" value="http://127.0.0.1:8000" />
+          </label>
+
+          <label>
+            Categoria
+            <select id="category">
+              <option value="correccio">Correccio</option>
+              <option value="reformulacio">Reformulacio</option>
+              <option value="traduccio">Traduccio</option>
+            </select>
+          </label>
+
+          <button id="loadTask" type="button" disabled>Carrega tasca</button>
+        </section>
+
+        <p id="status" class="status"></p>
+
         <div>
           <strong>Prompt</strong>
           <p id="prompt" class="prompt">Cap tasca carregada.</p>
@@ -346,8 +375,6 @@
           <button data-winner="neither" class="secondary" type="button" disabled>Cap de les dues respostes és adequada</button>
         </div>
       </section>
-
-      <p id="status" class="status"></p>
     </main>
 
     <script src="app.js"></script>
