@@ -102,6 +102,78 @@ function setCallResult(output, message, isError = false) {
   output.classList.toggle("error", isError);
 }
 
+function words(text) {
+  return text.match(/\S+/g) || [];
+}
+
+function correctionOriginalText(prompt) {
+  const newline = prompt.indexOf("\n");
+  if (newline >= 0) {
+    return prompt.slice(newline + 1).trim();
+  }
+  const colon = prompt.indexOf(":");
+  return colon >= 0 ? prompt.slice(colon + 1).trim() : prompt.trim();
+}
+
+function diffWords(original, revised) {
+  const source = words(original);
+  const target = words(revised);
+  const dp = Array.from({ length: source.length + 1 }, () => Array(target.length + 1).fill(0));
+
+  for (let i = source.length - 1; i >= 0; i -= 1) {
+    for (let j = target.length - 1; j >= 0; j -= 1) {
+      dp[i][j] =
+        source[i] === target[j]
+          ? dp[i + 1][j + 1] + 1
+          : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+
+  const changes = [];
+  let i = 0;
+  let j = 0;
+  while (i < source.length || j < target.length) {
+    if (i < source.length && j < target.length && source[i] === target[j]) {
+      changes.push({ type: "same", text: target[j] });
+      i += 1;
+      j += 1;
+    } else if (j < target.length && (i === source.length || dp[i][j + 1] > dp[i + 1][j])) {
+      changes.push({ type: "added", text: target[j] });
+      j += 1;
+    } else {
+      changes.push({ type: "removed", text: source[i] });
+      i += 1;
+    }
+  }
+  return changes;
+}
+
+function appendWord(output, text, className = "") {
+  if (output.childNodes.length > 0) {
+    output.append(" ");
+  }
+  const node = className ? document.createElement("span") : document.createTextNode(text);
+  if (className) {
+    node.className = className;
+    node.textContent = text;
+  }
+  output.append(node);
+}
+
+function renderResponse(output, prompt, response) {
+  output.replaceChildren();
+  if (categoryInput.value !== "correccio") {
+    output.textContent = response;
+    return;
+  }
+
+  diffWords(correctionOriginalText(prompt), response).forEach((change) => {
+    const className =
+      change.type === "added" ? "diff-added" : change.type === "removed" ? "diff-removed" : "";
+    appendWord(output, change.text, className);
+  });
+}
+
 function setVoteButtons(enabled) {
   voteButtons.forEach((button) => {
     button.disabled = !enabled;
@@ -318,8 +390,8 @@ async function loadTask() {
     const data = await apiFetch(`/api/task?${params}`);
     currentToken = data.token;
     promptOutput.textContent = data.prompt;
-    responseAOutput.textContent = data.response_a;
-    responseBOutput.textContent = data.response_b;
+    renderResponse(responseAOutput, data.prompt, data.response_a);
+    renderResponse(responseBOutput, data.prompt, data.response_b);
     setVoteButtons(true);
     setStatus("Tasca carregada.");
   } catch (error) {
