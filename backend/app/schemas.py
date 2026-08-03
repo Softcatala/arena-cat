@@ -21,6 +21,13 @@ class SkipTaskResponse(BaseModel):
     status: str = "ok"
 
 
+class TaskProgressResponse(BaseModel):
+    total: int
+    voted: int
+    skipped: int
+    remaining: int
+
+
 class VoteRequest(BaseModel):
     winner: Winner
     token: str

@@ -1,4 +1,4 @@
-from app.models import Category, Prompt, Response
+from app.models import Category, Prompt, Response, TaskSkip, Vote, Winner
 
 
 def test_get_task_empty_db(client, logged_in_user):
@@ -88,6 +88,53 @@ def test_skip_task_prevents_showing_it_again(client, session, logged_in_user):
 
     next_task = client.get("/api/task", params={"category_code": "skip_cat"})
     assert next_task.status_code == 404
+
+
+def test_task_progress_counts_voted_skipped_and_remaining(client, session, logged_in_user):
+    """El progrés compta totes les parelles globals i l'estat de l'usuari."""
+    c = Category(code="progress_cat", name="Categoria progrés")
+    session.add(c)
+    session.commit()
+
+    p = Prompt(version="v1", code="progress_p", category_id=c.id, text="El gat es blau")
+    session.add(p)
+    session.commit()
+
+    r1 = Response(prompt_id=p.id, model="model_1", text="Resposta 1")
+    r2 = Response(prompt_id=p.id, model="model_2", text="Resposta 2")
+    r3 = Response(prompt_id=p.id, model="model_3", text="Resposta 3")
+    session.add_all([r1, r2, r3])
+    session.commit()
+
+    user = logged_in_user("task_progress@example.com")
+    session.add(
+        Vote(
+            prompt_id=p.id,
+            user_id=user.id,
+            response_a_id=r1.id,
+            response_b_id=r2.id,
+            winner=Winner.a,
+        )
+    )
+    session.add(
+        TaskSkip(
+            prompt_id=p.id,
+            user_id=user.id,
+            response_a_id=r1.id,
+            response_b_id=r3.id,
+        )
+    )
+    session.commit()
+
+    response = client.get("/api/task/progress")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "total": 3,
+        "voted": 1,
+        "skipped": 1,
+        "remaining": 1,
+    }
 
 
 def test_get_task_requires_auth(client):

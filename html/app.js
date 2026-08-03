@@ -5,6 +5,7 @@ const promptOutput = document.querySelector("#prompt");
 const responseAOutput = document.querySelector("#responseA");
 const responseBOutput = document.querySelector("#responseB");
 const statusOutput = document.querySelector("#status");
+const taskProgressOutput = document.querySelector("#taskProgress");
 const voteButtons = [...document.querySelectorAll("[data-winner]")];
 const skipTaskButton = document.querySelector("#skipTask");
 
@@ -165,6 +166,7 @@ function setLoggedIn(isLoggedIn, options = {}) {
     currentToken = null;
     setVoteButtons(false);
     setSkipButton(false);
+    taskProgressOutput.textContent = "";
     promptOutput.textContent = "Cap tasca carregada.";
     responseAOutput.textContent = "-";
     responseBOutput.textContent = "-";
@@ -252,6 +254,7 @@ async function login() {
     }, loginResult);
     setLoggedIn(true, { keepAuthPanel: true });
     sessionInfo.textContent = `Sessió activa (${loginEmail.value.trim()}).`;
+    await loadTaskProgress();
   } catch (error) {
     if (!error.status) {
       setCallResult(loginResult, `Error de xarxa/CORS\n${error.message}`, true);
@@ -327,6 +330,24 @@ async function deleteAccount() {
   }
 }
 
+async function loadTaskProgress() {
+  if (!loggedIn) {
+    return;
+  }
+
+  try {
+    const data = await apiFetch("/api/task/progress");
+    taskProgressOutput.textContent =
+      `Votades: ${data.voted} · Omeses: ${data.skipped} · Pendents: ${data.remaining}`;
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      handleAuthError(error);
+    } else {
+      taskProgressOutput.textContent = "";
+    }
+  }
+}
+
 async function loadTask() {
   clearVoteUnlockTimer();
   currentToken = null;
@@ -372,6 +393,7 @@ async function skipTask() {
       body: JSON.stringify({ token: currentToken }),
     });
     await loadTask();
+    await loadTaskProgress();
   } catch (error) {
     setSkipButton(true);
     handleAuthError(error);
@@ -395,6 +417,7 @@ async function vote(winner) {
     });
     setStatus(`Vot desat: ${data.status}.`);
     await loadTask();
+    await loadTaskProgress();
   } catch (error) {
     setVoteButtons(true);
     setSkipButton(true);

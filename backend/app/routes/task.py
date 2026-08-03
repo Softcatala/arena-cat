@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.deps import CurrentVerifiedUser, DbSession
-from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskResponse
+from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskProgressResponse, TaskResponse
 from app.services import task_service
 
 router = APIRouter()
@@ -23,6 +23,15 @@ def get_task(
         TaskResponse: objecte amb el prompt, les dues respostes i el token
     """
     return task_service.get_next_task_for_user(category_code, current_user, db)
+
+
+@router.get("/task/progress")
+def get_task_progress(
+    current_user: CurrentVerifiedUser,
+    db: DbSession,
+) -> TaskProgressResponse:
+    """Retorna el progrés global de tasques de l'usuari autenticat."""
+    return task_service.get_task_progress_for_user(current_user, db)
 
 
 @router.post("/task/skip")

@@ -1,11 +1,14 @@
+from collections import defaultdict
+from itertools import combinations
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models import Category, TaskSkip, User
+from app.models import Category, Response, TaskSkip, User, Vote
 from app.ranking.sampler import select_next_task
-from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskResponse
+from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskProgressResponse, TaskResponse
 from app.security import create_task_token, verify_task_token
 
 
@@ -81,3 +84,45 @@ def skip_task_for_user(skip_req: SkipTaskRequest, user: User, db: Session) -> Sk
             ) from err
 
     return SkipTaskResponse(status="ok")
+
+
+def _cells(rows) -> set[tuple[int, int, int]]:
+    return {
+        (prompt_id, min(response_a_id, response_b_id), max(response_a_id, response_b_id))
+        for prompt_id, response_a_id, response_b_id in rows
+    }
+
+
+def get_task_progress_for_user(user: User, db: Session) -> TaskProgressResponse:
+    """Retorna el progrés global de tasques d'un usuari."""
+    responses_by_prompt = defaultdict(list)
+    for prompt_id, response_id in db.execute(select(Response.prompt_id, Response.id)).all():
+        responses_by_prompt[prompt_id].append(response_id)
+
+    total_cells = {
+        (prompt_id, response_a_id, response_b_id)
+        for prompt_id, response_ids in responses_by_prompt.items()
+        for response_a_id, response_b_id in combinations(sorted(response_ids), 2)
+    }
+    voted_cells = _cells(
+        db.execute(
+            select(Vote.prompt_id, Vote.response_a_id, Vote.response_b_id).where(
+                Vote.user_id == user.id
+            )
+        ).all()
+    )
+    skipped_cells = _cells(
+        db.execute(
+            select(TaskSkip.prompt_id, TaskSkip.response_a_id, TaskSkip.response_b_id).where(
+                TaskSkip.user_id == user.id
+            )
+        ).all()
+    )
+    done_cells = voted_cells | skipped_cells
+
+    return TaskProgressResponse(
+        total=len(total_cells),
+        voted=len(voted_cells),
+        skipped=len(skipped_cells),
+        remaining=len(total_cells - done_cells),
+    )

@@ -106,6 +106,7 @@ Resposta esperada (`200`):
 
 ```json
 {
+  "category_code": "correccio",
   "prompt": "…",
   "response_a": "…",
   "response_b": "…",
@@ -122,7 +123,21 @@ TASK_TOKEN='<enganxa-aquí-el-token-de-la-tasca>'
 
 ---
 
-## 7. Emetre un vot
+## 7. Consultar el progrés
+
+```bash
+curl -s -b "$COOKIES" "$BASE_URL/api/task/progress"
+```
+
+Resposta esperada (`200`):
+
+```json
+{"total": 90, "voted": 0, "skipped": 0, "remaining": 90}
+```
+
+---
+
+## 8. Emetre un vot
 
 ```bash
 curl -s -b "$COOKIES" -X POST "$BASE_URL/api/vote" \
@@ -138,7 +153,27 @@ Resposta esperada (`200`):
 
 ---
 
-## 8. Exportar les dades (RGPD)
+## 9. Ometre una tasca
+
+Si no vols votar la tasca carregada:
+
+```bash
+curl -s -b "$COOKIES" -X POST "$BASE_URL/api/task/skip" \
+  -H "Content-Type: application/json" \
+  -d "{\"token\":\"$TASK_TOKEN\"}"
+```
+
+Resposta esperada (`200`):
+
+```json
+{"status": "ok"}
+```
+
+La mateixa parella de respostes no es tornarà a oferir al mateix usuari.
+
+---
+
+## 10. Exportar les dades (RGPD)
 
 ```bash
 curl -s -b "$COOKIES" "$BASE_URL/api/auth/export"
@@ -148,7 +183,7 @@ Resposta esperada (`200`): objecte amb `user` i la llista de `votes`.
 
 ---
 
-## 9a. Logout (deixa el compte viu)
+## 11a. Logout (deixa el compte viu)
 
 ```bash
 curl -s -b "$COOKIES" -X POST "$BASE_URL/api/auth/logout"
@@ -160,7 +195,7 @@ Resposta esperada (`200`):
 {"status": "logged_out"}
 ```
 
-## 9b. Baixa del compte (anonimització RGPD)
+## 11b. Baixa del compte (anonimització RGPD)
 
 Alternativa al logout: dona de baixa el compte reautenticant amb la contrasenya.
 
@@ -178,7 +213,7 @@ Resposta esperada (`200`):
 
 ---
 
-## 10. (Control) La sessió ja no és vàlida → 401
+## 12. (Control) La sessió ja no és vàlida → 401
 
 Després del logout o la baixa, qualsevol crida autenticada ha de fallar:
 
