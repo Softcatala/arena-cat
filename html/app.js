@@ -327,12 +327,13 @@ async function loadTask() {
   setVoteButtons(false);
   setStatus("Carregant...");
 
-  const params = new URLSearchParams({
-    category_code: categoryInput.value,
-  });
+  const params = new URLSearchParams();
+  if (categoryInput.value) {
+    params.set("category_code", categoryInput.value);
+  }
 
   try {
-    const data = await apiFetch(`/api/task?${params}`);
+    const data = await apiFetch(`/api/task${params.size ? `?${params}` : ""}`);
     currentToken = data.token;
     promptOutput.textContent = data.prompt;
     renderResponse(responseAOutput, data.prompt, data.response_a);

@@ -35,6 +35,31 @@ def test_get_task_with_data(client, session, logged_in_user):
     assert "token" in data
 
 
+def test_get_task_without_category_picks_available_task(client, session, logged_in_user):
+    """Si no s'indica categoria, retorna una tasca disponible de qualsevol categoria."""
+    c = Category(code="available_cat", name="Categoria disponible")
+    session.add(c)
+    session.commit()
+
+    p = Prompt(version="v1", code="available_p", category_id=c.id, text="El gat es blau")
+    session.add(p)
+    session.commit()
+
+    r1 = Response(prompt_id=p.id, model="model_1", text="El gat és blau")
+    r2 = Response(prompt_id=p.id, model="model_2", text="El gat es color blau")
+    session.add_all([r1, r2])
+    session.commit()
+
+    logged_in_user("task_any_category@example.com")
+
+    response = client.get("/api/task")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["prompt"] == "El gat es blau"
+    assert "token" in data
+
+
 def test_get_task_requires_auth(client):
     response = client.get("/api/task", params={"category_code": "correccio"})
     assert response.status_code == 401
