@@ -219,9 +219,7 @@ class TaskSkip(Base):
             ["responses.prompt_id", "responses.id"],
             name="fk_task_skips_response_b",
         ),
-        CheckConstraint(
-            "response_a_id <> response_b_id", name="ck_task_skips_responses_different"
-        ),
+        CheckConstraint("response_a_id <> response_b_id", name="ck_task_skips_responses_different"),
         Index("ix_task_skips_user_id", "user_id"),
         Index(
             "uq_task_skips_user_prompt_pair",
