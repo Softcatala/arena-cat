@@ -45,6 +45,7 @@ def get_next_task_for_user(category_code: str | None, user: User, db: Session) -
 
     # Retornem la tasca i el token
     return TaskResponse(
+        category_code=task["category_code"],
         prompt=task["prompt_text"],
         response_a=task["response_a_text"],
         response_b=task["response_b_text"],

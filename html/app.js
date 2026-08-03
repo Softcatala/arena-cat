@@ -6,6 +6,7 @@ const responseAOutput = document.querySelector("#responseA");
 const responseBOutput = document.querySelector("#responseB");
 const statusOutput = document.querySelector("#status");
 const voteButtons = [...document.querySelectorAll("[data-winner]")];
+const skipTaskButton = document.querySelector("#skipTask");
 
 const authPanel = document.querySelector("#authPanel");
 const sessionBar = document.querySelector("#sessionBar");
@@ -110,9 +111,9 @@ function appendWord(output, text, tag = "") {
   output.append(node);
 }
 
-function renderResponse(output, prompt, response) {
+function renderResponse(output, categoryCode, prompt, response) {
   output.replaceChildren();
-  if (categoryInput.value !== "correccio") {
+  if (categoryCode !== "correccio") {
     output.textContent = response;
     return;
   }
@@ -127,6 +128,10 @@ function setVoteButtons(enabled) {
   voteButtons.forEach((button) => {
     button.disabled = !enabled;
   });
+}
+
+function setSkipButton(enabled) {
+  skipTaskButton.disabled = !enabled;
 }
 
 function clearVoteUnlockTimer() {
@@ -159,6 +164,7 @@ function setLoggedIn(isLoggedIn, options = {}) {
     clearVoteUnlockTimer();
     currentToken = null;
     setVoteButtons(false);
+    setSkipButton(false);
     promptOutput.textContent = "Cap tasca carregada.";
     responseAOutput.textContent = "-";
     responseBOutput.textContent = "-";
@@ -325,6 +331,7 @@ async function loadTask() {
   clearVoteUnlockTimer();
   currentToken = null;
   setVoteButtons(false);
+  setSkipButton(false);
   setStatus("Carregant...");
 
   const params = new URLSearchParams();
@@ -336,15 +343,25 @@ async function loadTask() {
     const data = await apiFetch(`/api/task${params.size ? `?${params}` : ""}`);
     currentToken = data.token;
     promptOutput.textContent = data.prompt;
-    renderResponse(responseAOutput, data.prompt, data.response_a);
-    renderResponse(responseBOutput, data.prompt, data.response_b);
+    renderResponse(responseAOutput, data.category_code, data.prompt, data.response_a);
+    renderResponse(responseBOutput, data.category_code, data.prompt, data.response_b);
+    setSkipButton(true);
     enableVoteButtonsAfterDelay();
   } catch (error) {
     promptOutput.textContent = "Cap tasca carregada.";
     responseAOutput.textContent = "-";
     responseBOutput.textContent = "-";
+    setSkipButton(false);
     handleAuthError(error);
   }
+}
+
+async function skipTask() {
+  if (!currentToken) {
+    return;
+  }
+
+  await loadTask();
 }
 
 async function vote(winner) {
@@ -353,6 +370,7 @@ async function vote(winner) {
   }
 
   setVoteButtons(false);
+  setSkipButton(false);
   setStatus("Enviant vot...");
 
   try {
@@ -365,6 +383,7 @@ async function vote(winner) {
     await loadTask();
   } catch (error) {
     setVoteButtons(true);
+    setSkipButton(true);
     handleAuthError(error);
   }
 }
@@ -377,6 +396,7 @@ deleteButton.addEventListener("click", showDeleteConfirm);
 deleteCancelButton.addEventListener("click", hideDeleteConfirm);
 deleteConfirmButton.addEventListener("click", deleteAccount);
 loadTaskButton.addEventListener("click", loadTask);
+skipTaskButton.addEventListener("click", skipTask);
 voteButtons.forEach((button) => {
   button.addEventListener("click", () => vote(button.dataset.winner));
 });

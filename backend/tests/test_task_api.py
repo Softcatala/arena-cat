@@ -31,6 +31,7 @@ def test_get_task_with_data(client, session, logged_in_user):
     response = client.get("/api/task", params={"category_code": "test_cat"})
     assert response.status_code == 200
     data = response.json()
+    assert data["category_code"] == "test_cat"
     assert data["prompt"] == "El gat es blau"
     assert "token" in data
 
@@ -56,6 +57,7 @@ def test_get_task_without_category_picks_available_task(client, session, logged_
 
     assert response.status_code == 200
     data = response.json()
+    assert data["category_code"] == "available_cat"
     assert data["prompt"] == "El gat es blau"
     assert "token" in data
 

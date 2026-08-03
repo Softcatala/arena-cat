@@ -6,6 +6,7 @@ from app.models import Winner
 
 
 class TaskResponse(BaseModel):
+    category_code: str
     prompt: str
     response_a: str
     response_b: str
