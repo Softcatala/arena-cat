@@ -1,11 +1,12 @@
 from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models import Category, User
+from app.models import Category, TaskSkip, User
 from app.ranking.sampler import select_next_task
-from app.schemas import TaskResponse
-from app.security import create_task_token
+from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskResponse
+from app.security import create_task_token, verify_task_token
 
 
 def get_next_task_for_user(category_code: str | None, user: User, db: Session) -> TaskResponse:
@@ -51,3 +52,32 @@ def get_next_task_for_user(category_code: str | None, user: User, db: Session) -
         response_b=task["response_b_text"],
         token=token,
     )
+
+
+def skip_task_for_user(skip_req: SkipTaskRequest, user: User, db: Session) -> SkipTaskResponse:
+    """Desa que un usuari ha omès una tasca."""
+    payload = verify_task_token(skip_req.token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="El token és invàlid o ha caducat")
+
+    if int(payload.get("user_id", -1)) != user.id:
+        raise HTTPException(status_code=403, detail="El token no correspon a l'usuari autenticat")
+
+    skip = TaskSkip(
+        prompt_id=payload["prompt_id"],
+        user_id=user.id,
+        response_a_id=payload["response_a_id"],
+        response_b_id=payload["response_b_id"],
+    )
+
+    db.add(skip)
+    try:
+        db.commit()
+    except IntegrityError as err:
+        db.rollback()
+        if "uq_task_skips_user_prompt_pair" not in str(err.orig):
+            raise HTTPException(
+                status_code=400, detail="L'omissió no s'ha pogut processar"
+            ) from err
+
+    return SkipTaskResponse(status="ok")

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.deps import CurrentVerifiedUser, DbSession
-from app.schemas import TaskResponse
+from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskResponse
 from app.services import task_service
 
 router = APIRouter()
@@ -23,3 +23,13 @@ def get_task(
         TaskResponse: objecte amb el prompt, les dues respostes i el token
     """
     return task_service.get_next_task_for_user(category_code, current_user, db)
+
+
+@router.post("/task/skip")
+def skip_task(
+    skip_req: SkipTaskRequest,
+    current_user: CurrentVerifiedUser,
+    db: DbSession,
+) -> SkipTaskResponse:
+    """Desa que l'usuari autenticat ha omès una tasca."""
+    return task_service.skip_task_for_user(skip_req, current_user, db)

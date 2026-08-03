@@ -13,6 +13,14 @@ class TaskResponse(BaseModel):
     token: str
 
 
+class SkipTaskRequest(BaseModel):
+    token: str
+
+
+class SkipTaskResponse(BaseModel):
+    status: str = "ok"
+
+
 class VoteRequest(BaseModel):
     winner: Winner
     token: str

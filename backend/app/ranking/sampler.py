@@ -28,7 +28,7 @@ import numpy as np
 from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
 
-from app.models import Category, Prompt, Response, Vote
+from app.models import Category, Prompt, Response, TaskSkip, Vote
 
 
 def _load_prompts_and_responses(
@@ -95,6 +95,27 @@ def _cells_voted_by_user(
     for prompt_id, model_a, model_b in session.execute(stmt).all():
         voted.add((prompt_id, *sorted((model_a, model_b))))
     return voted
+
+
+def _cells_skipped_by_user(
+    session: Session, prompt_ids: list[int], user_id: int
+) -> set[tuple[int, str, str]]:
+    """Retorna les cel·les (prompt_id, model_a, model_b) omeses per `user_id`."""
+    if not prompt_ids:
+        return set()
+    response_a = aliased(Response)
+    response_b = aliased(Response)
+    stmt = (
+        select(TaskSkip.prompt_id, response_a.model, response_b.model)
+        .join(response_a, TaskSkip.response_a_id == response_a.id)
+        .join(response_b, TaskSkip.response_b_id == response_b.id)
+        .where(TaskSkip.prompt_id.in_(prompt_ids))
+        .where(TaskSkip.user_id == user_id)
+    )
+    skipped: set[tuple[int, str, str]] = set()
+    for prompt_id, model_a, model_b in session.execute(stmt).all():
+        skipped.add((prompt_id, *sorted((model_a, model_b))))
+    return skipped
 
 
 def select_next_task(
@@ -190,7 +211,9 @@ def select_next_task(
     # que aquest avaluador ja ha completat la categoria.
     if user_id is not None:
         already_voted = _cells_voted_by_user(session, prompt_ids, user_id)
-        cells = [c for c in cells if c not in already_voted]
+        already_skipped = _cells_skipped_by_user(session, prompt_ids, user_id)
+        unavailable = already_voted | already_skipped
+        cells = [c for c in cells if c not in unavailable]
         if not cells:
             return None
 

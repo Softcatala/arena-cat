@@ -64,13 +64,26 @@ erDiagram
         timestamptz created_at
     }
 
+    task_skips {
+        bigint id PK
+        integer prompt_id FK
+        bigint user_id FK
+        integer response_a_id FK
+        integer response_b_id FK
+        timestamptz created_at
+    }
+
     categories ||--o{ prompts : "category_id"
     prompts ||--o{ responses : "prompt_id"
     prompts ||--o{ votes : "prompt_id"
+    prompts ||--o{ task_skips : "prompt_id"
     users ||--o{ sessions : "user_id"
     users ||--o{ votes : "user_id"
+    users ||--o{ task_skips : "user_id"
     responses ||--o{ votes : "response_a_id"
     responses ||--o{ votes : "response_b_id"
+    responses ||--o{ task_skips : "response_a_id"
+    responses ||--o{ task_skips : "response_b_id"
 ```
 
 ## Constraints and indexes
@@ -98,6 +111,13 @@ erDiagram
 | votes | INDEX | `ix_votes_created_at` | `created_at` |
 | votes | INDEX | `ix_votes_user_id` | `user_id` |
 | votes | UNIQUE INDEX | `uq_votes_user_prompt_pair` | `(user_id, prompt_id, least(response_a_id, response_b_id), greatest(response_a_id, response_b_id))` |
+| task_skips | CHECK | `ck_task_skips_responses_different` | `response_a_id <> response_b_id` |
+| task_skips | FK | — | `prompt_id → prompts.id` |
+| task_skips | FK | — | `user_id → users.id` |
+| task_skips | FK | `fk_task_skips_response_a` | `(prompt_id, response_a_id) → responses(prompt_id, id)` |
+| task_skips | FK | `fk_task_skips_response_b` | `(prompt_id, response_b_id) → responses(prompt_id, id)` |
+| task_skips | INDEX | `ix_task_skips_user_id` | `user_id` |
+| task_skips | UNIQUE INDEX | `uq_task_skips_user_prompt_pair` | `(user_id, prompt_id, least(response_a_id, response_b_id), greatest(response_a_id, response_b_id))` |
 
 ## Enums
 

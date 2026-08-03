@@ -361,7 +361,21 @@ async function skipTask() {
     return;
   }
 
-  await loadTask();
+  setVoteButtons(false);
+  setSkipButton(false);
+  setStatus("Ometent tasca...");
+
+  try {
+    await apiFetch("/api/task/skip", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: currentToken }),
+    });
+    await loadTask();
+  } catch (error) {
+    setSkipButton(true);
+    handleAuthError(error);
+  }
 }
 
 async function vote(winner) {
