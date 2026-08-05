@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import select
 
-from app.models import Category, Prompt, Response, User, Vote, Winner
+from app.models import Category, Prompt, Response, TaskSkip, User, Vote, Winner
 from app.ranking.sampler import select_next_task
 from app.security import compute_email_hash, hash_password
 
@@ -142,6 +142,38 @@ def test_select_next_task_excludes_cells_voted_by_session(session):
         rb = session.get(Response, task["response_b_id"])
         cell = (task["prompt_id"], *sorted((ra.model, rb.model)))
         assert cell not in voted_cells, f"Sampler ha tornat a oferir {cell} a l'usuari {user.id}"
+
+
+def test_select_next_task_excludes_cells_skipped_by_session(session):
+    """Si un usuari omet una cel·la, no se li ha de tornar a oferir."""
+    _seed_prompts(session, "correccio", n_prompts=1)
+    user = _create_user(session, "sampler-skip@example.com")
+
+    skipped_task = select_next_task(session, "correccio", user_id=user.id, seed=0)
+    assert skipped_task is not None
+    skipped_response_a = session.get(Response, skipped_task["response_a_id"])
+    skipped_response_b = session.get(Response, skipped_task["response_b_id"])
+    skipped_cell = (
+        skipped_task["prompt_id"],
+        *sorted((skipped_response_a.model, skipped_response_b.model)),
+    )
+    session.add(
+        TaskSkip(
+            prompt_id=skipped_task["prompt_id"],
+            user_id=user.id,
+            response_a_id=skipped_task["response_a_id"],
+            response_b_id=skipped_task["response_b_id"],
+        )
+    )
+    session.flush()
+
+    for i in range(5):
+        task = select_next_task(session, "correccio", user_id=user.id, seed=100 + i)
+        assert task is not None
+        response_a = session.get(Response, task["response_a_id"])
+        response_b = session.get(Response, task["response_b_id"])
+        cell = (task["prompt_id"], *sorted((response_a.model, response_b.model)))
+        assert cell != skipped_cell
 
 
 def test_select_next_task_returns_none_when_session_completes_category(session):

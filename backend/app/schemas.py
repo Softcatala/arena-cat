@@ -6,10 +6,26 @@ from app.models import Winner
 
 
 class TaskResponse(BaseModel):
+    category_code: str
     prompt: str
     response_a: str
     response_b: str
     token: str
+
+
+class SkipTaskRequest(BaseModel):
+    token: str
+
+
+class SkipTaskResponse(BaseModel):
+    status: str = "ok"
+
+
+class TaskProgressResponse(BaseModel):
+    total: int
+    voted: int
+    skipped: int
+    remaining: int
 
 
 class VoteRequest(BaseModel):

@@ -202,3 +202,40 @@ class Vote(Base):
 
     prompt: Mapped["Prompt"] = relationship()
     user: Mapped["User | None"] = relationship(back_populates="votes")
+
+
+class TaskSkip(Base):
+    """Omissió d'una tasca per part d'un usuari."""
+
+    __tablename__ = "task_skips"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["prompt_id", "response_a_id"],
+            ["responses.prompt_id", "responses.id"],
+            name="fk_task_skips_response_a",
+        ),
+        ForeignKeyConstraint(
+            ["prompt_id", "response_b_id"],
+            ["responses.prompt_id", "responses.id"],
+            name="fk_task_skips_response_b",
+        ),
+        CheckConstraint("response_a_id <> response_b_id", name="ck_task_skips_responses_different"),
+        Index("ix_task_skips_user_id", "user_id"),
+        Index(
+            "uq_task_skips_user_prompt_pair",
+            "user_id",
+            "prompt_id",
+            func.least(text("response_a_id"), text("response_b_id")),
+            func.greatest(text("response_a_id"), text("response_b_id")),
+            unique=True,
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    prompt_id: Mapped[int] = mapped_column(ForeignKey("prompts.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    response_a_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    response_b_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

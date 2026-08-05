@@ -19,6 +19,7 @@ TABLES = {
     "votes",
     "users",
     "sessions",
+    "task_skips",
 }
 ENUMS = {"winner"}
 

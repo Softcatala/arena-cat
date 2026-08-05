@@ -60,10 +60,16 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
         - No es fa *logging* de contrasenyes ni de tokens; els emails només apareixen en *logs* d'errors quan és estrictament necessari (i mai a nivell INFO).
         - Camps sensibles xifrats en repòs a nivell de disc (backup i base de dades); còpies de seguretat amb la mateixa retenció que la BD i esborrat coordinat amb la baixa.
 - **`GET /api/task`**:
-    - Tria un *prompt* aleatori i dues respostes de models diferents per aquell *prompt*.
+    - Tria un *prompt* aleatori i dues respostes de models diferents per aquell *prompt*. Si es passa `category_code`, limita la tria a aquella categoria; si no, busca la propera tasca disponible entre totes les categories.
     - Aleatoritza l'ordre A/B per evitar biaix de posició.
     - Signa un `token_vot` HMAC que codifica els identificadors i un *timestamp*.
-    - Retorna el *prompt*, les dues respostes i el *token*.
+    - Retorna `category_code`, el *prompt*, les dues respostes i el *token*.
+- **`POST /api/task/skip`**:
+    - Requereix sessió autenticada i el `token_vot` de la tasca.
+    - Desa una fila a `task_skips` perquè aquella parella no es torni a oferir al mateix usuari.
+- **`GET /api/task/progress`**:
+    - Requereix sessió autenticada.
+    - Retorna el progrés global de l'usuari (`total`, `voted`, `skipped`, `remaining`) sobre totes les categories.
 - **`POST /api/vote`**:
     - Requereix sessió autenticada (usuari donat d'alta i amb email verificat).
     - Verifica el `token_vot` (signatura i caducitat).
@@ -102,4 +108,3 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
 - Indicador d'objectiu i progrés a la pàgina d'avaluació.
 - **Enviament real de correu per a la verificació d'email** (SMTP, DKIM/SPF, plantilles, gestió de rebots), substituint l'stub de v1.
 - Recuperació de contrasenya i canvi d'email amb re-verificació.
-

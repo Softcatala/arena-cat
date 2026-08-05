@@ -344,6 +344,7 @@
           <label>
             Categoria
             <select id="category">
+              <option value="" selected>Qualsevol categoria</option>
               <option value="correccio">Correccio</option>
               <option value="reformulacio">Reformulacio</option>
               <option value="traduccio">Traduccio</option>
@@ -354,6 +355,7 @@
         </section>
 
         <p id="status" class="status"></p>
+        <p id="taskProgress" class="status"></p>
 
         <div>
           <strong>Prompt</strong>
@@ -377,6 +379,7 @@
           <button data-winner="b" type="button" disabled>Prefereixo la resposta B</button>
           <button data-winner="tie" class="secondary" type="button" disabled>Les dues respostes són igual de bones</button>
           <button data-winner="neither" class="secondary" type="button" disabled>Cap de les dues respostes és adequada</button>
+          <button id="skipTask" class="secondary" type="button" disabled>Omet la tasca</button>
         </div>
       </section>
     </main>
