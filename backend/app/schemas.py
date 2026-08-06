@@ -64,6 +64,14 @@ class LoginResponse(BaseModel):
     status: str = "logged_in"
 
 
+class SessionResponse(BaseModel):
+    """Estat de la sessió. `authenticated` fals no és cap error: vol dir que no n'hi ha."""
+
+    authenticated: bool
+    email: str | None = None
+    email_verified: bool = False
+
+
 class LogoutRequest(BaseModel):
     token: str
 
