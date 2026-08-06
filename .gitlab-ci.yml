@@ -1,0 +1,31 @@
+include:
+  - project: 'docker/process-webhooks'
+    file: '/gitlab/deploy.yml'
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  PROJECT_TO_BE_DEPLOYED: 'docker/arena-cat'
+
+stages:
+  - build
+  # - deploy
+
+build:
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker info
+  stage: build
+  script:
+    - export REPO_NAME=$CI_REGISTRY_IMAGE/arena-cat
+    - export IMAGE_NAME=$REPO_NAME:$CI_COMMIT_REF_SLUG
+    - export DOCKER_PATH=backend/Dockerfile
+    - docker build -f $DOCKER_PATH --tag $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+
+# deploy:
+#   stage: deploy
+#   extends:
+#     .default-deploy
