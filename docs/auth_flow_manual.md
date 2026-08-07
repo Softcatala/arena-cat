@@ -96,7 +96,31 @@ La cookie `session_token` queda desada a `cookies.txt`.
 
 ---
 
-## 6. Obtenir una tasca
+## 6. Consultar l'estat de la sessió
+
+```bash
+curl -s -b "$COOKIES" "$BASE_URL/api/auth/session"
+```
+
+Resposta esperada (`200`):
+
+```json
+{"authenticated": true, "email": "prova@example.com", "email_verified": true}
+```
+
+Sense cookie, o amb una de caducada o revocada, respon igualment `200`:
+
+```json
+{"authenticated": false, "email": null, "email_verified": false}
+```
+
+> No tenir sessió és un estat normal, no un error: per això aquest endpoint no
+> retorna mai `401`. Serveix perquè el client sàpiga si ha de demanar les
+> credencials abans de fer cap altra crida.
+
+---
+
+## 7. Obtenir una tasca
 
 ```bash
 curl -s -b "$COOKIES" "$BASE_URL/api/task?category_code=correccio"
@@ -123,7 +147,7 @@ TASK_TOKEN='<enganxa-aquí-el-token-de-la-tasca>'
 
 ---
 
-## 7. Consultar el progrés
+## 8. Consultar el progrés
 
 ```bash
 curl -s -b "$COOKIES" "$BASE_URL/api/task/progress"
@@ -137,7 +161,7 @@ Resposta esperada (`200`):
 
 ---
 
-## 8. Emetre un vot
+## 9. Emetre un vot
 
 ```bash
 curl -s -b "$COOKIES" -X POST "$BASE_URL/api/vote" \
@@ -153,7 +177,7 @@ Resposta esperada (`200`):
 
 ---
 
-## 9. Ometre una tasca
+## 10. Ometre una tasca
 
 Si no vols votar la tasca carregada:
 
@@ -173,7 +197,7 @@ La mateixa parella de respostes no es tornarà a oferir al mateix usuari.
 
 ---
 
-## 10. Exportar les dades (RGPD)
+## 11. Exportar les dades (RGPD)
 
 ```bash
 curl -s -b "$COOKIES" "$BASE_URL/api/auth/export"
@@ -183,7 +207,7 @@ Resposta esperada (`200`): objecte amb `user` i la llista de `votes`.
 
 ---
 
-## 11a. Logout (deixa el compte viu)
+## 12a. Logout (deixa el compte viu)
 
 ```bash
 curl -s -b "$COOKIES" -X POST "$BASE_URL/api/auth/logout"
@@ -195,7 +219,7 @@ Resposta esperada (`200`):
 {"status": "logged_out"}
 ```
 
-## 11b. Baixa del compte (anonimització RGPD)
+## 12b. Baixa del compte (anonimització RGPD)
 
 Alternativa al logout: dona de baixa el compte reautenticant amb la contrasenya.
 
@@ -213,7 +237,7 @@ Resposta esperada (`200`):
 
 ---
 
-## 12. (Control) La sessió ja no és vàlida → 401
+## 13. (Control) La sessió ja no és vàlida → 401
 
 Després del logout o la baixa, qualsevol crida autenticada ha de fallar:
 

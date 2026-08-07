@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import select
@@ -306,6 +306,74 @@ def test_export_data_requires_session(client):
     response = client.get("/api/auth/export")
 
     assert response.status_code == 401
+
+
+def test_session_returns_authenticated_user(client, logged_in_user):
+    logged_in_user("session_ok@example.com")
+
+    response = client.get("/api/auth/session")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "authenticated": True,
+        "email": "session_ok@example.com",
+        "email_verified": True,
+    }
+
+
+def test_session_without_cookie_returns_unauthenticated(client):
+    response = client.get("/api/auth/session")
+
+    assert response.status_code == 200
+    assert response.json() == {"authenticated": False, "email": None, "email_verified": False}
+
+
+def test_session_with_invalid_cookie_returns_unauthenticated(client):
+    client.cookies.set(get_settings().cookie_name, "token_inventat")
+
+    response = client.get("/api/auth/session")
+
+    assert response.status_code == 200
+    assert response.json()["authenticated"] is False
+
+
+def test_session_after_logout_returns_unauthenticated(client, logged_in_user):
+    logged_in_user("session_logout@example.com")
+
+    assert client.post("/api/auth/logout").status_code == 200
+
+    response = client.get("/api/auth/session")
+    assert response.status_code == 200
+    assert response.json()["authenticated"] is False
+
+
+def test_session_with_expired_session_returns_unauthenticated(client, session, logged_in_user):
+    user = logged_in_user("session_expired@example.com")
+
+    stored_session = session.scalar(select(Session).where(Session.user_id == user.id))
+    stored_session.expires_at = datetime.now(UTC) - timedelta(hours=1)
+    session.commit()
+
+    response = client.get("/api/auth/session")
+
+    assert response.status_code == 200
+    assert response.json()["authenticated"] is False
+
+
+def test_session_reports_unverified_email(client, create_user, login):
+    # Amb REQUIRE_EMAIL_VERIFICATION desactivat l'usuari sense verificar pot iniciar
+    # sessió, però el client ha de poder distingir-lo d'un de verificat.
+    create_user("session_unverified@example.com", verified=False)
+    login("session_unverified@example.com")
+
+    response = client.get("/api/auth/session")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "authenticated": True,
+        "email": "session_unverified@example.com",
+        "email_verified": False,
+    }
 
 
 def test_get_ranking_unkwnown_category(client):
