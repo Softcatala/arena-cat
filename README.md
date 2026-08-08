@@ -8,6 +8,27 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 
 🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](docs/simulador.md). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
+## Interfície web
+
+El directori [`frontend/`](frontend/) conté la interfície d'avaluació:
+**React + TypeScript + Vite + Tailwind**, la mateixa pila que
+[Garbellaveus](https://github.com/Softcatala/garbellaveus).
+
+Amb el backend en marxa i les inferències carregades:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Queda a `http://127.0.0.1:5173`. Cal **Node.js 20.19+ o 22.12+**. Vite fa de proxy
+de `/api` cap al backend, així que no hi ha problemes de CORS ni de cookies.
+
+No cal configurar el port de l'API: el proxy segueix l'`API_PORT` del `.env` de
+l'arrel. Vegeu [`frontend/README.md`](frontend/README.md) per a la configuració i
+el desplegament.
+
 ## Client HTML de proves
 
 El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
