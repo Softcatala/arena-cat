@@ -6,7 +6,7 @@ autenticat (verificat o no) directament a la signatura dels handlers.
 
 from typing import Annotated
 
-from fastapi import Cookie, Depends
+from fastapi import Cookie, Depends, HTTPException
 from sqlalchemy.orm import Session as OrmSession
 
 from app.config import get_settings
@@ -28,5 +28,19 @@ def get_current_verified_user(db: DbSession, session_token: SessionCookie = None
     return auth_service.resolve_session_user(db, session_token, require_verified=True)
 
 
+def get_optional_user(db: DbSession, session_token: SessionCookie = None) -> User | None:
+    """Retorna l'usuari autenticat, o `None` si no hi ha cap sessió vàlida.
+
+    A diferència de `get_current_user`, que llança 401, aquí la manca de sessió és
+    un resultat vàlid. Ho fan servir els endpoints que consulten l'autenticació en
+    comptes d'exigir-la.
+    """
+    try:
+        return auth_service.resolve_session_user(db, session_token)
+    except HTTPException:
+        return None
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentVerifiedUser = Annotated[User, Depends(get_current_verified_user)]
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]

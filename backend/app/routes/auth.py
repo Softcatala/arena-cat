@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Cookie, Response
 
 from app.config import get_settings
-from app.deps import CurrentUser, DbSession
+from app.deps import CurrentUser, DbSession, OptionalUser
 from app.schemas import (
     DeleteAccountRequest,
     DeleteAccountResponse,
@@ -12,6 +12,7 @@ from app.schemas import (
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
+    SessionResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
@@ -48,6 +49,24 @@ def login(payload: LoginRequest, response: Response, db: DbSession) -> LoginResp
     )
 
     return LoginResponse(status="logged_in")
+
+
+@router.get("/auth/session")
+def get_session(current_user: OptionalUser) -> SessionResponse:
+    """Indica si la cookie rebuda correspon a una sessió activa.
+
+    El client ho consulta en carregar la pàgina per saber si ha de demanar les
+    credencials. Respon 200 encara que no hi hagi sessió, de manera que un 401
+    sempre vol dir que la sessió s'ha perdut i no que mai n'hi hagi hagut cap.
+    """
+    if current_user is None:
+        return SessionResponse(authenticated=False)
+
+    return SessionResponse(
+        authenticated=True,
+        email=current_user.email,
+        email_verified=current_user.email_verified_at is not None,
+    )
 
 
 @router.post("/auth/logout")

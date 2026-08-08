@@ -250,8 +250,22 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                     <sub><b>Martí</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/NoOPeEKS">
+                    <img src="https://avatars.githubusercontent.com/u/73296276?v=4" width="100;" alt="NoOPeEKS"/>
+                    <br />
+                    <sub><b>Arnau Berenguer Jiménez</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/lequims">
+                    <img src="https://avatars.githubusercontent.com/u/98519?v=4" width="100;" alt="lequims"/>
+                    <br />
+                    <sub><b>Miquel Piulats</b></sub>
+                </a>
+            </td>
 		</tr>
-	<tbody>
+	</tbody>
 </table>
 <!-- readme: contributors -end -->
 
