@@ -120,9 +120,9 @@ La fita té **dues parts**: primer construir la plataforma i, tot seguit, demana
 
 Models (3):
 
-- Qwen 3.5 9B
-- Salamandra 7B
-- Gemma 4 26B A4B
+- Qwen 3.6 27B (`Qwen/Qwen3.6-27B`)
+- Mistral Small 3.2 24B Instruct (`mistralai/Mistral-Small-3.2-24B-Instruct-2506`)
+- Gemma 3 27B Instruct (`google/gemma-3-27b-it`)
 
 Categories (3): 3 models × 3 categories prioritàries (**correcció**, **reformulació** i **traducció**), les més específiques de català, on els models globals tendeixen a fallar més, × 10 *prompts* = **30 prompts**.
 
