@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import yaml
@@ -55,6 +56,20 @@ class FakeModel:
     def generate(self, **kwargs):
         self.generate_kwargs = kwargs
         return inferencia.torch.tensor([[1, 2, 7, 8]])
+
+
+class FakeMistralTokenizer:
+    def __init__(self):
+        self.request = None
+        self.decode_tokens = None
+
+    def encode_chat_completion(self, request):
+        self.request = request
+        return SimpleNamespace(tokens=[1, 2, 3])
+
+    def decode(self, tokens):
+        self.decode_tokens = tokens
+        return "Resposta Mistral"
 
 
 class TestInferencia(unittest.TestCase):
@@ -186,6 +201,45 @@ class TestInferencia(unittest.TestCase):
         self.assertIs(quant_config.bnb_4bit_compute_dtype, inferencia.torch.bfloat16)
         self.assertEqual(quant_config.bnb_4bit_quant_type, "nf4")
 
+    def test_load_tokenizer_uses_mistral_common_backend(self):
+        entry_model = {
+            "id": "model-id",
+            "model_name": "org/mistral-model",
+            "revision": "main",
+            "backend": "mistral_common",
+        }
+
+        with patch.object(
+            inferencia, "load_mistral_common_tokenizer", return_value="TOKENIZER"
+        ) as loader:
+            tokenizer = inferencia.load_tokenizer(entry_model)
+
+        self.assertEqual(tokenizer, "TOKENIZER")
+        loader.assert_called_once_with("org/mistral-model")
+
+    def test_load_model_uses_mistral3_model_class(self):
+        entry_model = {
+            "id": "model-id",
+            "model_name": "org/mistral-model",
+            "revision": "main",
+            "torch_dtype": "bfloat16",
+            "device_map": "auto",
+            "quantization": "none",
+            "backend": "mistral_common",
+        }
+
+        with patch.object(inferencia, "load_mistral3_model", return_value="MODEL") as loader:
+            model = inferencia.load_model(entry_model, hf_token="hf_test")
+
+        self.assertEqual(model, "MODEL")
+        loader.assert_called_once()
+        args, kwargs = loader.call_args
+        self.assertEqual(args, ("org/mistral-model",))
+        self.assertEqual(kwargs["revision"], "main")
+        self.assertIs(kwargs["dtype"], inferencia.torch.bfloat16)
+        self.assertEqual(kwargs["device_map"], "auto")
+        self.assertEqual(kwargs["token"], "hf_test")
+
     def test_apply_device_map_override_updates_all_models(self):
         config = {
             "models": [
@@ -268,6 +322,27 @@ class TestInferencia(unittest.TestCase):
         self.assertTrue(model.generate_kwargs["do_sample"])
         self.assertEqual(model.generate_kwargs["temperature"], 0.7)
         self.assertEqual(model.generate_kwargs["top_p"], 0.9)
+
+    def test_generate_text_uses_mistral_common_tokenizer(self):
+        tokenizer = FakeMistralTokenizer()
+        model = FakeModel()
+        generation_params = {
+            "system_prompt": "Sistema",
+            "max_new_tokens": 12,
+            "temperature": 0,
+            "top_p": 0.9,
+        }
+
+        text = inferencia.generate_text(tokenizer, model, "Usuari", generation_params)
+
+        self.assertEqual(text, "Resposta Mistral")
+        self.assertEqual(
+            [message.content for message in tokenizer.request.messages],
+            ["Sistema", "Usuari"],
+        )
+        self.assertFalse(model.generate_kwargs["do_sample"])
+        self.assertEqual(model.generate_kwargs["max_new_tokens"], 12)
+        self.assertEqual(tokenizer.decode_tokens, [8])
 
     def test_build_result_splits_reasoning_and_metadata(self):
         resultat = inferencia.build_result(

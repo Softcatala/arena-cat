@@ -240,6 +240,9 @@ def load_tokenizer(
     Returns:
         Tokenitzador carregat.
     """
+    if model_entry.get("backend") == "mistral_common":
+        return load_mistral_common_tokenizer(get_model_name(model_entry))
+
     return tokenizer_loader(
         get_model_name(model_entry),
         revision=model_entry["revision"],
@@ -296,7 +299,24 @@ def load_model(
             f"quantization no suportada: {quantization}. Opcions: 4bit, none"
         )
 
+    if model_entry.get("backend") == "mistral_common":
+        return load_mistral3_model(get_model_name(model_entry), **kwargs)
+
     return model_loader(get_model_name(model_entry), **kwargs)
+
+
+def load_mistral_common_tokenizer(model_name: str) -> Any:
+    """Carrega el tokenitzador oficial dels models Mistral."""
+    from mistral_common.tokens.tokenizers.mistral import MistralTokenizer
+
+    return MistralTokenizer.from_hf_hub(model_name)
+
+
+def load_mistral3_model(model_name: str, **kwargs: Any) -> Any:
+    """Carrega un model Mistral 3 multimodal en mode Transformers."""
+    from transformers import Mistral3ForConditionalGeneration
+
+    return Mistral3ForConditionalGeneration.from_pretrained(model_name, **kwargs)
 
 
 def release_model(model: Any, tokenizer: Any) -> None:
@@ -355,6 +375,11 @@ def generate_text(
         Text generat pel model.
     """
     messages = build_messages(prompt_text, generation_params)
+    if hasattr(tokenizer, "encode_chat_completion"):
+        return generate_text_mistral_common(
+            tokenizer, model, messages, generation_params
+        )
+
     if getattr(tokenizer, "chat_template", None):
         try:
             formatted_prompt = tokenizer.apply_chat_template(
@@ -395,6 +420,37 @@ def generate_text(
     input_len = inputs.input_ids.shape[1]
     generated_tokens = outputs[0][input_len:]
     return tokenizer.decode(generated_tokens, skip_special_tokens=True)
+
+
+def generate_text_mistral_common(
+    tokenizer: Any,
+    model: Any,
+    messages: list[ConfigDict],
+    generation_params: ConfigDict,
+) -> str:
+    """Genera text amb el tokenitzador oficial de Mistral."""
+    from mistral_common.protocol.instruct.request import ChatCompletionRequest
+
+    tokenized = tokenizer.encode_chat_completion(
+        ChatCompletionRequest(messages=messages)
+    )
+    input_ids = torch.tensor([tokenized.tokens], device=model.device)
+    attention_mask = torch.ones_like(input_ids)
+
+    generation_kwargs = {
+        "max_new_tokens": generation_params["max_new_tokens"],
+        "do_sample": generation_params["temperature"] > 0,
+        "attention_mask": attention_mask,
+    }
+    if generation_kwargs["do_sample"]:
+        generation_kwargs["temperature"] = generation_params["temperature"]
+        generation_kwargs["top_p"] = generation_params["top_p"]
+
+    with torch.no_grad():
+        outputs = model.generate(input_ids=input_ids, **generation_kwargs)
+
+    generated_tokens = outputs[0][input_ids.shape[1] :]
+    return tokenizer.decode(generated_tokens.tolist())
 
 
 # Resultats

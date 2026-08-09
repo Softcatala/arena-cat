@@ -25,9 +25,10 @@ models:
   - id: "mistral-small-3.2-24b-instruct-2506"
     model_name: "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     revision: "main"
-    torch_dtype: "float32"
+    torch_dtype: "bfloat16"
     device_map: "auto"
     quantization: "none"
+    backend: "mistral_common"
     es_reasoning_model: false
 
   # 3. Gemma 3 27B Instruct
