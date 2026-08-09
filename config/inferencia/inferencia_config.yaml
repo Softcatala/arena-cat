@@ -16,7 +16,7 @@ models:
   - id: "qwen3.6-27b"
     model_name: "Qwen/Qwen3.6-27B"
     revision: "main"
-    torch_dtype: "float32"
+    torch_dtype: "bfloat16"
     device_map: "auto"
     quantization: "none"
     es_reasoning_model: true
