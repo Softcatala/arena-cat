@@ -1,0 +1,58 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: mistral-small-3.2-24b-instruct-2506
+  model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
+  revision: main
+output:
+  answer: '**Assumpte: Queixa per falta de manteniment de l''enllumenat públic i estat
+    de la vorera**
+
+
+    A l''Ajuntament de [nom del municipi],
+
+
+    Els/les residents del carrer [nom del carrer], ens dirigim a vosaltres per a expressar
+    la nostra profunda insatisfacció pel deficient manteniment de les instal·lacions
+    públiques de la nostra via. Concretament, volem posar en el vostre coneixement
+    les següents incidències:
+
+
+    1. **Falta d''enllumenat públic**: Fa tres setmanes que la il·luminació del carrer
+    es troba inoperativa, la qual cosa genera una situació de perill i incomoditat
+    per als veïns, especialment de nit.
+
+
+    2. **Incidència en la vorera**: Ayer, a causa d''un clot existent en la vorera,
+    es va produir la caiguda d''una llum del segon pis d''un edifici veí.
+
+
+    Malgrat haver comunicat aquestes incidències per telèfon de manera insistente,
+    no hem rebut cap resposta ni acció per part dels serveis municipals. Per aquest
+    motiu, us demanem que es realitzin les reparacions necessàries de manera immediata
+    per a garantir la seguretat i el benestar dels ciutadans.
+
+
+    Esperant una solució ràpida i efectiva, us agraïm la vostra atenció.
+
+
+    Atentament,
+
+    Els/les veïns del carrer [nom del carrer]'
+prompt:
+  id: reformulacio_3
+  path: data/prompts/v1/reformulacio_3.txt
+  sha256: 983c08d58f44c65aa8c97328128222822aed2d2472e1f91d8161039971dbfac9
+reasoning:
+  content: null
+run:
+  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  seed: 42
+  timestamp: '2026-08-09T19:56:35.236019Z'

@@ -1,0 +1,28 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: mistral-small-3.2-24b-instruct-2506
+  model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
+  revision: main
+output:
+  answer: Porto tres dies dient-li al meu pare que trigi a trucar a la companyia perquè
+    l'internet va lentíssim. Ell diu que ja ho ha fet, però jo ho dubto força, la
+    veritat, perquè ahir se'm va penjar fins i tot el grup de classe tres vegades.
+    Si això continua així, m'hi presento a la botiga i arrastro jo mateixa al tècnic.
+prompt:
+  id: traduccio_1
+  path: data/prompts/v1/traduccio_1.txt
+  sha256: 61653beca4bccfa7fad61b6ee57f6718643432acba1893fd97932d69c56e9d1a
+reasoning:
+  content: null
+run:
+  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  seed: 42
+  timestamp: '2026-08-09T19:56:35.236019Z'

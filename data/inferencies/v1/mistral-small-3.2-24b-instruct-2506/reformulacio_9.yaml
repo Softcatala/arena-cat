@@ -1,0 +1,34 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: mistral-small-3.2-24b-instruct-2506
+  model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
+  revision: main
+output:
+  answer: '"🏃‍♂️🏃‍♀️ ¡S''obren les inscripcions per la Cursa Popular del 12 d''octubre!
+    🏃‍♀️🏃‍♂️
+
+
+    10 km per superar reptes i compartir passió. Corredors de totes les edats benvinguts!
+    💪
+
+
+    Places limitades amb samarreta i avituallament inclòs. No et quedis sense la teva!
+    🎉"'
+prompt:
+  id: reformulacio_9
+  path: data/prompts/v1/reformulacio_9.txt
+  sha256: a39d7a6a7f1372d48f0bd7b5c98d9e0af6a9e276789899df3abf95e10e783692
+reasoning:
+  content: null
+run:
+  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  seed: 42
+  timestamp: '2026-08-09T19:56:35.236019Z'
