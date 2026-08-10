@@ -46,15 +46,9 @@ L'API queda disponible a `http://127.0.0.1:8000` i el client HTML a
 eliminar els contenidors aturats, executa `docker compose down`.
 
 Abans de provar el flux de votació, carrega les inferències de referència en una
-altra terminal:
-
-```bash
-make load_reference_inferences
-```
-
-Les inferències generades no es versionen en aquesta branca. Les dades de
-referència de la prova de concepte es mantenen a la branca `dades_inferencia`.
-Per carregar-les sense regenerar-les:
+altra terminal. Les inferències generades no es versionen en aquesta branca; les
+dades de referència de la prova de concepte es mantenen a la branca
+`dades_inferencia`:
 
 ```bash
 make load_reference_inferences
