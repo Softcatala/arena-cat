@@ -6,7 +6,7 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](docs/projecte.md)**.
 
-🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](docs/simulador.md). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
+🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](https://softcatala.github.io/arena-cat/simulador/). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
 ## Client HTML de proves
 
