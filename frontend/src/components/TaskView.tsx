@@ -11,10 +11,9 @@ const VOTE_OPTIONS: {
   winner: Winner;
   label: string;
   shortcut: string;
-  primary?: boolean;
 }[] = [
-  { winner: "a", label: "A és millor", shortcut: "a", primary: true },
-  { winner: "b", label: "B és millor", shortcut: "b", primary: true },
+  { winner: "a", label: "A és millor", shortcut: "a" },
+  { winner: "b", label: "B és millor", shortcut: "b" },
   { winner: "tie", label: "Empat", shortcut: "e" },
   { winner: "neither", label: "Cap de les dues", shortcut: "c" },
 ];
@@ -259,20 +258,13 @@ export default function TaskView() {
                     type="button"
                     disabled={locked}
                     onClick={() => void resolve(() => api.vote(task.token, option.winner))}
-                    className={
-                      option.primary
-                        ? "flex items-center justify-center gap-2 rounded-md bg-brand-500 px-3 py-3 font-medium text-white hover:bg-brand-600 disabled:opacity-40"
-                        : "flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-3 font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-40"
-                    }
+                    // Els quatre botons tenen el mateix pes visual a propòsit: destacar-ne
+                    // algun (p. ex. A i B) podria esbiaixar l'avaluador cap a triar-lo per
+                    // la seva prominència, no perquè li sembli realment millor.
+                    className="flex items-center justify-center gap-2 rounded-md bg-brand-500 px-3 py-3 font-medium text-white hover:bg-brand-600 disabled:opacity-40"
                   >
                     {option.label}
-                    <kbd
-                      className={
-                        option.primary
-                          ? "hidden rounded border border-white/40 px-1.5 text-xs lg:inline"
-                          : "hidden rounded border border-slate-300 px-1.5 text-xs lg:inline"
-                      }
-                    >
+                    <kbd className="hidden rounded border border-white/40 px-1.5 text-xs lg:inline">
                       {option.shortcut.toUpperCase()}
                     </kbd>
                   </button>
