@@ -8,7 +8,7 @@ variables:
 
 stages:
   - build
-  # - deploy
+  - deploy
 
 build:
   image: docker:latest
@@ -26,7 +26,7 @@ build:
     - docker build -f $DOCKER_PATH --tag $IMAGE_NAME $DOCKER_CONTEXT
     - docker push $IMAGE_NAME
 
-# deploy:
-#   stage: deploy
-#   extends:
-#     .default-deploy
+deploy:
+  stage: deploy
+  extends:
+    .default-deploy

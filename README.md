@@ -6,7 +6,7 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 Per a una explicació detallada del projecte (motivació i metodologia), consulta **[projecte.md](docs/projecte.md)**.
 
-🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](docs/simulador.md). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
+🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](https://softcatala.github.io/arena-cat/simulador/). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
 ## Interfície web
 
@@ -67,15 +67,9 @@ L'API queda disponible a `http://127.0.0.1:8000` i el client HTML a
 eliminar els contenidors aturats, executa `docker compose down`.
 
 Abans de provar el flux de votació, carrega les inferències de referència en una
-altra terminal:
-
-```bash
-make load_reference_inferences
-```
-
-Les inferències generades no es versionen en aquesta branca. Les dades de
-referència de la prova de concepte es mantenen a la branca `dades_inferencia`.
-Per carregar-les sense regenerar-les:
+altra terminal. Les inferències generades no es versionen en aquesta branca; les
+dades de referència de la prova de concepte es mantenen a la branca
+`dades_inferencia`:
 
 ```bash
 make load_reference_inferences
@@ -141,9 +135,9 @@ La fita té **dues parts**: primer construir la plataforma i, tot seguit, demana
 
 Models (3):
 
-- Qwen 3.5 9B
-- Salamandra 7B
-- Gemma 4 26B A4B
+- Qwen 3.6 27B (`Qwen/Qwen3.6-27B`)
+- Mistral Small 3.2 24B Instruct (`mistralai/Mistral-Small-3.2-24B-Instruct-2506`)
+- Gemma 3 27B Instruct (`google/gemma-3-27b-it`)
 
 Categories (3): 3 models × 3 categories prioritàries (**correcció**, **reformulació** i **traducció**), les més específiques de català, on els models globals tendeixen a fallar més, × 10 *prompts* = **30 prompts**.
 
@@ -250,8 +244,22 @@ Un cop validada la mecànica amb la prova de concepte, ampliarem l'abast incorpo
                     <sub><b>Martí</b></sub>
                 </a>
             </td>
+            <td align="center">
+                <a href="https://github.com/NoOPeEKS">
+                    <img src="https://avatars.githubusercontent.com/u/73296276?v=4" width="100;" alt="NoOPeEKS"/>
+                    <br />
+                    <sub><b>Arnau Berenguer Jiménez</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/lequims">
+                    <img src="https://avatars.githubusercontent.com/u/98519?v=4" width="100;" alt="lequims"/>
+                    <br />
+                    <sub><b>Miquel Piulats</b></sub>
+                </a>
+            </td>
 		</tr>
-	<tbody>
+	</tbody>
 </table>
 <!-- readme: contributors -end -->
 
