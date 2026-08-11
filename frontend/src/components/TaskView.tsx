@@ -44,6 +44,11 @@ export default function TaskView() {
     setRemaining(secondsUntilVote(next.token));
   }, []);
 
+  // Si es canvia de categoria abans que respongui la petició anterior, les
+  // respostes poden arribar desordenades. Només apliquem la de la petició més
+  // recent; les altres arriben tard i les ignorem.
+  const requestId = useRef(0);
+
   const loadTask = useCallback(
     async (code: CategoryFilter, { restore = false } = {}) => {
       // En recarregar recuperem la tasca que s'estava llegint. Si el filtre ha
@@ -56,15 +61,18 @@ export default function TaskView() {
         }
       }
 
+      const id = ++requestId.current;
       setBusy(true);
       setMessage(null);
       setExhausted(false);
       setTask(null);
       try {
         const next = await api.nextTask(code);
+        if (id !== requestId.current) return;
         saveTask(next);
         showTask(next);
       } catch (err) {
+        if (id !== requestId.current) return;
         clearTask();
         setTask(null);
         // El 404 no és cap error: vol dir que no queda res per avaluar aquí. El
@@ -77,7 +85,7 @@ export default function TaskView() {
           setMessage(err instanceof ApiError ? err.message : "Error de connexió");
         }
       } finally {
-        setBusy(false);
+        if (id === requestId.current) setBusy(false);
       }
     },
     [showTask, loadProgress],
