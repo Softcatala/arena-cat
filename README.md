@@ -17,17 +17,12 @@ El directori [`frontend/`](frontend/) conté la interfície d'avaluació:
 Amb el backend en marxa i les inferències carregades:
 
 ```bash
-cd frontend
-npm ci
-npm run dev
+make frontend-setup  # instal·la les dependències
+make frontend-dev    # arrenca el servidor de desenvolupament
 ```
 
-Queda a `http://127.0.0.1:5173`. Cal **Node.js 20.19+ o 22.12+**. Vite fa de proxy
-de `/api` cap al backend, així que no hi ha problemes de CORS ni de cookies.
-
-No cal configurar el port de l'API: el proxy segueix l'`API_PORT` del `.env` de
-l'arrel. Vegeu [`frontend/README.md`](frontend/README.md) per a la configuració i
-el desplegament.
+Vegeu [`frontend/README.md`](frontend/README.md) per als requisits, la
+configuració i el desplegament.
 
 ## Client HTML de proves
 
@@ -98,9 +93,14 @@ També hi ha objectius per a tasques habituals:
 make test     # executa els tests del backend
 make check    # executa Ruff
 make format   # formata el codi del backend amb Ruff
+
+make frontend-setup  # instal·la les dependències del frontend
+make frontend-dev    # arrenca el servidor de desenvolupament del frontend
+make frontend-check  # comprova tipus i format del frontend
 ```
 
-Per a instruccions més detallades del backend, consulta [backend/README.md](backend/README.md).
+Per a instruccions més detallades, consulta [backend/README.md](backend/README.md) i
+[frontend/README.md](frontend/README.md).
 
 ## Vols col·laborar-hi? T'estem buscant
 
