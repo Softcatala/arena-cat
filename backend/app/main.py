@@ -21,6 +21,7 @@ async def task_token_error_handler(request: Request, exc: TaskTokenError) -> JSO
         content={"detail": exc.detail, "error_code": TASK_TOKEN_INVALID},
     )
 
+
 # CORS permissiu per a desenvolupament local
 app.add_middleware(
     CORSMiddleware,
