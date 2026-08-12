@@ -19,7 +19,11 @@ from metriques import load_answers, pairwise_metrics  # noqa: E402
 MODEL_DISPLAY = {
     "qwen-3.5-9b": "Qwen/Qwen3.5-9B",
     "salamandra-7b-instruct": "BSC-LT/salamandra-7b-instruct",
-    "gemma-3-4b-it": "google/gemma-3-4b-it",
+    "gemma-3-27b-it": "google/gemma-3-27b-it",
+    "qwen3.6-27b": "Qwen/Qwen3.6-27B",
+    "mistral-small-3.2-24b-instruct-2506": (
+        "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    ),
 }
 MODEL_IDS = list(MODEL_DISPLAY)
 

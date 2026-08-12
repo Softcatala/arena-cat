@@ -15,15 +15,22 @@ def ready_task_token(prompt_id, response_a_id, response_b_id, user_id):
 
 
 def test_post_vote_invalid_token(client, logged_in_user):
-    """Prova d'enviar un vot amb un token inventat."""
+    """Prova d'enviar un vot amb un token inventat.
+
+    El 401 porta `error_code: task_token_invalid` perquè el frontend el pugui
+    distingir d'un 401 de sessió caducada (la sessió hi segueix sent vàlida).
+    """
     logged_in_user("vote_invalid@example.com")
     response = client.post("/api/vote", json={"winner": "a", "token": "inventat"})
     assert response.status_code == 401
+    assert response.json()["error_code"] == "task_token_invalid"
 
 
 def test_post_vote_requires_auth(client):
+    """Sense sessió el 401 és de sessió, no de token: no porta `error_code`."""
     response = client.post("/api/vote", json={"winner": "a", "token": "inventat"})
     assert response.status_code == 401
+    assert "error_code" not in response.json()
 
 
 def test_post_vote_success(client, session, logged_in_user):

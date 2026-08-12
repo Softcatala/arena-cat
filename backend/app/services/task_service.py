@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.exceptions import TaskTokenError
 from app.models import Category, Response, TaskSkip, User, Vote
 from app.ranking.sampler import select_next_task
 from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskProgressResponse, TaskResponse
@@ -61,7 +62,7 @@ def skip_task_for_user(skip_req: SkipTaskRequest, user: User, db: Session) -> Sk
     """Desa que un usuari ha omès una tasca."""
     payload = verify_task_token(skip_req.token)
     if not payload:
-        raise HTTPException(status_code=401, detail="El token és invàlid o ha caducat")
+        raise TaskTokenError(detail="El token és invàlid o ha caducat")
 
     if int(payload.get("user_id", -1)) != user.id:
         raise HTTPException(status_code=403, detail="El token no correspon a l'usuari autenticat")
