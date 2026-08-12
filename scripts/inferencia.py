@@ -546,6 +546,48 @@ def build_result(
     }
 
 
+def build_control(
+    prompt: Prompt,
+    generation_params: ConfigDict,
+) -> ConfigDict:
+    """Construeix el document de control d'una inferència."""
+    return {
+        "prompt": {
+            "id": prompt["id"],
+            "path": prompt["_path_origen"],
+            "sha256": calculate_sha256(prompt["text"]),
+        },
+        "generation": generation_params,
+    }
+
+
+def control_path(output_dir: Path, prompt_id: str) -> Path:
+    """Retorna el camí del fitxer de control d'un prompt."""
+    return output_dir / f"{prompt_id}.control.yaml"
+
+
+def is_inference_current(
+    prompt: Prompt,
+    generation_params: ConfigDict,
+    output_dir: Path,
+) -> bool:
+    """Comprova si la inferència existent correspon al prompt actual."""
+    prompt_id = prompt["id"]
+    if not (output_dir / f"{prompt_id}.yaml").exists():
+        return False
+
+    control_file = control_path(output_dir, prompt_id)
+    if not control_file.exists():
+        return False
+
+    try:
+        current_control = yaml.safe_load(control_file.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return False
+
+    return current_control == build_control(prompt, generation_params)
+
+
 def save_result(
     result_yaml: ConfigDict,
     output_dir: Path,
@@ -566,6 +608,24 @@ def save_result(
     with target_file.open("w", encoding="utf-8") as output_file:
         yaml.dump(
             result_yaml,
+            output_file,
+            default_flow_style=False,
+            allow_unicode=True,
+        )
+    return target_file
+
+
+def save_control(
+    control_yaml: ConfigDict,
+    output_dir: Path,
+    prompt_id: str,
+) -> Path:
+    """Desa el control d'una inferència en YAML."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    target_file = control_path(output_dir, prompt_id)
+    with target_file.open("w", encoding="utf-8") as output_file:
+        yaml.dump(
+            control_yaml,
             output_file,
             default_flow_style=False,
             allow_unicode=True,
@@ -621,6 +681,7 @@ def run_model(
     hf_token: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
+    only_changed: bool = False,
 ) -> float | None:
     """Executa tots els prompts per a un model configurat.
 
@@ -634,6 +695,7 @@ def run_model(
         hf_token: Token de Hugging Face, si n'hi ha.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
+        only_changed: Si és cert, només executa inferències absents o obsoletes.
 
     Returns:
         Temps mitjà d'inferència per prompt en segons, o ``None`` si no s'ha
@@ -641,6 +703,23 @@ def run_model(
     """
     model_id = model_entry["id"]
     model_name = get_model_name(model_entry)
+    output_dir = (
+        resolve_config_dir(
+            global_config, "dir_sortida", "data/inferencies/v1", root
+        )
+        / model_id
+    )
+    if only_changed:
+        prompt_list = [
+            prompt
+            for prompt in prompt_list
+            if not is_inference_current(prompt, generation_params, output_dir)
+        ]
+
+    if len(prompt_list) == 0:
+        LOGGER.info("No hi ha prompts pendents per al model %s", model_id)
+        return None
+
     LOGGER.info("Carregant model: %s (%s)", model_id, model_name)
 
     tokenizer = load_tokenizer(
@@ -652,12 +731,6 @@ def run_model(
         model_entry,
         hf_token=hf_token,
         model_loader=model_loader,
-    )
-    output_dir = (
-        resolve_config_dir(
-            global_config, "dir_sortida", "data/inferencies/v1", root
-        )
-        / model_id
     )
 
     inference_times: list[float] = []
@@ -677,6 +750,11 @@ def run_model(
             )
             inference_times.append(time.perf_counter() - start_time)
             save_result(result_yaml, output_dir, prompt_id)
+            save_control(
+                build_control(prompt, generation_params),
+                output_dir,
+                prompt_id,
+            )
     finally:
         release_model(model, tokenizer)
 
@@ -695,6 +773,7 @@ class InferencePipeline:
             models configurats.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
+        only_changed: Si és cert, només executa inferències absents o obsoletes.
     """
 
     def __init__(
@@ -704,6 +783,7 @@ class InferencePipeline:
         device_map: str | None = None,
         tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
         model_loader: Loader = AutoModelForCausalLM.from_pretrained,
+        only_changed: bool = False,
     ) -> None:
         """Inicialitza la canonada d'inferència.
 
@@ -713,12 +793,14 @@ class InferencePipeline:
             device_map: Valor opcional per sobreescriure el ``device_map``.
             tokenizer_loader: Funció injectable per carregar tokenitzadors.
             model_loader: Funció injectable per carregar models.
+            only_changed: Si és cert, només executa inferències absents o obsoletes.
         """
         self.root = root
         self.config_path = config_path
         self.device_map = device_map
         self.tokenizer_loader = tokenizer_loader
         self.model_loader = model_loader
+        self.only_changed = only_changed
 
     def run(self) -> None:
         """Executa la canonada d'inferència.
@@ -761,6 +843,7 @@ class InferencePipeline:
                 hf_token=hf_token,
                 tokenizer_loader=self.tokenizer_loader,
                 model_loader=self.model_loader,
+                only_changed=self.only_changed,
             )
             if avg_time is not None:
                 avg_times[model_entry["id"]] = avg_time
@@ -777,6 +860,7 @@ def run_pipeline(
     device_map: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
+    only_changed: bool = False,
 ) -> None:
     """Executa la canonada completa d'inferència.
 
@@ -787,6 +871,7 @@ def run_pipeline(
             models configurats.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
+        only_changed: Si és cert, només executa inferències absents o obsoletes.
     """
     InferencePipeline(
         root=root,
@@ -794,6 +879,7 @@ def run_pipeline(
         device_map=device_map,
         tokenizer_loader=tokenizer_loader,
         model_loader=model_loader,
+        only_changed=only_changed,
     ).run()
 
 
@@ -826,6 +912,11 @@ def parse_args() -> argparse.Namespace:
         default="INFO",
         help="Nivell mínim dels missatges de logging.",
     )
+    parser.add_argument(
+        "--only-changed",
+        action="store_true",
+        help="Executa només inferències absents o amb control obsolet.",
+    )
     return parser.parse_args()
 
 
@@ -836,7 +927,11 @@ def main() -> None:
         level=args.log_level, format="%(levelname)s:%(name)s:%(message)s"
     )
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    run_pipeline(config_path=args.config, device_map=args.device_map)
+    run_pipeline(
+        config_path=args.config,
+        device_map=args.device_map,
+        only_changed=args.only_changed,
+    )
 
 
 if __name__ == "__main__":

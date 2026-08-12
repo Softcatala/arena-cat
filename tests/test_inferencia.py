@@ -116,6 +116,12 @@ class TestInferencia(unittest.TestCase):
 
         self.assertEqual(args.log_level, "WARNING")
 
+    def test_parse_args_accepts_only_changed(self):
+        with patch("sys.argv", ["inferencia.py", "--only-changed"]):
+            args = inferencia.parse_args()
+
+        self.assertTrue(args.only_changed)
+
     def test_load_prompts_reads_txt_files_with_stem_as_id(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -441,11 +447,56 @@ class TestInferencia(unittest.TestCase):
                 )
 
             output_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt.yaml"
+            control_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt.control.yaml"
             resultat = yaml.safe_load(output_path.read_text(encoding="utf-8"))
+            control = yaml.safe_load(control_path.read_text(encoding="utf-8"))
 
         self.assertEqual(resultat["output"]["answer"], "Resposta final")
         self.assertEqual(resultat["run"]["git_commit"], "git123")
         self.assertEqual(resultat["model"]["model_name"], "org/fake-model")
+        self.assertEqual(control["prompt"]["id"], "prompt")
+        self.assertEqual(control["generation"]["system_prompt"], "Sistema")
+
+    def test_only_changed_skips_current_inference_without_loading_model(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_dir = root / "data" / "inferencies" / "v1" / "fake-model"
+            output_dir.mkdir(parents=True)
+
+            generation_params = {
+                "system_prompt": "Sistema",
+                "max_new_tokens": 12,
+                "temperature": 0,
+                "top_p": 1.0,
+            }
+            prompt = {
+                "id": "prompt",
+                "text": "Digues hola",
+                "_path_origen": "data/prompts/v1/prompt.txt",
+            }
+            (output_dir / "prompt.yaml").write_text("output: {}\n", encoding="utf-8")
+            inferencia.save_control(
+                inferencia.build_control(prompt, generation_params),
+                output_dir,
+                "prompt",
+            )
+
+            with patch.object(inferencia.LOGGER, "info"):
+                avg_time = inferencia.run_model(
+                    {"id": "fake-model", "model_name": "org/fake-model"},
+                    [prompt],
+                    generation_params,
+                    {"backend_preferit": "transformers"},
+                    {},
+                    root=root,
+                    only_changed=True,
+                    tokenizer_loader=lambda *args, **kwargs: self.fail(
+                        "tokenizer loaded"
+                    ),
+                    model_loader=lambda *args, **kwargs: self.fail("model loaded"),
+                )
+
+        self.assertIsNone(avg_time)
 
 
 if __name__ == "__main__":
