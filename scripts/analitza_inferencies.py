@@ -16,6 +16,8 @@ from jinja2 import Environment, FileSystemLoader  # noqa: E402
 
 from metriques import load_answers, pairwise_metrics  # noqa: E402
 
+RECOMMENDED_THRESHOLD = 0.40
+
 MODEL_DISPLAY = {
     "qwen3.6-27b": "Qwen/Qwen3.6-27B",
     "mistral-small-3.2-24b-instruct-2506": (
@@ -37,7 +39,9 @@ def _load_original_prompt(inferences_dir: Path, prompt_id: str) -> str:
         inf_path = inferences_dir / model_id / f"{prompt_id}.yaml"
         if not inf_path.is_file():
             continue
-        rel = (yaml.safe_load(inf_path.read_text("utf-8")) or {}).get("prompt", {}).get("path")
+        rel = (yaml.safe_load(inf_path.read_text("utf-8")) or {}).get("prompt", {}).get(
+            "path"
+        )
         prompt_path = REPO_ROOT / rel if rel else None
         if not prompt_path or not prompt_path.is_file():
             continue
@@ -48,6 +52,48 @@ def _load_original_prompt(inferences_dir: Path, prompt_id: str) -> str:
             data = None
         return (data["text"] if isinstance(data, dict) and "text" in data else raw).strip()
     return "(prompt original no trobat)"
+
+
+def _category_summary(entries: list[dict]) -> list[dict]:
+    rows = {}
+    for e in entries:
+        category = e["prompt_id"].split("_", 1)[0]
+        row = rows.setdefault(
+            category,
+            {
+                "category": category,
+                "total": 0,
+                "valid": 0,
+                "invalid": 0,
+            },
+        )
+        row["total"] += 1
+        if e["metrics"]["combinat_worst"] >= RECOMMENDED_THRESHOLD:
+            row["valid"] += 1
+        else:
+            row["invalid"] += 1
+
+    summaries = []
+    for row in rows.values():
+        row["valid_pct"] = row["valid"] * 100 / row["total"]
+        row["invalid_pct"] = row["invalid"] * 100 / row["total"]
+        summaries.append(row)
+    return sorted(summaries, key=lambda s: str(s["category"]))
+
+
+def _print_category_summary(category_summary: list[dict]) -> None:
+    print("\nResum de validesa per categoria")
+    print(f"Invàlid = combinat_worst < {RECOMMENDED_THRESHOLD:.2f}")
+    print(
+        f"{'categoria':<16}{'total':>7}{'vàlids':>9}{'invàlids':>10}"
+        f"{'% vàlids':>10}{'% invàlids':>12}"
+    )
+    for row in category_summary:
+        print(
+            f"{row['category']:<16}{row['total']:>7}{row['valid']:>9}"
+            f"{row['invalid']:>10}{row['valid_pct']:>9.1f}%"
+            f"{row['invalid_pct']:>11.1f}%"
+        )
 
 
 def main() -> None:
@@ -78,6 +124,9 @@ def main() -> None:
         })
 
     entries.sort(key=lambda e: e["metrics"]["combinat_mean"], reverse=True)
+    category_summary = _category_summary(entries)
+    if category_summary:
+        _print_category_summary(category_summary)
 
     env = Environment(loader=FileSystemLoader(Path(__file__).parent))
     rendered = env.get_template("results.txt.j2").render(
@@ -85,6 +134,8 @@ def main() -> None:
         models=MODEL_IDS,
         models_display=[MODEL_DISPLAY[m] for m in MODEL_IDS],
         models_display_map=MODEL_DISPLAY,
+        recommended_threshold=RECOMMENDED_THRESHOLD,
+        category_summary=category_summary,
         entries=entries,
     )
 
