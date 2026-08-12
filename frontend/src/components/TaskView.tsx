@@ -129,6 +129,15 @@ export default function TaskView() {
         await loadTask(category);
         await loadProgress();
       } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          // El token de la tasca ha caducat o no és vàlid: mai tornarà a
+          // funcionar, així que en carreguem una de nova en lloc de deixar
+          // l'usuari encallat repetint el mateix error indefinidament.
+          clearTask();
+          await loadTask(category);
+          setMessage("El token d'aquesta tasca ha caducat.");
+          return;
+        }
         setMessage(err instanceof ApiError ? err.message : "Error de connexió");
         setBusy(false);
       }

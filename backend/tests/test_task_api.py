@@ -140,3 +140,13 @@ def test_task_progress_counts_voted_skipped_and_remaining(client, session, logge
 def test_get_task_requires_auth(client):
     response = client.get("/api/task", params={"category_code": "correccio"})
     assert response.status_code == 401
+
+
+def test_skip_task_invalid_token(client, logged_in_user):
+    """El 401 d'un token de tasca invàlid porta `error_code: task_token_invalid`,
+    igual que a `/vote`, perquè el frontend no el confongui amb sessió caducada.
+    """
+    logged_in_user("task_skip_invalid@example.com")
+    response = client.post("/api/task/skip", json={"token": "inventat"})
+    assert response.status_code == 401
+    assert response.json()["error_code"] == "task_token_invalid"

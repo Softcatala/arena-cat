@@ -8,7 +8,7 @@
  * `VITE_API_BASE_URL`.
  */
 
-import { readDetail } from "./errors";
+import { readDetail, readErrorCode, TASK_TOKEN_INVALID } from "./errors";
 import type { CategoryFilter, Progress, SessionState, Task, Winner } from "./types";
 
 // `||` i no `??`: una variable definida però buida (cosa fàcil en un fitxer .env)
@@ -38,16 +38,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    // Cap ruta d'aquest client s'usa sense haver comprovat abans la sessió, així
-    // que un 401 només pot voler dir que ha caducat o s'ha revocat pel camí.
-    if (response.status === 401) {
+    const body = await response.json().catch(() => null);
+
+    // /vote i /task/skip també responen 401 quan el token de tasca (no la
+    // sessió) ha caducat; el backend ho marca amb `error_code` perquè no ho
+    // confonguem amb una sessió tancada i fem fora algú que encara hi és.
+    if (response.status === 401 && readErrorCode(body) !== TASK_TOKEN_INVALID) {
       window.dispatchEvent(new Event(UNAUTHENTICATED_EVENT));
     }
 
-    const detail = await response
-      .json()
-      .then(readDetail)
-      .catch(() => null);
+    const detail = readDetail(body);
     throw new ApiError(response.status, detail ?? `Error HTTP ${response.status}`);
   }
 

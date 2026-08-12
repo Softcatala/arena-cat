@@ -1,8 +1,10 @@
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from app.exceptions import TASK_TOKEN_INVALID, TaskTokenError
 from app.routes import auth, ranking, task, vote
 
 logging.basicConfig(
@@ -10,6 +12,14 @@ logging.basicConfig(
 )
 
 app = FastAPI(title="arena-cat backend")
+
+
+@app.exception_handler(TaskTokenError)
+async def task_token_error_handler(request: Request, exc: TaskTokenError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "error_code": TASK_TOKEN_INVALID},
+    )
 
 # CORS permissiu per a desenvolupament local
 app.add_middleware(

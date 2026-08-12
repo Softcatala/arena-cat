@@ -10,7 +10,16 @@
  *
  * Els primers es mostren tal qual. Els segons els traduïm aquí a partir de
  * `type` i `loc`, que són estables, i no del text en anglès.
+ *
+ * Alguns errors hi afegeixen un camp `error_code` germà de `detail`, per
+ * distingir-los sense dependre del text (vegeu `TASK_TOKEN_INVALID`).
  */
+
+/** `error_code` que el backend posa als 401 del token de tasca (`/vote`,
+ *  `/task/skip`), per distingir-los d'un 401 de sessió caducada: la sessió hi
+ *  pot continuar sent vàlida encara que el token de la tasca no ho sigui.
+ */
+export const TASK_TOKEN_INVALID = "task_token_invalid";
 
 interface ValidationItem {
   type: string;
@@ -104,4 +113,11 @@ export function readDetail(body: unknown): string | null {
   }
 
   return null;
+}
+
+/** `error_code` del cos d'error, o `null` si no n'hi ha cap. */
+export function readErrorCode(body: unknown): string | null {
+  if (typeof body !== "object" || body === null) return null;
+  const { error_code: errorCode } = body as { error_code?: unknown };
+  return typeof errorCode === "string" ? errorCode : null;
 }
