@@ -447,7 +447,7 @@ class TestInferencia(unittest.TestCase):
                 )
 
             output_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt.yaml"
-            control_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt.control.yaml"
+            control_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt_control.yaml"
             resultat = yaml.safe_load(output_path.read_text(encoding="utf-8"))
             control = yaml.safe_load(control_path.read_text(encoding="utf-8"))
 

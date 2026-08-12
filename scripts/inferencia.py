@@ -563,7 +563,7 @@ def build_control(
 
 def control_path(output_dir: Path, prompt_id: str) -> Path:
     """Retorna el camí del fitxer de control d'un prompt."""
-    return output_dir / f"{prompt_id}.control.yaml"
+    return output_dir / f"{prompt_id}_control.yaml"
 
 
 def is_inference_current(
