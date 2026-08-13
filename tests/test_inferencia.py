@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import yaml
 
@@ -459,48 +459,25 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(resultat["fingerprint"]["generation"]["system_prompt"], "Sistema")
 
     def test_run_model_skips_current_inference_by_default(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            output_dir = root / "data" / "inferencies" / "v1" / "fake-model"
-            output_dir.mkdir(parents=True)
+        tokenizer_loader = Mock()
+        model_loader = Mock()
 
-            generation_params = {
-                "system_prompt": "Sistema",
-                "max_new_tokens": 12,
-                "temperature": 0,
-                "top_p": 1.0,
-            }
-            prompt = {
-                "id": "prompt",
-                "text": "Digues hola",
-                "_path_origen": "data/prompts/v1/prompt.txt",
-            }
-            (output_dir / "prompt.yaml").write_text(
-                yaml.dump(
-                    {
-                        "fingerprint": inferencia.build_fingerprint(
-                            prompt, generation_params
-                        )
-                    }
-                ),
-                encoding="utf-8",
+        with patch.object(inferencia, "is_inference_current", return_value=True), \
+             patch.object(inferencia.LOGGER, "info"):
+            avg_time = inferencia.run_model(
+                {"id": "fake-model", "model_name": "org/fake-model"},
+                [{"id": "prompt"}],
+                {},
+                {},
+                {},
+                root=Path("unused"),
+                tokenizer_loader=tokenizer_loader,
+                model_loader=model_loader,
             )
 
-            with patch.object(inferencia.LOGGER, "info"):
-                avg_time = inferencia.run_model(
-                    {"id": "fake-model", "model_name": "org/fake-model"},
-                    [prompt],
-                    generation_params,
-                    {"backend_preferit": "transformers"},
-                    {},
-                    root=root,
-                    tokenizer_loader=lambda *args, **kwargs: self.fail(
-                        "tokenizer loaded"
-                    ),
-                    model_loader=lambda *args, **kwargs: self.fail("model loaded"),
-                )
-
         self.assertIsNone(avg_time)
+        tokenizer_loader.assert_not_called()
+        model_loader.assert_not_called()
 
 
 if __name__ == "__main__":

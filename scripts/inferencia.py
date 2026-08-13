@@ -509,7 +509,6 @@ def build_result(
     """
     model_name = get_model_name(model_entry)
     reasoning, final_answer = split_reasoning(generated_text)
-    fingerprint = build_fingerprint(prompt, generation_params)
 
     return {
         "run": {
@@ -533,7 +532,7 @@ def build_result(
             "max_new_tokens": generation_params["max_new_tokens"],
             "seed": global_config["seed"],
         },
-        "fingerprint": fingerprint,
+        "fingerprint": build_fingerprint(prompt, generation_params),
         "backend": {
             "engine": global_config["backend_preferit"],
             "transformers_version": str(transformers.__version__),
@@ -565,8 +564,7 @@ def is_inference_current(
     output_dir: Path,
 ) -> bool:
     """Comprova si la inferència existent correspon al prompt actual."""
-    prompt_id = prompt["id"]
-    inference_file = output_dir / f"{prompt_id}.yaml"
+    inference_file = output_dir / f"{prompt['id']}.yaml"
     if not inference_file.exists():
         return False
 
@@ -695,7 +693,7 @@ def run_model(
             if not is_inference_current(prompt, generation_params, output_dir)
         ]
 
-    if len(prompt_list) == 0:
+    if not prompt_list:
         LOGGER.info("No hi ha prompts pendents per al model %s", model_id)
         return None
 
