@@ -191,11 +191,7 @@ def get_model_name(model_entry: ConfigDict) -> str:
     Returns:
         Nom del model compatible amb Hugging Face.
     """
-    return (
-        model_entry["name"]
-        if "name" in model_entry
-        else model_entry["model_name"]
-    )
+    return model_entry["name"] if "name" in model_entry else model_entry["model_name"]
 
 
 def get_dtype(torch_dtype: str) -> Any:
@@ -218,9 +214,7 @@ def get_dtype(torch_dtype: str) -> Any:
 
     if torch_dtype not in dtype_map:
         options = ", ".join(sorted(dtype_map))
-        raise ValueError(
-            f"torch_dtype no suportat: {torch_dtype}. Opcions: {options}"
-        )
+        raise ValueError(f"torch_dtype no suportat: {torch_dtype}. Opcions: {options}")
 
     return dtype_map[torch_dtype]
 
@@ -279,9 +273,7 @@ def load_model(
 
     quantization = model_entry.get("quantization")
     if quantization == "4bit":
-        if isinstance(device_map, dict) and {"cpu", "disk"} & set(
-            device_map.values()
-        ):
+        if isinstance(device_map, dict) and {"cpu", "disk"} & set(device_map.values()):
             raise ValueError(
                 "4bit no suporta offload a CPU/disc en aquesta configuracio. "
                 "Usa device_map: {'': 0}."
@@ -336,9 +328,7 @@ def release_model(model: Any, tokenizer: Any) -> None:
 
 
 # Generació
-def build_messages(
-    prompt_text: str, generation_params: ConfigDict
-) -> list[ConfigDict]:
+def build_messages(prompt_text: str, generation_params: ConfigDict) -> list[ConfigDict]:
     """Construeix els missatges de xat.
 
     Args:
@@ -569,9 +559,7 @@ def is_inference_current(
         return False
 
     try:
-        current_inference = yaml.safe_load(
-            inference_file.read_text(encoding="utf-8")
-        )
+        current_inference = yaml.safe_load(inference_file.read_text(encoding="utf-8"))
     except (OSError, yaml.YAMLError):
         return False
 
@@ -634,9 +622,7 @@ def run_prompt(
     Returns:
         Resultat serialitzable del prompt.
     """
-    generated_text = generate_text(
-        tokenizer, model, prompt["text"], generation_params
-    )
+    generated_text = generate_text(tokenizer, model, prompt["text"], generation_params)
     return build_result(
         prompt,
         model_entry,
@@ -681,9 +667,7 @@ def run_model(
     model_id = model_entry["id"]
     model_name = get_model_name(model_entry)
     output_dir = (
-        resolve_config_dir(
-            global_config, "dir_sortida", "data/inferencies/v1", root
-        )
+        resolve_config_dir(global_config, "dir_sortida", "data/inferencies/v1", root)
         / model_id
     )
     if only_changed:
