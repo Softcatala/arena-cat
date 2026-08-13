@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.exceptions import TaskTokenError
 from app.models import User, Vote
 from app.schemas import VoteRequest, VoteResponse
 from app.security import verify_task_token
@@ -24,7 +25,7 @@ def submit_vote(db: Session, vote_req: VoteRequest, user: User):
     """
     payload = verify_task_token(vote_req.token)
     if not payload:
-        raise HTTPException(status_code=401, detail="El token és invàlid o ha caducat")
+        raise TaskTokenError(detail="El token és invàlid o ha caducat")
 
     if int(payload.get("user_id", -1)) != user.id:
         raise HTTPException(status_code=403, detail="El token no correspon a l'usuari autenticat")

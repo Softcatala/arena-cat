@@ -1,6 +1,7 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: setup run test check format inferences load_inferences load_reference_inferences
+.PHONY: setup run test check format inferences load_inferences load_reference_inferences \
+	frontend-setup frontend-dev frontend-check
 
 REFERENCE_INFERENCES_WORKTREE ?= ../arena-cat-dades-inferencia
 REFERENCE_INFERENCES_BRANCH ?= dades_inferencia
@@ -46,3 +47,12 @@ load_reference_inferences:
 		git worktree add "$(REFERENCE_INFERENCES_WORKTREE)" "$(REFERENCE_INFERENCES_BRANCH)"; \
 	fi
 	$(MAKE) load_inferences INFERENCIES_DIR="$(REFERENCE_INFERENCES_DIR)"
+
+frontend-setup:
+	cd frontend && npm ci
+
+frontend-dev:
+	cd frontend && npm run dev
+
+frontend-check:
+	cd frontend && npm run typecheck && npm run format:check

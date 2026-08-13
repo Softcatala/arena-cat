@@ -1,0 +1,10 @@
+node_modules
+dist
+
+# Fitxers d'entorn locals. Poden contenir adreces internes: mai al repositori.
+.env
+.env.local
+.env.*.local
+
+# Memòria cau incremental de TypeScript (`tsc -b`).
+*.tsbuildinfo

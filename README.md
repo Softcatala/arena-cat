@@ -8,6 +8,22 @@ Per a una explicació detallada del projecte (motivació i metodologia), consult
 
 🧮 **Dimensionament**: estimem els vots i hores humanes necessaris amb un [simulador](https://softcatala.github.io/arena-cat/simulador/). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
 
+## Interfície web
+
+El directori [`frontend/`](frontend/) conté la interfície d'avaluació:
+**React + TypeScript + Vite + Tailwind**, la mateixa pila que
+[Garbellaveus](https://github.com/Softcatala/garbellaveus).
+
+Amb el backend en marxa i les inferències carregades:
+
+```bash
+make frontend-setup  # instal·la les dependències
+make frontend-dev    # arrenca el servidor de desenvolupament
+```
+
+Vegeu [`frontend/README.md`](frontend/README.md) per als requisits, la
+configuració i el desplegament.
+
 ## Client HTML de proves
 
 El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
@@ -77,9 +93,14 @@ També hi ha objectius per a tasques habituals:
 make test     # executa els tests del backend
 make check    # executa Ruff
 make format   # formata el codi del backend amb Ruff
+
+make frontend-setup  # instal·la les dependències del frontend
+make frontend-dev    # arrenca el servidor de desenvolupament del frontend
+make frontend-check  # comprova tipus i format del frontend
 ```
 
-Per a instruccions més detallades del backend, consulta [backend/README.md](backend/README.md).
+Per a instruccions més detallades, consulta [backend/README.md](backend/README.md) i
+[frontend/README.md](frontend/README.md).
 
 ## Vols col·laborar-hi? T'estem buscant
 

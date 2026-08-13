@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Vermell corporatiu de Softcatalà — https://www.softcatala.org/premsa/imatge-corporativa/
+   Mateixos valors que a Garbellaveus per mantenir la identitat entre projectes. */
+@theme {
+  --color-brand-100: #f9e1e1;
+  --color-brand-200: #f3c4c4;
+  --color-brand-300: #e99595;
+  --color-brand-400: #dc5656;
+  --color-brand-500: #dd0003;
+  --color-brand-600: #ba2626;
+  --color-brand-700: #8a0000;
+}
