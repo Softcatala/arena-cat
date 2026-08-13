@@ -509,6 +509,7 @@ def build_result(
     """
     model_name = get_model_name(model_entry)
     reasoning, final_answer = split_reasoning(generated_text)
+    fingerprint = build_fingerprint(prompt, generation_params)
 
     return {
         "run": {
@@ -532,6 +533,7 @@ def build_result(
             "max_new_tokens": generation_params["max_new_tokens"],
             "seed": global_config["seed"],
         },
+        "fingerprint": fingerprint,
         "backend": {
             "engine": global_config["backend_preferit"],
             "transformers_version": str(transformers.__version__),
@@ -546,24 +548,15 @@ def build_result(
     }
 
 
-def build_control(
+def build_fingerprint(
     prompt: Prompt,
     generation_params: ConfigDict,
 ) -> ConfigDict:
-    """Construeix el document de control d'una inferència."""
+    """Construeix el fingerprint que determina si cal regenerar."""
     return {
-        "prompt": {
-            "id": prompt["id"],
-            "path": prompt["_path_origen"],
-            "sha256": calculate_sha256(prompt["text"]),
-        },
+        "prompt_sha256": calculate_sha256(prompt["text"]),
         "generation": generation_params,
     }
-
-
-def control_path(output_dir: Path, prompt_id: str) -> Path:
-    """Retorna el camí del fitxer de control d'un prompt."""
-    return output_dir / f"{prompt_id}_control.yaml"
 
 
 def is_inference_current(
@@ -573,19 +566,23 @@ def is_inference_current(
 ) -> bool:
     """Comprova si la inferència existent correspon al prompt actual."""
     prompt_id = prompt["id"]
-    if not (output_dir / f"{prompt_id}.yaml").exists():
-        return False
-
-    control_file = control_path(output_dir, prompt_id)
-    if not control_file.exists():
+    inference_file = output_dir / f"{prompt_id}.yaml"
+    if not inference_file.exists():
         return False
 
     try:
-        current_control = yaml.safe_load(control_file.read_text(encoding="utf-8"))
+        current_inference = yaml.safe_load(
+            inference_file.read_text(encoding="utf-8")
+        )
     except (OSError, yaml.YAMLError):
         return False
 
-    return current_control == build_control(prompt, generation_params)
+    if not isinstance(current_inference, dict):
+        return False
+
+    return current_inference.get("fingerprint") == build_fingerprint(
+        prompt, generation_params
+    )
 
 
 def save_result(
@@ -608,24 +605,6 @@ def save_result(
     with target_file.open("w", encoding="utf-8") as output_file:
         yaml.dump(
             result_yaml,
-            output_file,
-            default_flow_style=False,
-            allow_unicode=True,
-        )
-    return target_file
-
-
-def save_control(
-    control_yaml: ConfigDict,
-    output_dir: Path,
-    prompt_id: str,
-) -> Path:
-    """Desa el control d'una inferència en YAML."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    target_file = control_path(output_dir, prompt_id)
-    with target_file.open("w", encoding="utf-8") as output_file:
-        yaml.dump(
-            control_yaml,
             output_file,
             default_flow_style=False,
             allow_unicode=True,
@@ -681,7 +660,7 @@ def run_model(
     hf_token: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
-    only_changed: bool = False,
+    only_changed: bool = True,
 ) -> float | None:
     """Executa tots els prompts per a un model configurat.
 
@@ -750,11 +729,6 @@ def run_model(
             )
             inference_times.append(time.perf_counter() - start_time)
             save_result(result_yaml, output_dir, prompt_id)
-            save_control(
-                build_control(prompt, generation_params),
-                output_dir,
-                prompt_id,
-            )
     finally:
         release_model(model, tokenizer)
 
@@ -783,7 +757,7 @@ class InferencePipeline:
         device_map: str | None = None,
         tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
         model_loader: Loader = AutoModelForCausalLM.from_pretrained,
-        only_changed: bool = False,
+        only_changed: bool = True,
     ) -> None:
         """Inicialitza la canonada d'inferència.
 
@@ -860,7 +834,7 @@ def run_pipeline(
     device_map: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
-    only_changed: bool = False,
+    only_changed: bool = True,
 ) -> None:
     """Executa la canonada completa d'inferència.
 
@@ -913,9 +887,9 @@ def parse_args() -> argparse.Namespace:
         help="Nivell mínim dels missatges de logging.",
     )
     parser.add_argument(
-        "--only-changed",
+        "--force",
         action="store_true",
-        help="Executa només inferències absents o amb control obsolet.",
+        help="Regenera totes les inferències, encara que el fingerprint sigui vigent.",
     )
     return parser.parse_args()
 
@@ -930,7 +904,7 @@ def main() -> None:
     run_pipeline(
         config_path=args.config,
         device_map=args.device_map,
-        only_changed=args.only_changed,
+        only_changed=not args.force,
     )
 
 

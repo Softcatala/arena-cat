@@ -116,11 +116,11 @@ class TestInferencia(unittest.TestCase):
 
         self.assertEqual(args.log_level, "WARNING")
 
-    def test_parse_args_accepts_only_changed(self):
-        with patch("sys.argv", ["inferencia.py", "--only-changed"]):
+    def test_parse_args_accepts_force(self):
+        with patch("sys.argv", ["inferencia.py", "--force"]):
             args = inferencia.parse_args()
 
-        self.assertTrue(args.only_changed)
+        self.assertTrue(args.force)
 
     def test_load_prompts_reads_txt_files_with_stem_as_id(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -447,17 +447,18 @@ class TestInferencia(unittest.TestCase):
                 )
 
             output_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt.yaml"
-            control_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt_control.yaml"
             resultat = yaml.safe_load(output_path.read_text(encoding="utf-8"))
-            control = yaml.safe_load(control_path.read_text(encoding="utf-8"))
 
         self.assertEqual(resultat["output"]["answer"], "Resposta final")
         self.assertEqual(resultat["run"]["git_commit"], "git123")
         self.assertEqual(resultat["model"]["model_name"], "org/fake-model")
-        self.assertEqual(control["prompt"]["id"], "prompt")
-        self.assertEqual(control["generation"]["system_prompt"], "Sistema")
+        self.assertEqual(
+            resultat["fingerprint"]["prompt_sha256"],
+            inferencia.calculate_sha256("Digues hola"),
+        )
+        self.assertEqual(resultat["fingerprint"]["generation"]["system_prompt"], "Sistema")
 
-    def test_only_changed_skips_current_inference_without_loading_model(self):
+    def test_run_model_skips_current_inference_by_default(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             output_dir = root / "data" / "inferencies" / "v1" / "fake-model"
@@ -474,11 +475,15 @@ class TestInferencia(unittest.TestCase):
                 "text": "Digues hola",
                 "_path_origen": "data/prompts/v1/prompt.txt",
             }
-            (output_dir / "prompt.yaml").write_text("output: {}\n", encoding="utf-8")
-            inferencia.save_control(
-                inferencia.build_control(prompt, generation_params),
-                output_dir,
-                "prompt",
+            (output_dir / "prompt.yaml").write_text(
+                yaml.dump(
+                    {
+                        "fingerprint": inferencia.build_fingerprint(
+                            prompt, generation_params
+                        )
+                    }
+                ),
+                encoding="utf-8",
             )
 
             with patch.object(inferencia.LOGGER, "info"):
@@ -489,7 +494,6 @@ class TestInferencia(unittest.TestCase):
                     {"backend_preferit": "transformers"},
                     {},
                     root=root,
-                    only_changed=True,
                     tokenizer_loader=lambda *args, **kwargs: self.fail(
                         "tokenizer loaded"
                     ),
