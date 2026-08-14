@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 89964a528b955fd6a4c168195bdc0d89df02c7f1f1e4a4f2d2fc8db82f193d4a
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -15,16 +24,16 @@ output:
   answer: No entenc com has pogut actuar d'aquesta manera. Em vas prometre que podia
     confiar en tu i, al final, has fet exactament el contrari. Has explicat coses
     que eren personals sense demanar-me permís i ara m'he quedat en una situació molt
-    incòmoda. Em sento decebut i molt enfadat perquè esperava més respecte per part
-    teva. Si realment valoressis la nostra amistat, haguessis de reconèixer l'error
-    i demanar disculpes. Ara mateix necessito distància.
+    incòmode. Em sento decebut i molt enfadat perquè esperava més respecte per part
+    teva. Si realment valores la nostra amistat, hauries de reconèixer l'error i demanar
+    disculpes. Ara mateix necessito distància.
 prompt:
   id: correccio_8
   path: data/prompts/v1/correccio_8.txt
-  sha256: 3a78a37977ed441d299344d4307d717b3dbfae383b26f71a24b986162e40c2d4
+  sha256: 89964a528b955fd6a4c168195bdc0d89df02c7f1f1e4a4f2d2fc8db82f193d4a
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-12T02:55:11.844655Z'

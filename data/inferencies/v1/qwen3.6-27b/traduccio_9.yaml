@@ -1,0 +1,43 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.6-27b
+  model_name: Qwen/Qwen3.6-27B
+  revision: main
+output:
+  answer: 'Quan arriba la nit, la nina plega la roba damunt la cadira, se posa el
+    pijama preferit i s’acosta al llit amb l’os de peluix que ja té una oreja torçada.
+    La mare deixa la porta entreoberta perquè hi entri un raig de llum del passadís,
+    i la casa comença a parlar a poc a poc: cruix una fusta, suspira una finestra,
+    s’apaga l’últim aixeta.
+
+
+    Des de l’habitació es veu el cel ple d’estrelles. Una d’elles, la més petita,
+    li canta una nana a veu molt baixa, tan baixa que només l’hi senten els qui ja
+    estan a punt de somiar.'
+prompt:
+  id: traduccio_9
+  path: data/prompts/v1/traduccio_9.txt
+  sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
+reasoning:
+  content: null
+run:
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
+  seed: 42
+  timestamp: '2026-08-13T10:06:55.616322Z'

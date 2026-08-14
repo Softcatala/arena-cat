@@ -1,0 +1,50 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 983c08d58f44c65aa8c97328128222822aed2d2472e1f91d8161039971dbfac9
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.6-27b
+  model_name: Qwen/Qwen3.6-27B
+  revision: main
+output:
+  answer: 'A l’Atenció de l’Ajuntament,
+
+
+    Per mitjà d’aquesta comunicació, volem expressar el nostre profund malestar per
+    la situació actual del nostre carrer. Fa tres setmanes que el farol de carrer
+    principal no funciona, la qual cosa provoca una total absència d’il·luminació
+    nocturna i compromet la seguretat dels vianants. Malgrat les múltiples incidències
+    telefonades, no hem rebut cap resposta ni solució per part dels serveis corresponents.
+
+
+    A més, cal destacar que ahir va caure també el segon farol a causa de l’existència
+    d’un clot a la vorera. Sol·licitem que es prenguin les mesures urgents per a la
+    reparació de la il·luminació i de la vorera, així com una resposta formal sobre
+    l’abastiment d’aquests treballs.
+
+
+    Atentament,'
+prompt:
+  id: reformulacio_3
+  path: data/prompts/v1/reformulacio_3.txt
+  sha256: 983c08d58f44c65aa8c97328128222822aed2d2472e1f91d8161039971dbfac9
+reasoning:
+  content: null
+run:
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
+  seed: 42
+  timestamp: '2026-08-12T02:55:11.844655Z'

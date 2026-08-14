@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: af1487949a676806680275298f4324ad21ae64086dc489621374b119f5e85669
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,17 +21,24 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: Per la present, li informem que el seu encàrrec patirà un retard en l'entrega
-    a causa de problemes logístics. Si el retard es perllongués més de vuit dies,
-    vostè tindrà dret a cancel·lar el seu encàrrec sense cost algun, conforme a allò
-    establert en les nostres Condicions Generals de Venda.
+  answer: 'Estimat client:
+
+
+    El seu encàrrec VX-48291 arribarà més tard del previst perquè un camió va quedar
+    retingut al nostre centre de Riba-roja i va desorganitzar tota la ruta de distribució.
+    La nova franja horària és el 18 de setembre, entre les 9.00 i les 14.00 hores.
+
+
+    Si el retard supera els vuit dies naturals, podrà cancel·lar la compra sense cost
+    o demanar un enviament alternatiu. Guardi aquest avís i el justificant, perquè
+    li estalviaran tràmits si necessita fer una reclamació.'
 prompt:
   id: traduccio_5
   path: data/prompts/v1/traduccio_5.txt
-  sha256: 849e2f189187c0f105d5f0dfe8ade06f428c0943efd1bcd7de72ba2a716fbd7d
+  sha256: af1487949a676806680275298f4324ad21ae64086dc489621374b119f5e85669
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-13T10:06:55.616322Z'

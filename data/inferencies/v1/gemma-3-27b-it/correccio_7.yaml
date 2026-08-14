@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 58f2a270b8fe086366a9e0be65eeb7450be60cfc63828fd38def3a10b7aa3256
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -13,9 +22,9 @@ model:
   revision: main
 output:
   answer: Es lloga pis ampli i lluminós en una zona tranquil·la i ben comunicada.
-    L’habitatge disposa de tres habitacions, dos banys, cuina totalment equipada,
+    L'habitatge disposa de tres habitacions, dos banys, cuina totalment equipada,
     menjador espaiós i un balcó amb bones vistes. El pis també inclou aire condicionat,
-    calefacció, connexió a internet i plaça d’aparcament. Es troba a prop de supermercats,
+    calefacció, connexió a internet i plaça d'aparcament. Es troba a prop de supermercats,
     escoles, transport públic i zones verdes, fet que el converteix en una opció ideal
     tant per a famílies com per a parelles. El pis està preparat per entrar-hi a viure
     immediatament. Si voleu més informació o concertar una visita, podeu contactar
@@ -23,10 +32,10 @@ output:
 prompt:
   id: correccio_7
   path: data/prompts/v1/correccio_7.txt
-  sha256: aeef8404f1d0bb8e8c57c67e1b627fd2b1643bb4551c453c5bc14b21535fdb4b
+  sha256: 58f2a270b8fe086366a9e0be65eeb7450be60cfc63828fd38def3a10b7aa3256
 reasoning:
   content: null
 run:
-  git_commit: 473623282664f292ead96e245e210e767958d403
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
   seed: 42
-  timestamp: '2026-07-29T14:18:16.310191Z'
+  timestamp: '2026-08-12T02:55:11.844655Z'

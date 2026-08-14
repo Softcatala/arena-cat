@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: e9e1504ae8699d7232b1736bb804d68e0172a6bedf8003f2ad1a5e91d7704cbd
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,17 +21,23 @@ model:
   model_name: google/gemma-3-27b-it
   revision: main
 output:
-  answer: Des que surto a córrer pel matí em trobo molt millor, tot i que al principi
-    em va costar agafar el ritme. Ara vaig a la sala de gimnasia tres dies a la setmana
-    per posar-me en forma. La meva entrenadora diu que, si continuo així, en un mes
-    notaré un canvi molt gros.
+  answer: 'Des que surto a córrer pel matí em sento molt millor, encara que al principi
+    em va costar agafar el ritme. Em feia mandra aixecar-me, mirava el rellotge cada
+    dos minuts i tornava a casa pensant que això no era per a mi. Ara vaig a la sala
+    d''entrenament tres dies a la setmana per fer exercici físic, una mica de força
+    i una classe d''estiraments que em deixa com a nou.
+
+
+    La meva entrenadora diu que, si continuo així i no em salto els descansos, en
+    un mes notaré un canvi molt important. Jo no sé si serà tant, però almenys ja
+    no pujo les escales bufant.'
 prompt:
   id: traduccio_10
   path: data/prompts/v1/traduccio_10.txt
-  sha256: 96b6d8d5feffc34444bd31e9b6959d027994b6054b1554135aa3881561a88873
+  sha256: e9e1504ae8699d7232b1736bb804d68e0172a6bedf8003f2ad1a5e91d7704cbd
 reasoning:
   content: null
 run:
-  git_commit: 473623282664f292ead96e245e210e767958d403
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
   seed: 42
-  timestamp: '2026-07-29T14:18:16.310191Z'
+  timestamp: '2026-08-13T10:06:55.616322Z'

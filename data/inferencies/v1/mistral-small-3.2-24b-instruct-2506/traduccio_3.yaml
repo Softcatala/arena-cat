@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: fffbd5058309c207ead837773dc28a9c06ad70f2cfe8796fc63bedfbb0f2786e
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,16 +21,29 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: Un petit poll que volia volar ho va desitjar tant que va convocar totes
-    les mosques del voltant. Des d'aleshores, el poll es va convertir en un magnat
-    del transport aeri.
+  answer: 'Un poll d''aigua amb barret somiava de volar,
+
+    mirava les mosques i començava a sospirar.
+
+    "Si salto molt alt, tocaré el cotó",
+
+    deia molt seriós pujat a un botó.
+
+
+    Però va venir una brisa, el va fer esternudar,
+
+    i va caure en una sopa sense saber nedar.
+
+    Des d''aquell dia viatja, feliç i formal,
+
+    en mosca amb casc i bitllet rural.'
 prompt:
   id: traduccio_3
   path: data/prompts/v1/traduccio_3.txt
-  sha256: cb772cfd8291f63b105b3e2d201aa2a8fe810f58a7e1147ef6234cd93658df47
+  sha256: fffbd5058309c207ead837773dc28a9c06ad70f2cfe8796fc63bedfbb0f2786e
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-13T10:06:55.616322Z'

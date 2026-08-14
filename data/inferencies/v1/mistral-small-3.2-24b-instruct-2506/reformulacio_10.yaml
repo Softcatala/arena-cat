@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: e19385eb7bdecef29a82db0a611c3f1b5d8372854bc9c07eaf53ff61a4b4f514
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,10 +21,10 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: 'Per protegir el teu compte, activa el sistema de doble comprovació: a més
-    de la paraula secreta, el sistema t''enviarà un número secret al teu telèfon.
-    Així, encara que algú aconsegueixi la teva paraula secreta mitjançant enganys,
-    no podrà entrar al compte sense el segon número secret.'
+  answer: 'Per protegir el teu compte, activa una seguretat addicional: a més de la
+    contrasenya, el sistema et enviarà un número secret al teu telèfon mòbil. Així,
+    encara que algú aconsegueixi la teva contrasenya de manera il·lícita, no podrà
+    entrar al teu compte sense aquest número secret.'
 prompt:
   id: reformulacio_10
   path: data/prompts/v1/reformulacio_10.txt
@@ -23,6 +32,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-12T02:55:11.844655Z'

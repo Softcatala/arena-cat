@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,17 +21,35 @@ model:
   model_name: google/gemma-3-27b-it
   revision: main
 output:
-  answer: Hem fet una pluja d'idees per redissenyar l'embalatge i l'opinió del grup
-    de discussió ha estat molt bona. Ara toca fer una informació prèvia amb l'equip
-    de màrqueting, actualitzar la programació i decidir el moment del llançament en
-    línia. Si tot va bé, farem una transmissió en directe de l'esdeveniment. Endavant!
+  answer: '**(Música d''ambientació: soroll de mercat lleuger)**
+
+
+    **Narrador:** Dissabte, el mercat municipal torna a la vida després de sis llargues
+    setmanes. Una reforma integral ha canviat la cara del lloc.
+
+
+    **Veu 1 (Venedor de peix):** Tornem al passadís central, com sempre! La teulada
+    nova ens donarà un respir, i amb les cambres frigorífiques, el peix fresquíssim,
+    garantit.
+
+
+    **Veu 2 (Venedora de fruita):** I nosaltres també! A punt per omplir de colors
+    i sabors les vostres taules. Però compte, la fleca està provisionalment a un altre
+    lloc, fins al novembre.
+
+
+    **Narrador:** A les deu del matí, visita guiada i demostració de cuina amb productes
+    de temporada. Una festa per als sentits!
+
+
+    **(Música d''ambientació augmenta i s''esvaneix)**'
 prompt:
   id: reformulacio_6
   path: data/prompts/v1/reformulacio_6.txt
-  sha256: 94675a86fa20a491acefe5241b2d9793c814377930ea9d7529f5f02b23f8f119
+  sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
 reasoning:
   content: null
 run:
-  git_commit: 473623282664f292ead96e245e210e767958d403
+  git_commit: 8d843f41110b01dc6e86118b601d7475b2ae0708
   seed: 42
-  timestamp: '2026-07-29T14:18:16.310191Z'
+  timestamp: '2026-08-12T20:49:12.538695Z'

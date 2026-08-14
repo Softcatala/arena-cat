@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 03f244596842190b3535292c45ad5023f01af2f65f17c64627aa02aa6f1c4862
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,20 +21,20 @@ model:
   model_name: google/gemma-3-27b-it
   revision: main
 output:
-  answer: La felicitat és un estat d’ànim que cada persona viu d’una manera diferent.
+  answer: La felicitat és un estat d'ànim que cada persona viu d'una manera diferent.
     Per a alguns, es troba en els grans moments de la vida, mentre que per a altres
-    s’amaga en els petits gestos quotidians, com compartir una conversa, passejar
-    per la natura o gaudir d’un àpat en família. Tot i que no sempre és possible sentir-se
+    s'amaga en els petits gestos quotidians, com compartir una conversa, passejar
+    per la natura o gaudir d'un àpat en família. Tot i que no sempre és possible sentir-se
     feliç, mantenir una actitud positiva i valorar allò que tenim pot contribuir al
     benestar. La felicitat també està relacionada amb la salut, les relacions personals
     i la possibilitat de desenvolupar els propis somnis i objectius.
 prompt:
   id: correccio_4
   path: data/prompts/v1/correccio_4.txt
-  sha256: 717c2ba892682f2b4da043c9785f4003ab040626c740f8422c742fffec87bb06
+  sha256: 03f244596842190b3535292c45ad5023f01af2f65f17c64627aa02aa6f1c4862
 reasoning:
   content: null
 run:
-  git_commit: 473623282664f292ead96e245e210e767958d403
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
   seed: 42
-  timestamp: '2026-07-29T14:18:16.310191Z'
+  timestamp: '2026-08-12T02:55:11.844655Z'

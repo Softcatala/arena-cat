@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,17 +21,30 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: Hem fet una pluja d'idees per redissenyar l'embalatge i la resposta del
-    grup de discussió ha estat molt bé. Ara toca fer una reunió informativa amb l'equip
-    de màrqueting, actualitzar el calendari i decidir el moment del llançament en
-    línia. Si tot va bé, farem una transmissió en directe de l'esdeveniment. Endavant!
+  answer: '**Narrador:** Dissabte, el mercat municipal reobrirà les portes després
+    de sis setmanes d''obres.
+
+
+    **Veu 1:** Haurà hagut de fer molts canvis, no?
+
+
+    **Narrador:** Sí, han renovat la teulada, els punts de llum i les cambres frigorífiques.
+    Les parades de peix i fruita tornaran al passadís central.
+
+
+    **Veu 2:** I la fleca?
+
+
+    **Narrador:** La fleca ocupará un espai provisional fins al novembre. A les deu
+    del matí, hi haurà una visita guiada per als veïns i una demostració de cuina
+    amb productes de temporada.'
 prompt:
   id: reformulacio_6
   path: data/prompts/v1/reformulacio_6.txt
-  sha256: 94675a86fa20a491acefe5241b2d9793c814377930ea9d7529f5f02b23f8f119
+  sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: 8d843f41110b01dc6e86118b601d7475b2ae0708
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-12T20:49:12.538695Z'

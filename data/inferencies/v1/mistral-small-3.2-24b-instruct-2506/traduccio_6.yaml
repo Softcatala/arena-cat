@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: bf869d1adf44aaad1629ba6cf901ebf64a94b8d7960350b4620d6603277aa06b
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,16 +21,31 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: Quan el cel es posa trist, els seus núvols es omplen d'aigua i ja no poden
-    aguantar més. Després deixen caure les seves gotetes, i això és el que anomenem
-    pluja. Quan acaba, el sol torna a sortir i assecada cada racó amb la seva llum.
+  answer: 'Quan el cel es posa trist, les seves núvols es plenen d''aigua com a butxaques
+    molt carregades.
+
+
+    Primera aguanten un pocet. Després un altre pocet més. Fins que ja no poden amb
+    tantes cosquilles.
+
+
+    Alora obren la mà i deixen caure gotetes sobre els terrats, els clotets i les
+    fulles del parc.
+
+
+    Això ho anomenem pluja. Algunes gotes corren de pressa per les finestres. Altres
+    es queden quietes, mirant el món al revés.
+
+
+    Quan la núvola es queda tranquila, el sol torna a asomar-se i seca cada racó amb
+    una manta de llum.'
 prompt:
   id: traduccio_6
   path: data/prompts/v1/traduccio_6.txt
-  sha256: 6ffdbcf1ed99be1bc9e7a2ee88a5eb4a616069a56ec20d7706d9b25a040a273c
+  sha256: bf869d1adf44aaad1629ba6cf901ebf64a94b8d7960350b4620d6603277aa06b
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-13T10:06:55.616322Z'

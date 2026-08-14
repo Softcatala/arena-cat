@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: b5117c5a7c7b9b56aa0750a29f46ddfdea71fae64696ba8f02e0ebd6436cd902
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.6-27b
+  model_name: Qwen/Qwen3.6-27B
+  revision: main
+output:
+  answer: Finalment, el tren ha arribat a Girona, tot i els vint minuts de retard
+    que ens han fet esperar sota la marquesina mentre la pluja caia suaument. Amb
+    la meva maleta vermella a sota el braç i la carpeta dels documents de matrícula
+    ben protegida, he respirat fondo. L'adreça del pis compartit al barri de Sant
+    Narcís ja la tinc ben clara al cap, però abans de buscar l'autobús, no he pogut
+    evitar trucar a la meva mare per assegurar-li que ho he fet bé. Ara comença la
+    veritable aventura. Demà al matí tinc la primera reunió d'acollida a la facultat,
+    i encara em tremolen una mica les mans, però estic preparada per a aquest nou
+    començament.
+prompt:
+  id: reformulacio_7
+  path: data/prompts/v1/reformulacio_7.txt
+  sha256: b5117c5a7c7b9b56aa0750a29f46ddfdea71fae64696ba8f02e0ebd6436cd902
+reasoning:
+  content: null
+run:
+  git_commit: 8d843f41110b01dc6e86118b601d7475b2ae0708
+  seed: 42
+  timestamp: '2026-08-12T19:32:01.339664Z'

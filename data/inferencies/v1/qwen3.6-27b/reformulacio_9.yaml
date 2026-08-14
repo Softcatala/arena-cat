@@ -1,0 +1,39 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: a39d7a6a7f1372d48f0bd7b5c98d9e0af6a9e276789899df3abf95e10e783692
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.6-27b
+  model_name: Qwen/Qwen3.6-27B
+  revision: main
+output:
+  answer: 'Prepara''t per conquerir els 10 quilòmetres! El 12 d''octubre, la nostra
+    cursa popular et espera amb un recorregut desafiant però accessible a totes les
+    edats. Les places són limitades, així que no dubtis: inscriu-te ara per garantir
+    la teva participació. A més, rebràs una samarreta exclusiva i avituallament complet.
+    És el moment de superar-te, gaudir de l''esport en companyia i viure una experiència
+    única. No deixis passar aquesta oportunitat d''impulsar el teu rendiment.'
+prompt:
+  id: reformulacio_9
+  path: data/prompts/v1/reformulacio_9.txt
+  sha256: a39d7a6a7f1372d48f0bd7b5c98d9e0af6a9e276789899df3abf95e10e783692
+reasoning:
+  content: null
+run:
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
+  seed: 42
+  timestamp: '2026-08-12T02:55:11.844655Z'

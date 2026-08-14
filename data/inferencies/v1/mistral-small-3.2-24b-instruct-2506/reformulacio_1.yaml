@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 96eebac24581fd928fb364bbcf2c7e3ff096a6287eec32cce4daedf05580534c
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,18 +21,18 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: La derivada d’una funció en un punt ens diu com de ràpid canvia la funció
-    en aquell punt. La integral ens ajuda a sumar coses que canvien de manera contínua,
-    com calcular l’àrea sota una corba. La derivació i la integració són com fer i
-    desfer, ja que si integrem una derivada, tornem a tenir la funció original, i
-    si derivem una integral, recuperem la funció que havíem integrat.
+  answer: 'La derivada d''una funció en un punt ens diu com canvia la funció en aquell
+    moment. La integral ens diu com s''acumula una cosa de manera contínua, com si
+    fos el total d''una quantitat sota una línia corba. La derivada i la integral
+    són com un botó de desfer: si fas una cosa i després l''altra, torni a la funció
+    original.'
 prompt:
   id: reformulacio_1
   path: data/prompts/v1/reformulacio_1.txt
-  sha256: a475be935d013a21aea71c9a09fa440340d92297c722010787fba15f0554df3c
+  sha256: 96eebac24581fd928fb364bbcf2c7e3ff096a6287eec32cce4daedf05580534c
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-12T02:55:11.844655Z'

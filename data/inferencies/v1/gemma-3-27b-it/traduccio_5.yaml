@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: af1487949a676806680275298f4324ad21ae64086dc489621374b119f5e85669
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,17 +21,25 @@ model:
   model_name: google/gemma-3-27b-it
   revision: main
 output:
-  answer: Per la present, li informem que la seua comanda patirà una demora en l'entrega
-    a causa de problemes logístics. Si el retard s'allargara més d'huit dies, tindrà
-    dret a cancel·lar la seua comanda sense cap cost, conforme al que s'estableix
-    en les nostres Condicions Generals de Venda.
+  answer: 'Benvolgut client:
+
+
+    La seua comanda VX-48291 arribarà més tard del previst perquè un camió ha quedat
+    retingut en el nostre centre de Riba-roja i ha desarticulat tota la ruta de repartiment.
+    La nova franja horària de recepció és el 18 de setembre, entre les 9.00 i les
+    14.00 hores.
+
+
+    Si el retard supera els huit dies naturals, podrà cancel·lar la compra sense cost
+    o sol·licitar un enviament alternatiu. Conserve este avís i el justificant, perquè
+    li estalviaran tràmits si necessita fer una reclamació.'
 prompt:
   id: traduccio_5
   path: data/prompts/v1/traduccio_5.txt
-  sha256: 849e2f189187c0f105d5f0dfe8ade06f428c0943efd1bcd7de72ba2a716fbd7d
+  sha256: af1487949a676806680275298f4324ad21ae64086dc489621374b119f5e85669
 reasoning:
   content: null
 run:
-  git_commit: 473623282664f292ead96e245e210e767958d403
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
   seed: 42
-  timestamp: '2026-07-29T14:18:16.310191Z'
+  timestamp: '2026-08-13T10:06:55.616322Z'

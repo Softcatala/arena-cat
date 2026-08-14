@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,17 +21,23 @@ model:
   model_name: google/gemma-3-27b-it
   revision: main
 output:
-  answer: Quan arriba la nit, la nina s'embolica amb el pijama que més li agrada i
-    se'n va al llit amb el seu osset de peluix. Des de la finestra es veu el cel ple
-    d'estrelles i una d'elles li fa una cançó de bressol molt, molt baixeta, perquè
-    pugui dormir bé.
+  answer: 'Quan arriba la nit, la nina plega la roba damunt la cadira, es posa el
+    pijama que més li agrada i es fica al llit amb l’ós de peluix que ja té una orella
+    una mica tombada. La mare deixa la porta entreoberta perquè entri una estelleta
+    de llum del passadís, i la casa comença a parlar en veu baixa: cruix una fusta,
+    sospira una finestra, s’apaga l’últim aixeta.
+
+
+    Des de l’habitació es veu el cel ple d’estrelles. Una d’elles, la més petita,
+    li canta una cançó de bressol amb una veu molt suau, tan suau que només l’escolten
+    els qui ja estan a punt de somiar.'
 prompt:
   id: traduccio_9
   path: data/prompts/v1/traduccio_9.txt
-  sha256: cb3dad80ad7aa20f879d72a0e9a00a56e748ef033d6c002f5d901556de6e8066
+  sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
 reasoning:
   content: null
 run:
-  git_commit: 473623282664f292ead96e245e210e767958d403
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
   seed: 42
-  timestamp: '2026-07-29T14:18:16.310191Z'
+  timestamp: '2026-08-13T10:06:55.616322Z'

@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 96eebac24581fd928fb364bbcf2c7e3ff096a6287eec32cce4daedf05580534c
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -12,18 +21,18 @@ model:
   model_name: google/gemma-3-27b-it
   revision: main
 output:
-  answer: 'Imagina que dibuixes una línia que puja o baixa. La derivada diu com de
-    ràpid puja o baixa la línia en un punt concret. La integral, en canvi, calcula
-    l''àrea que hi ha sota la línia. Són operacions contràries: si primer calcules
-    com puja o baixa i després l''àrea, i tornes a calcular com puja o baixa, tornes
-    a la línia original.'
+  answer: 'Imagina que tens un cotxe. La derivada ens diu a quina velocitat va el
+    cotxe en un moment concret. La integral ens diu quina distància ha recorregut
+    el cotxe fent sumes de petits trajectes. Derivar i integrar són operacions contràries:
+    si saps la velocitat i derives, trobes el moviment. Si saps el moviment i integres,
+    trobes la velocitat.'
 prompt:
   id: reformulacio_1
   path: data/prompts/v1/reformulacio_1.txt
-  sha256: a475be935d013a21aea71c9a09fa440340d92297c722010787fba15f0554df3c
+  sha256: 96eebac24581fd928fb364bbcf2c7e3ff096a6287eec32cce4daedf05580534c
 reasoning:
   content: null
 run:
-  git_commit: 473623282664f292ead96e245e210e767958d403
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
   seed: 42
-  timestamp: '2026-07-29T14:18:16.310191Z'
+  timestamp: '2026-08-12T02:55:11.844655Z'

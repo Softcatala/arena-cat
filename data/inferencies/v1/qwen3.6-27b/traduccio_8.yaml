@@ -1,0 +1,46 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: c363cffe25cc6980213ee5d8e2f882131b4c98097b9f1a7f52dcecbe1cda1394
+generation:
+  max_new_tokens: 1024
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.6-27b
+  model_name: Qwen/Qwen3.6-27B
+  revision: main
+output:
+  answer: '- L’entrada és a partir de les 16.00; si arribeu abans, aviseu-nos i veurem
+    si la casa ja està llesta.
+
+    - Tanqueu la barrera del jardí a la nit: el vent d’aquí no demana permís.
+
+    - No moveu la taula gran de la terrassa; pesa una barbaritat i després ningú se’n
+    recorda de com estava.
+
+    - A partir de les 23.00, baixeu la música. Els veïns es lleven d’hora i tenen
+    més memòria que son.
+
+    - Si trencueu alguna cosa, digueu-ho sense apressament. És millor arreglar-ho
+    a temps que trobar la sorpresa el dilluns.'
+prompt:
+  id: traduccio_8
+  path: data/prompts/v1/traduccio_8.txt
+  sha256: c363cffe25cc6980213ee5d8e2f882131b4c98097b9f1a7f52dcecbe1cda1394
+reasoning:
+  content: null
+run:
+  git_commit: f8b4559fd8115c68e6e41fdf571e74f9af86af8a
+  seed: 42
+  timestamp: '2026-08-13T10:06:55.616322Z'

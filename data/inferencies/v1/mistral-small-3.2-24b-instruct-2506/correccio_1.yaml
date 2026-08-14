@@ -2,6 +2,15 @@ backend:
   engine: transformers
   torch_version: 2.12.1+cu130
   transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 2f73c5b383fea2339d370bb77a9d70ede85b4b453bbe8c020165264670902c45
 generation:
   max_new_tokens: 1024
   seed: 42
@@ -13,8 +22,8 @@ model:
   revision: main
 output:
   answer: Les platges són espais naturals molt apreciats tant pels habitants com pels
-    visitants. Durant l’estiu, moltes persones hi van per prendre el sol, banyar-se
-    o practicar esports aquàtics. A més de ser llocs d’oci, també tenen un gran valor
+    visitants. Durant l'estiu, moltes persones hi van per prendre el sol, banyar-se
+    o practicar esports aquàtics. A més de ser llocs d'oci, també tenen un gran valor
     ecològic, ja que acullen diverses espècies de flora i fauna. És important mantenir-les
     netes i respectar el seu entorn per preservar-ne la bellesa i la biodiversitat.
     Passejar per la vora del mar, escoltar el so de les onades i sentir la brisa marina
@@ -22,10 +31,10 @@ output:
 prompt:
   id: correccio_1
   path: data/prompts/v1/correccio_1.txt
-  sha256: a66291e58a74069e540b219ae3f2d5a8834d04a738a3f32f7d1f6f5caaec7171
+  sha256: 2f73c5b383fea2339d370bb77a9d70ede85b4b453bbe8c020165264670902c45
 reasoning:
   content: null
 run:
-  git_commit: 8aa837b7d502ad9855004a224f931c76bc7230bd
+  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
   seed: 42
-  timestamp: '2026-08-09T19:56:35.236019Z'
+  timestamp: '2026-08-12T02:55:11.844655Z'
