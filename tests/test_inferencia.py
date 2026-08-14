@@ -114,6 +114,24 @@ class TestInferencia(unittest.TestCase):
 
         self.assertEqual(args.log_level, "WARNING")
 
+    def test_parse_args_accepts_prompt_and_model_filters(self):
+        with patch(
+            "sys.argv",
+            [
+                "inferencia.py",
+                "--prompt-prefix",
+                "traduccio_",
+                "--model-id",
+                "qwen3.6-27b",
+                "--model-id",
+                "gemma-3-27b-it",
+            ],
+        ):
+            args = inferencia.parse_args()
+
+        self.assertEqual(args.prompt_prefix, "traduccio_")
+        self.assertEqual(args.model_id, ["qwen3.6-27b", "gemma-3-27b-it"])
+
     def test_parse_args_accepts_force(self):
         with patch("sys.argv", ["inferencia.py", "--force"]):
             args = inferencia.parse_args()

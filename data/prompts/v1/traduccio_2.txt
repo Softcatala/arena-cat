@@ -1,3 +1,8 @@
-Tradueix aquest text al català central, seguint la normativa de l'IEC (Institut d'Estudis Catalans), en un registre jurídic i formal, com el que trobaries en una notificació d'una comunitat de propietaris.
+Tradueix al català central normatiu aquests subtítols d'un vídeo curt. Mantén la numeració i fes que cada línia tingui com a màxim 34 caràcters, amb un to oral i humorístic. No afegeixis notes ni explicacions: escriu només la traducció.
 
-Se comunica a todos los propietarios que, en la reunión celebrada el día 14 de mayo, la comunidad acordó por mayoría simple aprobar la derrama extraordinaria para la reparación de la fachada. Si no se abona el importe en el tiempo convenido, se procederá conforme a la normativa de propiedad horizontal vigente.
+1. Vale, respirad: no hemos perdido el tren.
+2. Lo hemos dejado escapar con elegancia.
+3. El plan B era tomar un café, ¿no?
+4. El plan B era estar ya en Girona.
+5. Pues el café será en la estación.
+6. Y la dignidad, si aparece, que nos llame.

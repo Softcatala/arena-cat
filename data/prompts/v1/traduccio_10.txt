@@ -1,3 +1,5 @@
-Tradueix aquest text al català central, seguint la normativa de l'IEC (Institut d'Estudis Catalans), en un registre col·loquial, sense utilitzar cap anglicisme.
+Tradueix al català central normatiu aquest text col·loquial substituint els anglicismes per alternatives genuïnes. No facis servir "footing", "gym", "fitness" ni "brutal". Mantén el to de conversa. No afegeixis notes ni explicacions: escriu només la traducció.
 
-Desde que hago footing por las mañanas me siento mucho mejor, aunque al principio me costó coger el ritmo. Ahora voy al gym tres días a la semana para hacer fitness. Mi entrenadora dice que, si sigo así, en un mes notaré un cambio brutal.
+Desde que salgo a correr por las mañanas me siento mucho mejor, aunque al principio me costó coger el ritmo. Me daba pereza levantarme, miraba el reloj cada dos minutos y volvía a casa pensando que aquello no era para mí. Ahora voy al gym tres días a la semana para hacer fitness, algo de fuerza y una clase de estiramientos que me deja como nuevo.
+
+Mi entrenadora dice que, si sigo así y no me salto los descansos, en un mes notaré un cambio brutal. Yo no sé si será para tanto, pero al menos ya no subo las escaleras resoplando.

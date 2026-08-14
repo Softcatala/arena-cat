@@ -15,7 +15,8 @@ CAP PROMPT ANALITZAT
 {% else -%}
 RESUM DE VALIDESA PER CATEGORIA
 {{ '-' * 80 }}
-Invàlid = combinat pitjor < {{ '%.2f' | format(recommended_threshold) }}
+Invàlid = puntuació de validació < {{ '%.2f' | format(recommended_threshold) }}
+Validació: traduccio usa combinat mitjà; la resta usa combinat pitjor.
 {{ '%-16s%7s%9s%10s%10s%12s' | format('categoria', 'total', 'vàlids', 'invàlids', '% vàlids', '% invàlids') }}
 {%- for row in category_summary %}
 {{ '%-16s%7d%9d%10d%9.1f%%%11.1f%%' | format(row.category, row.total, row.valid, row.invalid, row.valid_pct, row.invalid_pct) }}

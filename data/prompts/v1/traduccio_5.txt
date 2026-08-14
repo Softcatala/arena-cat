@@ -1,3 +1,7 @@
-Tradueix aquest text al valencià, seguint la normativa de l'AVL (Acadèmia Valenciana de la Llengua), en un registre jurídic i formal, com el que trobaries en una notificació d'una empresa de missatgeria.
+Tradueix al valencià normatiu de l'AVL aquest avís d'una empresa de missatgeria. Conserva el codi de comanda i les hores. Evita les formes "per la present", "entrega" i "conforme a"; tria alternatives naturals i clares. No afegeixis notes ni explicacions: escriu només la traducció.
 
-Por la presente, le informamos de que su pedido sufrirá una demora en la entrega debido a problemas logísticos. Si el retraso se prolongase más de ocho días, usted tendrá derecho a cancelar su pedido sin coste alguno, conforme a lo establecido en nuestras Condiciones Generales de Venta.
+Estimado cliente:
+
+Su pedido VX-48291 llegará más tarde de lo previsto porque un camión quedó retenido en nuestro centro de Riba-roja y descolocó toda la ruta de reparto. La nueva franja de entrega es el 18 de septiembre, entre las 9.00 y las 14.00 horas.
+
+Si el retraso supera los ocho días naturales, podrá cancelar la compra sin coste o pedir un envío alternativo. Guarde este aviso y el justificante, porque le ahorrarán vueltas si necesita hacer una reclamación.

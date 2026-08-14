@@ -737,6 +737,8 @@ class InferencePipeline:
         root: Path = REPO_ROOT,
         config_path: str | Path = DEFAULT_INFERENCIA_CONFIG,
         device_map: str | None = None,
+        prompt_prefix: str | None = None,
+        model_ids: set[str] | None = None,
         tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
         model_loader: Loader = AutoModelForCausalLM.from_pretrained,
         only_changed: bool = True,
@@ -747,6 +749,8 @@ class InferencePipeline:
             root: Arrel del repositori.
             config_path: Fitxer YAML de configuració.
             device_map: Valor opcional per sobreescriure el ``device_map``.
+            prompt_prefix: Prefix opcional per limitar els prompts executats.
+            model_ids: Identificadors opcionals per limitar els models executats.
             tokenizer_loader: Funció injectable per carregar tokenitzadors.
             model_loader: Funció injectable per carregar models.
             only_changed: Si és cert, només executa inferències absents o obsoletes.
@@ -754,6 +758,8 @@ class InferencePipeline:
         self.root = root
         self.config_path = config_path
         self.device_map = device_map
+        self.prompt_prefix = prompt_prefix
+        self.model_ids = model_ids
         self.tokenizer_loader = tokenizer_loader
         self.model_loader = model_loader
         self.only_changed = only_changed
@@ -781,6 +787,12 @@ class InferencePipeline:
             discover_prompt_files(global_config, root=self.root),
             root=self.root,
         )
+        if self.prompt_prefix:
+            prompt_list = [
+                prompt
+                for prompt in prompt_list
+                if prompt["id"].startswith(self.prompt_prefix)
+            ]
         if len(prompt_list) == 0:
             LOGGER.error("No s'han trobat prompts")
             return
@@ -789,6 +801,9 @@ class InferencePipeline:
 
         avg_times: dict[str, float] = {}
         for model_entry in config["models"]:
+            if self.model_ids and model_entry["id"] not in self.model_ids:
+                LOGGER.info("S'omet el model %s pel filtre de models", model_entry["id"])
+                continue
             avg_time = run_model(
                 model_entry,
                 prompt_list,
@@ -814,6 +829,8 @@ def run_pipeline(
     root: Path = REPO_ROOT,
     config_path: str | Path = DEFAULT_INFERENCIA_CONFIG,
     device_map: str | None = None,
+    prompt_prefix: str | None = None,
+    model_ids: set[str] | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
     only_changed: bool = True,
@@ -825,6 +842,8 @@ def run_pipeline(
         config_path: Fitxer YAML de configuració.
         device_map: Valor opcional per sobreescriure el ``device_map`` dels
             models configurats.
+        prompt_prefix: Prefix opcional per limitar els prompts executats.
+        model_ids: Identificadors opcionals per limitar els models executats.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
         only_changed: Si és cert, només executa inferències absents o obsoletes.
@@ -833,6 +852,8 @@ def run_pipeline(
         root=root,
         config_path=config_path,
         device_map=device_map,
+        prompt_prefix=prompt_prefix,
+        model_ids=model_ids,
         tokenizer_loader=tokenizer_loader,
         model_loader=model_loader,
         only_changed=only_changed,
@@ -863,6 +884,15 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--prompt-prefix",
+        help="Executa només els prompts amb aquest prefix d'identificador.",
+    )
+    parser.add_argument(
+        "--model-id",
+        action="append",
+        help="Executa només aquest model. Es pot repetir.",
+    )
+    parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),
         default="INFO",
@@ -886,6 +916,8 @@ def main() -> None:
     run_pipeline(
         config_path=args.config,
         device_map=args.device_map,
+        prompt_prefix=args.prompt_prefix,
+        model_ids=set(args.model_id) if args.model_id else None,
         only_changed=not args.force,
     )
 

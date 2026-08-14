@@ -1,3 +1,7 @@
-Tradueix aquest text al català central, seguint la normativa de l'IEC (Institut d'Estudis Catalans), en un registre molt col·loquial, tractament de "tu", com si li ho expliquessis a un amic per WhatsApp.
+Tradueix al català central normatiu aquest fil de WhatsApp. Mantén les intervencions i els salts de línia. Substitueix les frases fetes castellanes per frases fetes catalanes naturals, sense traduccions literals. No afegeixis notes ni explicacions: escriu només la traducció.
 
-Llevo tres días pidiéndole a mi padre que llame a la compañía porque el internet va lentísimo. Él dice que ya lo ha hecho, pero yo lo dudo bastante, la verdad, porque ayer se me colgó hasta el grupo de clase tres veces. Si esto sigue así, me planto en la tienda y arrastro yo misma al técnico.
+MARTA: Llevo tres días diciéndole a mi padre que llame a la compañía, porque el wifi va a pedales.
+NIL: ¿Otra vez? Si la semana pasada dijiste que ya lo habían arreglado.
+MARTA: Eso dijo él, pero no me lo trago. Ayer se me cayó la videollamada de clase dos veces y luego el grupo empezó a mandarme memes como si fuese culpa mía.
+NIL: Igual es el router, que está más viejo que el hilo negro.
+MARTA: Pues como esto siga así, mañana me planto en la tienda. Y si hace falta, traigo al técnico de la oreja.
