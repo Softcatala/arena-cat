@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import yaml
 
@@ -106,15 +106,37 @@ class TestInferencia(unittest.TestCase):
         ):
             args = inferencia.parse_args()
 
-        self.assertEqual(
-            args.config, "config/inferencia/inferencia_local_config.yaml"
-        )
+        self.assertEqual(args.config, "config/inferencia/inferencia_local_config.yaml")
 
     def test_parse_args_accepts_log_level(self):
         with patch("sys.argv", ["inferencia.py", "--log-level", "WARNING"]):
             args = inferencia.parse_args()
 
         self.assertEqual(args.log_level, "WARNING")
+
+    def test_parse_args_accepts_prompt_and_model_filters(self):
+        with patch(
+            "sys.argv",
+            [
+                "inferencia.py",
+                "--prompt-prefix",
+                "traduccio_",
+                "--model-id",
+                "qwen3.6-27b",
+                "--model-id",
+                "gemma-3-27b-it",
+            ],
+        ):
+            args = inferencia.parse_args()
+
+        self.assertEqual(args.prompt_prefix, "traduccio_")
+        self.assertEqual(args.model_id, ["qwen3.6-27b", "gemma-3-27b-it"])
+
+    def test_parse_args_accepts_force(self):
+        with patch("sys.argv", ["inferencia.py", "--force"]):
+            args = inferencia.parse_args()
+
+        self.assertTrue(args.force)
 
     def test_load_prompts_reads_txt_files_with_stem_as_id(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -138,9 +160,7 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(
             prompts[0]["text"], "Un prompt amb : dos punts al final:\n\nCos."
         )
-        self.assertEqual(
-            prompts[0]["_path_origen"], "data/prompts/v1/traduccio_1.txt"
-        )
+        self.assertEqual(prompts[0]["_path_origen"], "data/prompts/v1/traduccio_1.txt")
 
     def test_get_dtype_accepts_supported_types(self):
         self.assertIs(inferencia.get_dtype("float16"), inferencia.torch.float16)
@@ -228,7 +248,9 @@ class TestInferencia(unittest.TestCase):
             "backend": "mistral_common",
         }
 
-        with patch.object(inferencia, "load_mistral3_model", return_value="MODEL") as loader:
+        with patch.object(
+            inferencia, "load_mistral3_model", return_value="MODEL"
+        ) as loader:
             model = inferencia.load_model(entry_model, hf_token="hf_test")
 
         self.assertEqual(model, "MODEL")
@@ -288,9 +310,7 @@ class TestInferencia(unittest.TestCase):
             "top_p": 0.9,
         }
 
-        text = inferencia.generate_text(
-            tokenizer, model, "Usuari", generation_params
-        )
+        text = inferencia.generate_text(tokenizer, model, "Usuari", generation_params)
 
         self.assertEqual(text, "Resposta final")
         self.assertEqual(tokenizer.formatted_prompt, "PROMPT")
@@ -308,7 +328,9 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(model.generate_kwargs["max_new_tokens"], 12)
         self.assertEqual(tokenizer.decode_args, ([7, 8], True))
 
-    def test_generate_text_passes_sampling_parameters_when_temperature_is_positive(self):
+    def test_generate_text_passes_sampling_parameters_when_temperature_is_positive(
+        self,
+    ):
         tokenizer = FakeTokenizer()
         model = FakeModel()
         generation_params = {
@@ -385,10 +407,12 @@ class TestInferencia(unittest.TestCase):
             "models": [{"id": "model-id", "model_name": "org/model"}],
         }
 
-        with patch.object(inferencia, "load_config", return_value=config), \
-             patch.object(inferencia, "discover_prompt_files", return_value=[]), \
-             patch.object(inferencia, "run_model") as run_model, \
-             patch.object(inferencia.LOGGER, "error") as log_error:
+        with (
+            patch.object(inferencia, "load_config", return_value=config),
+            patch.object(inferencia, "discover_prompt_files", return_value=[]),
+            patch.object(inferencia, "run_model") as run_model,
+            patch.object(inferencia.LOGGER, "error") as log_error,
+        ):
             inferencia.run_pipeline(root=Path("/tmp/no-prompts"))
 
         run_model.assert_not_called()
@@ -430,9 +454,13 @@ class TestInferencia(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with patch.object(inferencia, "get_git_commit", return_value="git123"), \
-                 patch.object(inferencia, "timestamp_utc", return_value="2026-06-20T10:00:00Z"), \
-                 patch.object(inferencia.LOGGER, "info"):
+            with (
+                patch.object(inferencia, "get_git_commit", return_value="git123"),
+                patch.object(
+                    inferencia, "timestamp_utc", return_value="2026-06-20T10:00:00Z"
+                ),
+                patch.object(inferencia.LOGGER, "info"),
+            ):
                 inferencia.run_pipeline(
                     root=root,
                     device_map="cpu",
@@ -440,12 +468,44 @@ class TestInferencia(unittest.TestCase):
                     model_loader=lambda *args, **kwargs: FakeModel(),
                 )
 
-            output_path = root / "data" / "inferencies" / "v1" / "fake-model" / "prompt.yaml"
+            output_path = (
+                root / "data" / "inferencies" / "v1" / "fake-model" / "prompt.yaml"
+            )
             resultat = yaml.safe_load(output_path.read_text(encoding="utf-8"))
 
         self.assertEqual(resultat["output"]["answer"], "Resposta final")
         self.assertEqual(resultat["run"]["git_commit"], "git123")
         self.assertEqual(resultat["model"]["model_name"], "org/fake-model")
+        self.assertEqual(
+            resultat["fingerprint"]["prompt_sha256"],
+            inferencia.calculate_sha256("Digues hola"),
+        )
+        self.assertEqual(
+            resultat["fingerprint"]["generation"]["system_prompt"], "Sistema"
+        )
+
+    def test_run_model_skips_current_inference_by_default(self):
+        tokenizer_loader = Mock()
+        model_loader = Mock()
+
+        with (
+            patch.object(inferencia, "is_inference_current", return_value=True),
+            patch.object(inferencia.LOGGER, "info"),
+        ):
+            avg_time = inferencia.run_model(
+                {"id": "fake-model", "model_name": "org/fake-model"},
+                [{"id": "prompt"}],
+                {},
+                {},
+                {},
+                root=Path("unused"),
+                tokenizer_loader=tokenizer_loader,
+                model_loader=model_loader,
+            )
+
+        self.assertIsNone(avg_time)
+        tokenizer_loader.assert_not_called()
+        model_loader.assert_not_called()
 
 
 if __name__ == "__main__":

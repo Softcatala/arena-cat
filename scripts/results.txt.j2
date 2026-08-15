@@ -10,11 +10,23 @@ Mètriques (0 = idèntiques, 1 = totalment diferents):
 
 Rang 0 = prompt MÉS DISCRIMINANT (sortides més divergents entre models).
 
+{% if not entries -%}
+CAP PROMPT ANALITZAT
+{% else -%}
+RESUM DE VALIDESA PER CATEGORIA
+{{ '-' * 80 }}
+Invàlid = puntuació de validació < {{ '%.2f' | format(recommended_threshold) }}
+Validació: traduccio usa combinat mitjà; la resta usa combinat pitjor.
+{{ '%-16s%7s%9s%10s%10s%12s' | format('categoria', 'total', 'vàlids', 'invàlids', '% vàlids', '% invàlids') }}
+{%- for row in category_summary %}
+{{ '%-16s%7d%9d%10d%9.1f%%%11.1f%%' | format(row.category, row.total, row.valid, row.invalid, row.valid_pct, row.invalid_pct) }}
+{%- endfor %}
+
 RESUM DE RANGS
 {{ '-' * 80 }}
-{{ '%-6s%-35s%-16s%-14s%s' | format('rang', 'prompt', 'chrF_d mitjà', 'edit mitjà', 'combinat') }}
+{{ '%-6s%-35s%-16s%-14s%-16s%s' | format('rang', 'prompt', 'chrF_d mitjà', 'edit mitjà', 'combinat mitjà', 'combinat pitjor') }}
 {%- for e in entries %}
-{{ '%-6d%-35s%-16.3f%-14.3f%.4f' | format(loop.index0, e.prompt_id, e.metrics.chrf_dist_mean, e.metrics.edit_mean, e.metrics.combinat_mean) }}
+{{ '%-6d%-35s%-16.3f%-14.3f%-16.4f%.4f' | format(loop.index0, e.prompt_id, e.metrics.chrf_dist_mean, e.metrics.edit_mean, e.metrics.combinat_mean, e.metrics.combinat_worst) }}
 {%- endfor %}
 
 {% for e in entries -%}
@@ -46,3 +58,4 @@ Puntuació (combinat mitjà, més alt = més divergent): {{ '%.4f' | format(e.me
 {%- if not loop.last %}
 {% endif %}
 {%- endfor %}
+{% endif -%}

@@ -191,11 +191,7 @@ def get_model_name(model_entry: ConfigDict) -> str:
     Returns:
         Nom del model compatible amb Hugging Face.
     """
-    return (
-        model_entry["name"]
-        if "name" in model_entry
-        else model_entry["model_name"]
-    )
+    return model_entry["name"] if "name" in model_entry else model_entry["model_name"]
 
 
 def get_dtype(torch_dtype: str) -> Any:
@@ -218,9 +214,7 @@ def get_dtype(torch_dtype: str) -> Any:
 
     if torch_dtype not in dtype_map:
         options = ", ".join(sorted(dtype_map))
-        raise ValueError(
-            f"torch_dtype no suportat: {torch_dtype}. Opcions: {options}"
-        )
+        raise ValueError(f"torch_dtype no suportat: {torch_dtype}. Opcions: {options}")
 
     return dtype_map[torch_dtype]
 
@@ -279,9 +273,7 @@ def load_model(
 
     quantization = model_entry.get("quantization")
     if quantization == "4bit":
-        if isinstance(device_map, dict) and {"cpu", "disk"} & set(
-            device_map.values()
-        ):
+        if isinstance(device_map, dict) and {"cpu", "disk"} & set(device_map.values()):
             raise ValueError(
                 "4bit no suporta offload a CPU/disc en aquesta configuracio. "
                 "Usa device_map: {'': 0}."
@@ -336,9 +328,7 @@ def release_model(model: Any, tokenizer: Any) -> None:
 
 
 # Generació
-def build_messages(
-    prompt_text: str, generation_params: ConfigDict
-) -> list[ConfigDict]:
+def build_messages(prompt_text: str, generation_params: ConfigDict) -> list[ConfigDict]:
     """Construeix els missatges de xat.
 
     Args:
@@ -532,6 +522,7 @@ def build_result(
             "max_new_tokens": generation_params["max_new_tokens"],
             "seed": global_config["seed"],
         },
+        "fingerprint": build_fingerprint(prompt, generation_params),
         "backend": {
             "engine": global_config["backend_preferit"],
             "transformers_version": str(transformers.__version__),
@@ -544,6 +535,40 @@ def build_result(
             "content": reasoning,
         },
     }
+
+
+def build_fingerprint(
+    prompt: Prompt,
+    generation_params: ConfigDict,
+) -> ConfigDict:
+    """Construeix el fingerprint que determina si cal regenerar."""
+    return {
+        "prompt_sha256": calculate_sha256(prompt["text"]),
+        "generation": generation_params,
+    }
+
+
+def is_inference_current(
+    prompt: Prompt,
+    generation_params: ConfigDict,
+    output_dir: Path,
+) -> bool:
+    """Comprova si la inferència existent correspon al prompt actual."""
+    inference_file = output_dir / f"{prompt['id']}.yaml"
+    if not inference_file.exists():
+        return False
+
+    try:
+        current_inference = yaml.safe_load(inference_file.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return False
+
+    if not isinstance(current_inference, dict):
+        return False
+
+    return current_inference.get("fingerprint") == build_fingerprint(
+        prompt, generation_params
+    )
 
 
 def save_result(
@@ -597,9 +622,7 @@ def run_prompt(
     Returns:
         Resultat serialitzable del prompt.
     """
-    generated_text = generate_text(
-        tokenizer, model, prompt["text"], generation_params
-    )
+    generated_text = generate_text(tokenizer, model, prompt["text"], generation_params)
     return build_result(
         prompt,
         model_entry,
@@ -621,6 +644,7 @@ def run_model(
     hf_token: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
+    only_changed: bool = True,
 ) -> float | None:
     """Executa tots els prompts per a un model configurat.
 
@@ -634,6 +658,7 @@ def run_model(
         hf_token: Token de Hugging Face, si n'hi ha.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
+        only_changed: Si és cert, només executa inferències absents o obsoletes.
 
     Returns:
         Temps mitjà d'inferència per prompt en segons, o ``None`` si no s'ha
@@ -641,6 +666,21 @@ def run_model(
     """
     model_id = model_entry["id"]
     model_name = get_model_name(model_entry)
+    output_dir = (
+        resolve_config_dir(global_config, "dir_sortida", "data/inferencies/v1", root)
+        / model_id
+    )
+    if only_changed:
+        prompt_list = [
+            prompt
+            for prompt in prompt_list
+            if not is_inference_current(prompt, generation_params, output_dir)
+        ]
+
+    if not prompt_list:
+        LOGGER.info("No hi ha prompts pendents per al model %s", model_id)
+        return None
+
     LOGGER.info("Carregant model: %s (%s)", model_id, model_name)
 
     tokenizer = load_tokenizer(
@@ -652,12 +692,6 @@ def run_model(
         model_entry,
         hf_token=hf_token,
         model_loader=model_loader,
-    )
-    output_dir = (
-        resolve_config_dir(
-            global_config, "dir_sortida", "data/inferencies/v1", root
-        )
-        / model_id
     )
 
     inference_times: list[float] = []
@@ -695,6 +729,7 @@ class InferencePipeline:
             models configurats.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
+        only_changed: Si és cert, només executa inferències absents o obsoletes.
     """
 
     def __init__(
@@ -702,8 +737,11 @@ class InferencePipeline:
         root: Path = REPO_ROOT,
         config_path: str | Path = DEFAULT_INFERENCIA_CONFIG,
         device_map: str | None = None,
+        prompt_prefix: str | None = None,
+        model_ids: set[str] | None = None,
         tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
         model_loader: Loader = AutoModelForCausalLM.from_pretrained,
+        only_changed: bool = True,
     ) -> None:
         """Inicialitza la canonada d'inferència.
 
@@ -711,14 +749,20 @@ class InferencePipeline:
             root: Arrel del repositori.
             config_path: Fitxer YAML de configuració.
             device_map: Valor opcional per sobreescriure el ``device_map``.
+            prompt_prefix: Prefix opcional per limitar els prompts executats.
+            model_ids: Identificadors opcionals per limitar els models executats.
             tokenizer_loader: Funció injectable per carregar tokenitzadors.
             model_loader: Funció injectable per carregar models.
+            only_changed: Si és cert, només executa inferències absents o obsoletes.
         """
         self.root = root
         self.config_path = config_path
         self.device_map = device_map
+        self.prompt_prefix = prompt_prefix
+        self.model_ids = model_ids
         self.tokenizer_loader = tokenizer_loader
         self.model_loader = model_loader
+        self.only_changed = only_changed
 
     def run(self) -> None:
         """Executa la canonada d'inferència.
@@ -743,6 +787,12 @@ class InferencePipeline:
             discover_prompt_files(global_config, root=self.root),
             root=self.root,
         )
+        if self.prompt_prefix:
+            prompt_list = [
+                prompt
+                for prompt in prompt_list
+                if prompt["id"].startswith(self.prompt_prefix)
+            ]
         if len(prompt_list) == 0:
             LOGGER.error("No s'han trobat prompts")
             return
@@ -751,6 +801,9 @@ class InferencePipeline:
 
         avg_times: dict[str, float] = {}
         for model_entry in config["models"]:
+            if self.model_ids and model_entry["id"] not in self.model_ids:
+                LOGGER.info("S'omet el model %s pel filtre de models", model_entry["id"])
+                continue
             avg_time = run_model(
                 model_entry,
                 prompt_list,
@@ -761,6 +814,7 @@ class InferencePipeline:
                 hf_token=hf_token,
                 tokenizer_loader=self.tokenizer_loader,
                 model_loader=self.model_loader,
+                only_changed=self.only_changed,
             )
             if avg_time is not None:
                 avg_times[model_entry["id"]] = avg_time
@@ -775,8 +829,11 @@ def run_pipeline(
     root: Path = REPO_ROOT,
     config_path: str | Path = DEFAULT_INFERENCIA_CONFIG,
     device_map: str | None = None,
+    prompt_prefix: str | None = None,
+    model_ids: set[str] | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
     model_loader: Loader = AutoModelForCausalLM.from_pretrained,
+    only_changed: bool = True,
 ) -> None:
     """Executa la canonada completa d'inferència.
 
@@ -785,15 +842,21 @@ def run_pipeline(
         config_path: Fitxer YAML de configuració.
         device_map: Valor opcional per sobreescriure el ``device_map`` dels
             models configurats.
+        prompt_prefix: Prefix opcional per limitar els prompts executats.
+        model_ids: Identificadors opcionals per limitar els models executats.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
         model_loader: Funció injectable per carregar models.
+        only_changed: Si és cert, només executa inferències absents o obsoletes.
     """
     InferencePipeline(
         root=root,
         config_path=config_path,
         device_map=device_map,
+        prompt_prefix=prompt_prefix,
+        model_ids=model_ids,
         tokenizer_loader=tokenizer_loader,
         model_loader=model_loader,
+        only_changed=only_changed,
     ).run()
 
 
@@ -821,10 +884,24 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--prompt-prefix",
+        help="Executa només els prompts amb aquest prefix d'identificador.",
+    )
+    parser.add_argument(
+        "--model-id",
+        action="append",
+        help="Executa només aquest model. Es pot repetir.",
+    )
+    parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),
         default="INFO",
         help="Nivell mínim dels missatges de logging.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenera totes les inferències, encara que el fingerprint sigui vigent.",
     )
     return parser.parse_args()
 
@@ -836,7 +913,13 @@ def main() -> None:
         level=args.log_level, format="%(levelname)s:%(name)s:%(message)s"
     )
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    run_pipeline(config_path=args.config, device_map=args.device_map)
+    run_pipeline(
+        config_path=args.config,
+        device_map=args.device_map,
+        prompt_prefix=args.prompt_prefix,
+        model_ids=set(args.model_id) if args.model_id else None,
+        only_changed=not args.force,
+    )
 
 
 if __name__ == "__main__":

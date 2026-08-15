@@ -28,7 +28,7 @@ format:
 	cd backend && uv run ruff format .
 
 inferences:
-	uv run python scripts/inferencia.py $(if $(CONFIG),--config $(CONFIG)) $(if $(DEVICE_MAP),--device-map $(DEVICE_MAP))
+	uv run python scripts/inferencia.py $(if $(CONFIG),--config $(CONFIG)) $(if $(DEVICE_MAP),--device-map $(DEVICE_MAP)) $(if $(FORCE),--force)
 
 # Carrega els prompts i les inferències versionats a la base de dades.
 # Per defecte usa data/prompts/v1 i data/inferencies/v1. Es poden sobreescriure
