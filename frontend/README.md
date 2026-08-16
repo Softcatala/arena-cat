@@ -119,15 +119,7 @@ s'hagi decidit.
 
 ## Què falta
 
-- **i18n** (`i18next` + `react-i18next`): Garbellaveus serveix català i anglès.
-- **Encaminament** (`react-router-dom`): aquí tot passa en una sola pantalla.
 - Pantalles de rànquing i estadístiques, i gestió del compte (exportació i baixa
   RGPD, que el backend ja implementa però no són accessibles des de la interfície).
-
-### Endpoints que ajudarien
-
-| Endpoint | Per a què |
-|---|---|
-| `GET /api/categories` | Ara les categories són a `src/types.ts`, escrites a mà. |
-| Progrés per categoria | `GET /api/task/progress` només dona el total global. |
-| `assess_confidence` al rànquing | Ja està implementat i provat al backend, però cap ruta el crida. |
+  Si acaben necessitant URL pròpia (compartir enllaç, botó «enrere»), caldrà
+  `react-router-dom`; si no, es poden fer igual que ara, amb estat de React.
