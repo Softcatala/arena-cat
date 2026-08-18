@@ -13,7 +13,7 @@ import type { CategoryFilter, Progress, SessionState, Task, Winner } from "./typ
 
 // `||` i no `??`: una variable definida però buida (cosa fàcil en un fitxer .env)
 // ha de caure igualment al valor per defecte, o les crides perdrien el prefix /api.
-const BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const BASE = import.meta.env.VITE_API_BASE_URL || "https://api.softcatala.org/arena_cat/v1/api";
 
 /** Error amb el codi HTTP, perquè la interfície pugui distingir 401 de 425 o 409. */
 export class ApiError extends Error {

@@ -19,11 +19,19 @@ build:
     - docker info
   stage: build
   script:
-    - export REPO_NAME=$CI_REGISTRY_IMAGE/arena-cat
+    # Backend
+    - export REPO_NAME=$CI_REGISTRY_IMAGE/arena-cat-backend
     - export IMAGE_NAME=$REPO_NAME:$CI_COMMIT_REF_SLUG
     - export DOCKER_PATH=backend/Dockerfile
     - export DOCKER_CONTEXT=./backend
     - docker build -f $DOCKER_PATH --tag $IMAGE_NAME $DOCKER_CONTEXT
+    - docker push $IMAGE_NAME
+    # Frontend
+    - export REPO_NAME=$CI_REGISTRY_IMAGE/arena-cat-frontend
+    - export IMAGE_NAME=$REPO_NAME:$CI_COMMIT_REF_SLUG
+    - export DOCKER_PATH=frontend/Dockerfile
+    - export DOCKER_CONTEXT=./frontend
+    - docker build --build-arg VITE_API_BASE_URL=https://api.softcatala.org/arena_cat/v1/api -f $DOCKER_PATH --tag $IMAGE_NAME $DOCKER_CONTEXT
     - docker push $IMAGE_NAME
 
 deploy:
