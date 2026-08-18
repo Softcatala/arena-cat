@@ -1,0 +1,8 @@
+node_modules
+dist
+*.tsbuildinfo
+
+# Fitxers d'entorn locals. Poden contenir adreces internes: mai a la imatge.
+.env
+.env.local
+.env.*.local
