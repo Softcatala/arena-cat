@@ -392,8 +392,14 @@ def test_get_ranking_empty_category(client, session):
     session.commit()
 
     response = client.get(f"/api/ranking?category_code={c.code}")
+    assert response.status_code == 200
     assert response.json()["best_model"] is None
-    assert response.json()["bt_skills"] == {}
+    assert response.json()["ranked_models"] == []
+    assert "models" not in response.json()
+    assert "bt_skills" not in response.json()
+    assert "raw_pairwise" not in response.json()
+    assert "cycle_detected" not in response.json()
+    assert "cycle_path" not in response.json()
 
 
 def test_get_ranking_full_category(client, session):
@@ -419,4 +425,72 @@ def test_get_ranking_full_category(client, session):
     response = client.get(f"/api/ranking?category_code={c.code}")
     assert response.status_code == 200
     assert response.json()["best_model"] == "model_1"
-    assert response.json()["bt_skills"] != {}
+    assert response.json()["ranked_models"] == [
+        {
+            "rank": 1,
+            "model": "model_1",
+            "bt_skill": response.json()["ranked_models"][0]["bt_skill"],
+        },
+        {
+            "rank": 2,
+            "model": "model_2",
+            "bt_skill": response.json()["ranked_models"][1]["bt_skill"],
+        },
+    ]
+    assert (
+        response.json()["ranked_models"][0]["bt_skill"]
+        > response.json()["ranked_models"][1]["bt_skill"]
+    )
+    assert "models" not in response.json()
+    assert "bt_skills" not in response.json()
+    assert "raw_pairwise" not in response.json()
+    assert "cycle_detected" not in response.json()
+    assert "cycle_path" not in response.json()
+    assert response.json()["confidence"]["best_model"] == "model_1"
+    assert response.json()["confidence"]["n_decisive_votes"] == 1
+    assert response.json()["confidence"]["p_best_is_best"] == 1.0
+    interval = response.json()["confidence"]["confidence_interval"]
+    assert set(interval) == {"lo", "hi"}
+    assert interval["lo"] <= interval["hi"]
+    assert "ci_lo" not in response.json()["confidence"]
+    assert "ci_hi" not in response.json()["confidence"]
+
+
+def test_get_ranking_without_category_returns_global(client, session):
+    """Sense `category_code`, l'API retorna el rànquing global."""
+    correccio = session.scalar(select(Category).where(Category.code == "correccio"))
+    traduccio = session.scalar(select(Category).where(Category.code == "traduccio"))
+
+    p1 = Prompt(version="v1", code="global-correccio", category_id=correccio.id, text="Text 1")
+    p2 = Prompt(version="v1", code="global-traduccio", category_id=traduccio.id, text="Text 2")
+    session.add_all([p1, p2])
+    session.flush()
+
+    r1a = Response(prompt_id=p1.id, model="model_1", text="Resposta 1A")
+    r1b = Response(prompt_id=p1.id, model="model_2", text="Resposta 1B")
+    r2a = Response(prompt_id=p2.id, model="model_1", text="Resposta 2A")
+    r2b = Response(prompt_id=p2.id, model="model_2", text="Resposta 2B")
+    session.add_all([r1a, r1b, r2a, r2b])
+    session.flush()
+
+    session.add_all(
+        [
+            Vote(prompt_id=p1.id, response_a_id=r1a.id, response_b_id=r1b.id, winner="a"),
+            Vote(prompt_id=p2.id, response_a_id=r2a.id, response_b_id=r2b.id, winner="a"),
+        ]
+    )
+    session.commit()
+
+    response = client.get("/api/ranking")
+
+    assert response.status_code == 200
+    assert response.json()["category_code"] is None
+    assert response.json()["n_votes_total"] == 2
+    assert response.json()["best_model"] == "model_1"
+    assert response.json()["ranked_models"][0]["model"] == "model_1"
+    assert response.json()["confidence"]["category_code"] is None
+    assert response.json()["confidence"]["best_model"] == "model_1"
+    assert response.json()["confidence"]["n_decisive_votes"] == 2
+    interval = response.json()["confidence"]["confidence_interval"]
+    assert set(interval) == {"lo", "hi"}
+    assert interval["lo"] <= interval["hi"]

@@ -128,15 +128,33 @@ class PairwiseStat(BaseModel):
     win_rate_a: float | None
 
 
+class ConfidenceInterval(BaseModel):
+    lo: float
+    hi: float
+
+
+class RankingConfidence(BaseModel):
+    category_code: str | None
+    best_model: str | None
+    n_prompts: int
+    n_decisive_votes: int
+    p_best_is_best: float
+    confidence_interval: ConfidenceInterval
+    is_stable: bool
+
+
+class RankedModel(BaseModel):
+    rank: int
+    model: str
+    bt_skill: float
+
+
 class RankingResponse(BaseModel):
-    category_code: str
+    category_code: str | None
     n_votes_total: int
     n_votes_decisive: int
     n_ties: int
     n_neither: int
-    models: list[str]
     best_model: str | None
-    bt_skills: dict[str, float]
-    raw_pairwise: list[PairwiseStat]
-    cycle_detected: bool
-    cycle_path: list[str]
+    ranked_models: list[RankedModel]
+    confidence: RankingConfidence

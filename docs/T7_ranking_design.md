@@ -611,7 +611,7 @@ Abans que comenci la implementació, m'agradaria confirmar:
 ### Fase 3 — Integració amb el microservei (issue #6)
 - Un cop existeixi el servei FastAPI de la issue #6, exposem tres endpoints:
   - `GET /api/task` crida `pair_selector.select_next_task`.
-  - `GET /api/stats` crida `ranking.compute_rankings` + `confidence.assess_confidence`.
+  - `GET /api/ranking` crida `ranking.compute_rankings` i pot incorporar `confidence.assess_confidence`.
   - El `POST /api/vote` ja existeix segons `pla_detallat.md`; només escriu a la BD.
 - Aquesta fase és **fora d'abast d'aquesta tasca** però l'API està dissenyada per encaixar-hi netament.
 

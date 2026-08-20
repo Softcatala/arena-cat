@@ -91,10 +91,12 @@ Registra el vot d'un usuari sobre una tasca prèviament demanada.
 
 ### `GET /api/ranking`
 
-Retorna el rànquing actual de models per a una categoria específica.
+Retorna el rànquing actual de models. Pot filtrar per una categoria específica o
+agregar totes les categories.
 
 **Paràmetres de la URL:**
-- `category_code` (string, obligatori): El codi de la categoria a consultar.
+- `category_code` (string, opcional): El codi de la categoria a consultar. Si s'omet,
+  retorna el rànquing global agregant totes les categories.
 
 **Resposta (200 OK):**
 ```json
@@ -104,26 +106,36 @@ Retorna el rànquing actual de models per a una categoria específica.
   "n_votes_decisive": 358,
   "n_ties": 23,
   "n_neither": 9,
-  "models": ["gemma-3-4b-it", "qwen-3.5-9b", "salamandra-7b-instruct"],
   "best_model": "gemma-3-4b-it",
-  "bt_skills": {
-    "gemma-3-4b-it": 0.27,
-    "qwen-3.5-9b": -0.04,
-    "salamandra-7b-instruct": -0.23
-  },
-  "raw_pairwise": [
+  "ranked_models": [
     {
-      "model_a": "gemma-3-4b-it",
-      "model_b": "qwen-3.5-9b",
-      "wins_a": 40,
-      "wins_b": 25,
-      "ties": 5,
-      "neither": 2,
-      "win_rate_a": 0.615
+      "rank": 1,
+      "model": "gemma-3-4b-it",
+      "bt_skill": 0.27
+    },
+    {
+      "rank": 2,
+      "model": "qwen-3.5-9b",
+      "bt_skill": -0.04
+    },
+    {
+      "rank": 3,
+      "model": "salamandra-7b-instruct",
+      "bt_skill": -0.23
     }
   ],
-  "cycle_detected": false,
-  "cycle_path": []
+  "confidence": {
+    "category_code": "correccio",
+    "best_model": "gemma-3-4b-it",
+    "n_prompts": 10,
+    "n_decisive_votes": 358,
+    "p_best_is_best": 0.97,
+    "confidence_interval": {
+      "lo": 0.12,
+      "hi": 0.44
+    },
+    "is_stable": true
+  }
 }
 ```
 

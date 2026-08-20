@@ -135,6 +135,7 @@ def test_compute_ranking_empty_category(session):
     assert result["n_votes_total"] == 0
     assert result["best_model"] is None
     assert result["bt_skills"] == {}
+    assert result["ranked_models"] == []
     assert result["raw_pairwise"] == []
     assert result["cycle_detected"] is False
 
@@ -150,6 +151,12 @@ def test_compute_ranking_identifies_clear_winner(session):
     skills = result["bt_skills"]
     assert skills["gemma-3-4b-it"] > skills["qwen-3.5-9b"]
     assert skills["gemma-3-4b-it"] > skills["salamandra-7b-instruct"]
+    assert result["ranked_models"][0] == {
+        "rank": 1,
+        "model": "gemma-3-4b-it",
+        "bt_skill": skills["gemma-3-4b-it"],
+    }
+    assert [item["rank"] for item in result["ranked_models"]] == [1, 2, 3]
 
 
 def test_compute_ranking_counts_ties_and_neither(session):
@@ -201,6 +208,20 @@ def test_compute_ranking_isolates_categories(session):
     r2 = compute_ranking(session, "traduccio")
     assert r1["best_model"] == "gemma-3-4b-it"
     assert r2["best_model"] == "salamandra-7b-instruct"
+
+
+def test_compute_ranking_without_category_returns_global_ranking(session):
+    """Sense categoria, el rànquing agrega els vots de totes les categories."""
+    _plant_winner(session, "correccio", winning_model="gemma-3-4b-it", n_prompts=1)
+    _plant_winner(session, "traduccio", winning_model="gemma-3-4b-it", n_prompts=1)
+
+    result = compute_ranking(session, None)
+
+    assert result["category_code"] is None
+    assert result["n_votes_total"] == 48
+    assert result["best_model"] == "gemma-3-4b-it"
+    assert set(result["models"]) == set(MODELS)
+    assert result["ranked_models"][0]["model"] == "gemma-3-4b-it"
 
 
 def test_compute_ranking_pairwise_keys_are_alphabetical(session):
