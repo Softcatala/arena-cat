@@ -87,6 +87,14 @@ La inferència pot requerir `HF_TOKEN` i prou memòria per als models configurat
 fes servir `CONFIG=config/inferencia/inferencia_local_config.yaml make inferences`.
 Per al detall de la canonada, consulta [scripts/README.md](scripts/README.md).
 
+En producció, per carregar les inferències precomputades, executa una vegada la
+imatge `arena-cat-load-inferences` dins la xarxa on hi ha PostgreSQL:
+
+```bash
+docker run --rm --network arena-cat_arena_cat --env-file .env_loader \
+  registry.softcatala.org/github/arena-cat/arena-cat-load-inferences:main
+```
+
 També hi ha objectius per a tasques habituals:
 
 ```bash
