@@ -91,7 +91,7 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
 
 - **Integració amb la web de Softcatalà**:
     - Un cop el nucli tècnic funcioni end-to-end amb usuaris, es crea la **interfície definitiva integrable a la web de Softcatalà**, amb l'estil i el *layout* del lloc principal, llesta per obrir-se a la comunitat.
-    - La integració es fa al repositori del WordPress de Softcatalà — [Softcatala/wp-softcatala](https://github.com/Softcatala/wp-softcatala) — escrivint **una plantilla PHP** que crida al **microservei FastAPI** d'Arena Cat. La plantilla viu dins del tema de WordPress; el *backend* d'Arena Cat es desplega com a microservei independent i la plantilla en consumeix els *endpoints* (`/api/task`, `/api/vote`, `/api/stats`, autenticació).
+    - La integració es fa al repositori del WordPress de Softcatalà — [Softcatala/wp-softcatala](https://github.com/Softcatala/wp-softcatala) — escrivint **una plantilla PHP** que crida al **microservei FastAPI** d'Arena Cat. La plantilla viu dins del tema de WordPress; el *backend* d'Arena Cat es desplega com a microservei independent i la plantilla en consumeix els *endpoints* (`/api/task`, `/api/vote`, `/api/ranking`, autenticació).
     - Softcatalà disposa de **maquinari propi** on es poden desplegar **contenidors Docker**, de manera que el microservei FastAPI d'Arena Cat es pot empaquetar i executar directament sobre aquesta infraestructura sense dependre de proveïdors externs. A més, Softcatalà manté un **GitLab intern que fa de mirall dels repositoris públics de GitHub**, cosa que permet integrar el desplegament del microservei amb el flux de CI/CD habitual de l'organització.
     - Plantilla PHP nova al tema de [wp-softcatala](https://github.com/Softcatala/wp-softcatala) que renderitza la pàgina d'avaluació amb el *layout* habitual de softcatala.org (capçalera, peu, tipografia, colors).
     - Crides al microservei: des del PHP (servidor a servidor) per al *render* inicial i des del navegador (JS lleuger) per a les accions interactives.
@@ -104,7 +104,7 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
 ### v2 — *Plataforma completa*
 
 - Test de qualificació de 5 preguntes lligat al perfil d'usuari creat a v1.
-- *Endpoint* d'estadístiques (`GET /stats`) i pàgina pública de progrés.
+- Contracte de rànquing (`GET /api/ranking`) amb estadístiques agregades i pàgina pública de progrés.
 - Detecció d'abusos i ponderació de contribucions sobre el lligam vot↔usuari ja existent.
 - Indicador d'objectiu i progrés a la pàgina d'avaluació.
 - **Enviament real de correu per a la verificació d'email** (SMTP, DKIM/SPF, plantilles, gestió de rebots), substituint l'stub de v1.

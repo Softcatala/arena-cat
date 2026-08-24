@@ -81,6 +81,26 @@ def test_assess_confidence_clear_winner_is_stable(session):
     assert result["ci_lo"] > 0
 
 
+def test_assess_confidence_without_category_returns_global_confidence(session):
+    """Sense categoria, la confiança agrega els vots de totes les categories."""
+    for category_code in ("correccio", "traduccio"):
+        prompts = _seed_prompts(session, category_code, n_prompts=2)
+        gemma, qwen, salamandra = MODELS
+        for prompt, r in prompts:
+            for _ in range(4):
+                _vote(session, prompt, r[gemma], r[qwen], Winner.a)
+                _vote(session, prompt, r[gemma], r[salamandra], Winner.a)
+                _vote(session, prompt, r[qwen], r[salamandra], Winner.a)
+
+    result = assess_confidence(session, None, n_bootstrap=200, seed=42)
+
+    assert result["category_code"] is None
+    assert result["best_model"] == "gemma-3-4b-it"
+    assert result["n_prompts"] == 4
+    assert result["n_decisive_votes"] == 48
+    assert result["is_stable"] is True
+
+
 def test_assess_confidence_coin_flip_is_unstable(session):
     """Si totes les parelles són 50/50, el rànquing no és estable."""
     prompts = _seed_prompts(session, "traduccio", n_prompts=5)

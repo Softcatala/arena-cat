@@ -1,4 +1,4 @@
-"""Avalua la confiança del rànquing actual d'una categoria.
+"""Avalua la confiança del rànquing actual d'una categoria o del global.
 
 La funció `assess_confidence` respon a la tercera pregunta de la
 tasca 7: hem arribat a prou avaluacions? Quina certesa tenim sobre el
@@ -34,15 +34,16 @@ from app.ranking.ranking import fit_bt
 
 
 def _load_clustered_votes(
-    session: Session, category_code: str
+    session: Session, category_code: str | None
 ) -> tuple[dict[int, list[tuple[str, str]]], list[str]]:
-    """Llegeix els vots decisius d'una categoria agrupats per prompt_id.
+    """Llegeix els vots decisius agrupats per prompt_id.
 
     Retorna:
         - mapping {prompt_id: [(guanyador, perdedor), ...]}
         - llista de models únics observats.
 
     Els empats i els 'neither' no entren al càlcul de confiança BT.
+    Si `category_code` és None, agreguem totes les categories.
     """
     response_a = aliased(Response)
     response_b = aliased(Response)
@@ -52,8 +53,9 @@ def _load_clustered_votes(
         .join(Category, Prompt.category_id == Category.id)
         .join(response_a, Vote.response_a_id == response_a.id)
         .join(response_b, Vote.response_b_id == response_b.id)
-        .where(Category.code == category_code)
     )
+    if category_code is not None:
+        stmt = stmt.where(Category.code == category_code)
     by_prompt: dict[int, list[tuple[str, str]]] = {}
     seen_models: set[str] = set()
     for prompt_id, winner, model_a, model_b in session.execute(stmt).all():
@@ -92,16 +94,16 @@ def _bootstrap_deltas(
 
 def assess_confidence(
     session: Session,
-    category_code: str,
+    category_code: str | None,
     n_bootstrap: int = 1000,
     alpha: float = 0.01,
     seed: int = 0,
 ) -> dict:
-    """Avalua si tenim prou confiança per declarar un guanyador per categoria.
+    """Avalua si tenim prou confiança per declarar un guanyador.
 
-    Pensada per ser cridada des de `GET /api/ranking` o `GET /api/stats` a la
-    microservei (tasca #6). Cost: ~5 segons (1000 ajustos BT). La microservei
-    HA DE cachejar el resultat — no es pot calcular en línia a cada petició.
+    Pensada per ser cridada des de `GET /api/ranking` a la microservei
+    (tasca #6). Cost: ~5 segons (1000 ajustos BT). La microservei pot
+    cachejar el resultat per evitar recalcular-lo a cada petició.
 
     Decisió: bootstrap clusteritzat amb etiquetes fixes.
 
@@ -136,7 +138,8 @@ def assess_confidence(
 
     Args:
         session: sessió SQLAlchemy ja oberta.
-        category_code: codi de la categoria (e.g. "correccio").
+        category_code: codi opcional de la categoria (e.g. "correccio").
+            Si és None, calcula la confiança del rànquing global.
         n_bootstrap: nombre de repliques del bootstrap. 1000 sol ser prou.
         alpha: regularització L2 per a l'ajust BT (vegeu `ranking.fit_bt`).
         seed: llavor per a reproduïbilitat.
@@ -146,7 +149,7 @@ def assess_confidence(
 
         ```
         {
-            "category_code": "correccio",
+            "category_code": "correccio",  # o None per al global
             "best_model": "gemma-3-4b-it",
             "n_prompts": 10,
             "n_decisive_votes": 358,

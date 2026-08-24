@@ -9,13 +9,13 @@ router = APIRouter()
 
 
 @router.get("/ranking")
-def get_ranking(category_code: str, db: Session = Depends(get_db)) -> RankingResponse:
+def get_ranking(category_code: str | None = None, db: Session = Depends(get_db)) -> RankingResponse:
     """
-    Retorna el rànquing per a una categoria.
+    Retorna el rànquing per a una categoria o el rànquing global.
     Args:
         db: Sessió de base de dades.
-        category_code: Codi de la categoria.
+        category_code: Codi opcional de la categoria. Si no s'informa, retorna el rànquing global.
     Returns:
-        RankingResponse: objecte amb el rànquing per a la categoria.
+        RankingResponse: objecte amb el rànquing demanat.
     """
     return RankingResponse(**ranking_service.get_ranking_per_category(db, category_code))

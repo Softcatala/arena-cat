@@ -1,4 +1,4 @@
-"""Calcula el rànquing dels models per categoria.
+"""Calcula el rànquing dels models per categoria o global.
 
 La funció  `compute_ranking` retorna:
 
@@ -94,15 +94,16 @@ def fit_bt(
 
 
 # ---------------------------------------------------------------------------
-# Càrrega de vots d'una categoria + càlcul de la matriu
+# Càrrega de vots + càlcul de la matriu
 # ---------------------------------------------------------------------------
 
 
-def _load_votes_for_category(session: Session, category_code: str) -> list[tuple[Winner, str, str]]:
-    """Llegeix els vots d'una categoria com a tuples (winner, model_a, model_b).
+def _load_votes(session: Session, category_code: str | None) -> list[tuple[Winner, str, str]]:
+    """Llegeix els vots com a tuples (winner, model_a, model_b).
 
     Fem JOIN doble amb la taula responses per obtenir els identificadors de
     model (no els IDs de resposta), perquè el rànquing opera per model.
+    Si `category_code` és None, no filtrem per categoria i agreguem tots els vots.
     """
     response_a = aliased(Response)
     response_b = aliased(Response)
@@ -112,8 +113,9 @@ def _load_votes_for_category(session: Session, category_code: str) -> list[tuple
         .join(Category, Prompt.category_id == Category.id)
         .join(response_a, Vote.response_a_id == response_a.id)
         .join(response_b, Vote.response_b_id == response_b.id)
-        .where(Category.code == category_code)
     )
+    if category_code is not None:
+        stmt = stmt.where(Category.code == category_code)
     return list(session.execute(stmt).all())
 
 
@@ -192,21 +194,22 @@ def _models_for_category(
     return sorted(seen)
 
 
-def compute_ranking(session: Session, category_code: str) -> dict:
-    """Calcula el rànquing actual d'una categoria.
+def compute_ranking(session: Session, category_code: str | None) -> dict:
+    """Calcula el rànquing actual d'una categoria o el global.
 
     Pensada per ser cridada des de `GET /api/ranking` a la microservei
     (tasca #6). Cost: ~30 ms (un sol ajust BT sobre tots els vots de la
-    categoria). La microservei pot cachejar el resultat uns minuts.
+    categoria, o sobre tots els vots si és global). La microservei pot
+    cachejar el resultat uns minuts.
 
     No hi ha estat persistit: cada crida recalcula des de zero llegint
     TOTS els vots de la base de dades. Això és intencional — qualsevol vot
     afegit a `votes` es reflecteix al següent rànquing sense pas de sync.
 
     Decisions clau:
-        - **BT per categoria**, no global. La pregunta del producte és
-          "quin model és millor a correcció / cultura / traducció", no un
-          rànquing únic.
+        - **BT per categoria o global segons la petició**. Amb `category_code`
+          filtrem per categoria; sense `category_code`, agreguem totes les
+          categories per obtenir una vista global.
         - **Taxes brutes + BT**, no només BT. Per a n=3 models, el guany
           de BT sobre la taxa bruta és modest (~30%); reportem totes dues
           per transparència pública.
@@ -221,14 +224,15 @@ def compute_ranking(session: Session, category_code: str) -> dict:
 
     Args:
         session: sessió SQLAlchemy ja oberta.
-        category_code: codi de la categoria (e.g. "correccio").
+        category_code: codi opcional de la categoria (e.g. "correccio").
+            Si és None, calcula el rànquing global.
 
     Returns:
         Diccionari amb la forma:
 
         ```
         {
-            "category_code": "correccio",
+            "category_code": "correccio",  # o None per al global
             "n_votes_total": 390,
             "n_votes_decisive": 358,
             "n_ties": 23,
@@ -244,10 +248,10 @@ def compute_ranking(session: Session, category_code: str) -> dict:
         }
         ```
 
-        Si no hi ha vots a la categoria, `best_model` és None i `bt_skills`
+        Si no hi ha vots a l'abast demanat, `best_model` és None i `bt_skills`
         és buit.
     """
-    raw = _load_votes_for_category(session, category_code)
+    raw = _load_votes(session, category_code)
     if not raw:
         return {
             "category_code": category_code,
@@ -258,6 +262,7 @@ def compute_ranking(session: Session, category_code: str) -> dict:
             "models": [],
             "best_model": None,
             "bt_skills": {},
+            "ranked_models": [],
             "raw_pairwise": [],
             "cycle_detected": False,
             "cycle_path": [],
@@ -279,6 +284,13 @@ def compute_ranking(session: Session, category_code: str) -> dict:
 
     bt_skills = fit_bt(decisive, models, alpha=0.01)
     best_model = max(bt_skills, key=bt_skills.get) if bt_skills else None
+    rounded_skills = {m: round(s, 4) for m, s in bt_skills.items()}
+    ranked_models = [
+        {"rank": rank, "model": model, "bt_skill": rounded_skills[model]}
+        for rank, model in enumerate(
+            sorted(models, key=lambda model: (-rounded_skills[model], model)), start=1
+        )
+    ]
 
     raw_pairwise = _pairwise_stats(raw, models)
     cycle, cycle_path = _detect_cycle_3way(raw_pairwise)
@@ -291,7 +303,8 @@ def compute_ranking(session: Session, category_code: str) -> dict:
         "n_neither": n_neither,
         "models": models,
         "best_model": best_model,
-        "bt_skills": {m: round(s, 4) for m, s in bt_skills.items()},
+        "bt_skills": rounded_skills,
+        "ranked_models": ranked_models,
         "raw_pairwise": raw_pairwise,
         "cycle_detected": cycle,
         "cycle_path": cycle_path if cycle else [],
