@@ -16,6 +16,8 @@ import transformers
 import yaml
 from transformers import (
     AutoModelForCausalLM,
+    AutoModelForMultimodalLM,
+    AutoProcessor,
     AutoTokenizer,
     BitsAndBytesConfig,
 )
@@ -238,6 +240,13 @@ def load_tokenizer(
     if model_entry.get("backend") == "mistral_common":
         return load_mistral_common_tokenizer(get_model_name(model_entry))
 
+    if model_entry.get("model_class") == "auto_multimodal_lm":
+        return AutoProcessor.from_pretrained(
+            get_model_name(model_entry),
+            revision=model_entry["revision"],
+            token=hf_token,
+        )
+
     return tokenizer_loader(
         get_model_name(model_entry),
         revision=model_entry["revision"],
@@ -294,6 +303,11 @@ def load_model(
 
     if model_entry.get("backend") == "mistral_common":
         return load_mistral3_model(get_model_name(model_entry), **kwargs)
+
+    if model_entry.get("model_class") == "auto_multimodal_lm":
+        return AutoModelForMultimodalLM.from_pretrained(
+            get_model_name(model_entry), **kwargs
+        )
 
     return model_loader(get_model_name(model_entry), **kwargs)
 
@@ -381,7 +395,8 @@ def generate_text_once(
             tokenizer, model, messages, generation_params
         )
 
-    if getattr(tokenizer, "chat_template", None):
+    inputs = tokenize_chat_messages(tokenizer, model, messages)
+    if inputs is None and getattr(tokenizer, "chat_template", None):
         try:
             formatted_prompt = tokenizer.apply_chat_template(
                 messages,
@@ -395,19 +410,22 @@ def generate_text_once(
                 tokenize=False,
                 add_generation_prompt=True,
             )
-    else:
+    elif inputs is None:
         formatted_prompt = "\n\n".join(
             message["content"] for message in messages if message["content"]
         )
 
-    inputs = tokenizer(formatted_prompt, return_tensors="pt").to(model.device)
+    if inputs is None:
+        inputs = tokenizer(formatted_prompt, return_tensors="pt").to(model.device)
 
     generation_kwargs = {
         "max_new_tokens": generation_params["max_new_tokens"],
         "do_sample": generation_params["temperature"] > 0,
         "remove_invalid_values": True,
-        "pad_token_id": tokenizer.eos_token_id,
     }
+    pad_token_id = get_eos_token_id(tokenizer)
+    if pad_token_id is not None:
+        generation_kwargs["pad_token_id"] = pad_token_id
     if generation_kwargs["do_sample"]:
         generation_kwargs["temperature"] = generation_params["temperature"]
         generation_kwargs["top_p"] = generation_params["top_p"]
@@ -424,6 +442,46 @@ def generate_text_once(
         tokenizer.decode(generated_tokens, skip_special_tokens=True),
         count_generated_tokens(generated_tokens),
     )
+
+
+def tokenize_chat_messages(
+    tokenizer: Any,
+    model: Any,
+    messages: list[ConfigDict],
+) -> Any | None:
+    """Tokenitza missatges directament amb plantilles de xat modernes."""
+    if not hasattr(tokenizer, "apply_chat_template"):
+        return None
+
+    kwargs = {
+        "tokenize": True,
+        "return_dict": True,
+        "return_tensors": "pt",
+        "add_generation_prompt": True,
+        "enable_thinking": False,
+    }
+    try:
+        inputs = tokenizer.apply_chat_template(messages, **kwargs)
+    except TypeError:
+        kwargs.pop("enable_thinking")
+        try:
+            inputs = tokenizer.apply_chat_template(messages, **kwargs)
+        except TypeError:
+            return None
+
+    if not hasattr(inputs, "to"):
+        return None
+    return inputs.to(model.device)
+
+
+def get_eos_token_id(tokenizer: Any) -> int | None:
+    """Obtè l'identificador EOS d'un tokenitzador o processador."""
+    eos_token_id = getattr(tokenizer, "eos_token_id", None)
+    if eos_token_id is not None:
+        return eos_token_id
+
+    inner_tokenizer = getattr(tokenizer, "tokenizer", None)
+    return getattr(inner_tokenizer, "eos_token_id", None)
 
 
 def generate_text(
@@ -575,7 +633,7 @@ def build_result(
             "temperature": generation_params["temperature"],
             "top_p": generation_params["top_p"],
             "max_new_tokens": generation_params["max_new_tokens"],
-            "min_token_len": generation_params["min_token_len"],
+            "min_token_len": generation_params.get("min_token_len", 0),
             "seed": global_config["seed"],
         },
         "fingerprint": build_fingerprint(prompt, generation_params),
@@ -858,7 +916,9 @@ class InferencePipeline:
         avg_times: dict[str, float] = {}
         for model_entry in config["models"]:
             if self.model_ids and model_entry["id"] not in self.model_ids:
-                LOGGER.info("S'omet el model %s pel filtre de models", model_entry["id"])
+                LOGGER.info(
+                    "S'omet el model %s pel filtre de models", model_entry["id"]
+                )
                 continue
             avg_time = run_model(
                 model_entry,

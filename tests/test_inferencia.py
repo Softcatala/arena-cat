@@ -48,6 +48,23 @@ class FakeTokenizer:
         return "Resposta final"
 
 
+class FakeProcessor:
+    def __init__(self):
+        self.messages = None
+        self.kwargs = None
+        self.decode_args = None
+        self.tokenizer = SimpleNamespace(eos_token_id=88)
+
+    def apply_chat_template(self, messages, **kwargs):
+        self.messages = messages
+        self.kwargs = kwargs
+        return FakeInputs()
+
+    def decode(self, tokens, skip_special_tokens):
+        self.decode_args = (tokens.tolist(), skip_special_tokens)
+        return "Resposta processor"
+
+
 class FakeModel:
     device = "cpu"
 
@@ -55,8 +72,7 @@ class FakeModel:
         self.generate_kwargs = None
         self.generate_calls = []
         self.outputs = [
-            inferencia.torch.tensor(output)
-            for output in (outputs or [[[1, 2, 7, 8]]])
+            inferencia.torch.tensor(output) for output in (outputs or [[[1, 2, 7, 8]]])
         ]
 
     def generate(self, **kwargs):
@@ -131,15 +147,15 @@ class TestInferencia(unittest.TestCase):
                 "--prompt-prefix",
                 "traduccio_",
                 "--model-id",
-                "qwen3.6-27b",
+                "qwen3.8-27b",
                 "--model-id",
-                "gemma-3-27b-it",
+                "gemma-4-26b-a4b-it",
             ],
         ):
             args = inferencia.parse_args()
 
         self.assertEqual(args.prompt_prefix, "traduccio_")
-        self.assertEqual(args.model_id, ["qwen3.6-27b", "gemma-3-27b-it"])
+        self.assertEqual(args.model_id, ["qwen3.8-27b", "gemma-4-26b-a4b-it"])
 
     def test_parse_args_accepts_force(self):
         with patch("sys.argv", ["inferencia.py", "--force"]):
@@ -336,6 +352,39 @@ class TestInferencia(unittest.TestCase):
         self.assertTrue(model.generate_kwargs["remove_invalid_values"])
         self.assertEqual(model.generate_kwargs["max_new_tokens"], 12)
         self.assertEqual(tokenizer.decode_args, ([7, 8], True))
+
+    def test_generate_text_uses_processor_chat_template(self):
+        processor = FakeProcessor()
+        model = FakeModel()
+        generation_params = {
+            "system_prompt": "Sistema",
+            "max_new_tokens": 12,
+            "temperature": 0,
+            "top_p": 0.9,
+        }
+
+        text = inferencia.generate_text(processor, model, "Usuari", generation_params)
+
+        self.assertEqual(text, "Resposta processor")
+        self.assertEqual(
+            processor.messages,
+            [
+                {"role": "system", "content": "Sistema"},
+                {"role": "user", "content": "Usuari"},
+            ],
+        )
+        self.assertEqual(
+            processor.kwargs,
+            {
+                "tokenize": True,
+                "return_dict": True,
+                "return_tensors": "pt",
+                "add_generation_prompt": True,
+                "enable_thinking": False,
+            },
+        )
+        self.assertEqual(model.generate_kwargs["pad_token_id"], 88)
+        self.assertEqual(processor.decode_args, ([7, 8], True))
 
     def test_generate_text_retries_when_min_token_len_is_not_reached(self):
         tokenizer = FakeTokenizer()
