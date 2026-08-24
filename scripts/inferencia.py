@@ -26,6 +26,7 @@ Prompt = dict[str, Any]
 Loader = Callable[..., Any]
 ENV_HF_TOKEN = "HF_TOKEN"
 DEFAULT_INFERENCIA_CONFIG = "config/inferencia/inferencia_config.yaml"
+MIN_TOKEN_LEN_RETRY_ATTEMPTS = 3
 LOGGER = logging.getLogger(__name__)
 
 
@@ -328,6 +329,13 @@ def release_model(model: Any, tokenizer: Any) -> None:
 
 
 # Generació
+def count_generated_tokens(generated_tokens: Any) -> int:
+    """Compta els tokens retornats per una generació."""
+    if hasattr(generated_tokens, "numel"):
+        return int(generated_tokens.numel())
+    return len(generated_tokens)
+
+
 def build_messages(prompt_text: str, generation_params: ConfigDict) -> list[ConfigDict]:
     """Construeix els missatges de xat.
 
@@ -339,20 +347,23 @@ def build_messages(prompt_text: str, generation_params: ConfigDict) -> list[Conf
         Missatges en format compatible amb plantilles de xat.
     """
     messages = []
+    system_parts = []
     if generation_params.get("system_prompt"):
-        messages.append(
-            {"role": "system", "content": generation_params["system_prompt"]}
-        )
+        system_parts.append(generation_params["system_prompt"])
+    if generation_params.get("_retry_instruction"):
+        system_parts.append(generation_params["_retry_instruction"])
+    if system_parts:
+        messages.append({"role": "system", "content": "\n".join(system_parts)})
     messages.append({"role": "user", "content": prompt_text})
     return messages
 
 
-def generate_text(
+def generate_text_once(
     tokenizer: Any,
     model: Any,
     prompt_text: str,
     generation_params: ConfigDict,
-) -> str:
+) -> tuple[str, int]:
     """Genera text per a un prompt.
 
     Args:
@@ -409,7 +420,49 @@ def generate_text(
 
     input_len = inputs.input_ids.shape[1]
     generated_tokens = outputs[0][input_len:]
-    return tokenizer.decode(generated_tokens, skip_special_tokens=True)
+    return (
+        tokenizer.decode(generated_tokens, skip_special_tokens=True),
+        count_generated_tokens(generated_tokens),
+    )
+
+
+def generate_text(
+    tokenizer: Any,
+    model: Any,
+    prompt_text: str,
+    generation_params: ConfigDict,
+) -> str:
+    """Genera text i reintenta si la continuació és massa curta."""
+    min_token_len = generation_params.get("min_token_len", 0) or 0
+    active_params = dict(generation_params)
+    last_text = ""
+    last_token_len = 0
+    attempts = MIN_TOKEN_LEN_RETRY_ATTEMPTS if min_token_len else 1
+    for attempt in range(attempts):
+        last_text, last_token_len = generate_text_once(
+            tokenizer, model, prompt_text, active_params
+        )
+        if last_token_len >= min_token_len:
+            return last_text
+
+        active_params["_retry_instruction"] = (
+            f"La resposta anterior tenia {last_token_len} tokens generats i "
+            f"el mínim configurat és {min_token_len}. Escriu una resposta més "
+            "completa abans d'acabar."
+        )
+        LOGGER.warning(
+            "Resposta massa curta (%s/%s tokens); intent %s/%s; resultat: %r",
+            last_token_len,
+            min_token_len,
+            attempt + 1,
+            attempts,
+            last_text,
+        )
+
+    raise ValueError(
+        "La resposta generada no arriba al mínim configurat de "
+        f"{min_token_len} tokens: {last_token_len} tokens"
+    )
 
 
 def generate_text_mistral_common(
@@ -417,7 +470,7 @@ def generate_text_mistral_common(
     model: Any,
     messages: list[ConfigDict],
     generation_params: ConfigDict,
-) -> str:
+) -> tuple[str, int]:
     """Genera text amb el tokenitzador oficial de Mistral."""
     from mistral_common.protocol.instruct.request import ChatCompletionRequest
 
@@ -440,7 +493,9 @@ def generate_text_mistral_common(
         outputs = model.generate(input_ids=input_ids, **generation_kwargs)
 
     generated_tokens = outputs[0][input_ids.shape[1] :]
-    return tokenizer.decode(generated_tokens.tolist())
+    return tokenizer.decode(generated_tokens.tolist()), count_generated_tokens(
+        generated_tokens
+    )
 
 
 # Resultats
@@ -520,6 +575,7 @@ def build_result(
             "temperature": generation_params["temperature"],
             "top_p": generation_params["top_p"],
             "max_new_tokens": generation_params["max_new_tokens"],
+            "min_token_len": generation_params["min_token_len"],
             "seed": global_config["seed"],
         },
         "fingerprint": build_fingerprint(prompt, generation_params),

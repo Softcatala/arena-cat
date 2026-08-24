@@ -1,7 +1,8 @@
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
 
 import yaml
@@ -50,12 +51,20 @@ class FakeTokenizer:
 class FakeModel:
     device = "cpu"
 
-    def __init__(self):
+    def __init__(self, outputs=None):
         self.generate_kwargs = None
+        self.generate_calls = []
+        self.outputs = [
+            inferencia.torch.tensor(output)
+            for output in (outputs or [[[1, 2, 7, 8]]])
+        ]
 
     def generate(self, **kwargs):
         self.generate_kwargs = kwargs
-        return inferencia.torch.tensor([[1, 2, 7, 8]])
+        self.generate_calls.append(kwargs)
+        if len(self.outputs) > 1:
+            return self.outputs.pop(0)
+        return self.outputs[0]
 
 
 class FakeMistralTokenizer:
@@ -328,6 +337,34 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(model.generate_kwargs["max_new_tokens"], 12)
         self.assertEqual(tokenizer.decode_args, ([7, 8], True))
 
+    def test_generate_text_retries_when_min_token_len_is_not_reached(self):
+        tokenizer = FakeTokenizer()
+        model = FakeModel(outputs=[[[1, 2, 7]], [[1, 2, 7, 8, 9, 10]]])
+        generation_params = {
+            "system_prompt": "Sistema",
+            "max_new_tokens": 6,
+            "min_token_len": 4,
+            "temperature": 0,
+            "top_p": 0.9,
+        }
+
+        with patch.object(inferencia.LOGGER, "warning") as log_warning:
+            text = inferencia.generate_text(
+                tokenizer, model, "Usuari", generation_params
+            )
+
+        self.assertEqual(text, "Resposta final")
+        self.assertEqual(len(model.generate_calls), 2)
+        log_warning.assert_called_once()
+        self.assertEqual(log_warning.call_args.args[-1], "Resposta final")
+        self.assertNotIn("min_new_tokens", model.generate_calls[0])
+        self.assertNotIn("min_new_tokens", model.generate_calls[1])
+        self.assertIn("mínim configurat és 4", tokenizer.messages[0]["content"])
+        self.assertIn(
+            "resposta anterior tenia 1 tokens",
+            tokenizer.messages[0]["content"],
+        )
+
     def test_generate_text_passes_sampling_parameters_when_temperature_is_positive(
         self,
     ):
@@ -351,19 +388,42 @@ class TestInferencia(unittest.TestCase):
         generation_params = {
             "system_prompt": "Sistema",
             "max_new_tokens": 12,
+            "min_token_len": 1,
             "temperature": 0,
             "top_p": 0.9,
         }
 
-        text = inferencia.generate_text(tokenizer, model, "Usuari", generation_params)
+        request_module = ModuleType("mistral_common.protocol.instruct.request")
+
+        class ChatCompletionRequest:
+            def __init__(self, messages):
+                self.messages = messages
+
+        request_module.ChatCompletionRequest = ChatCompletionRequest
+
+        with patch.dict(
+            sys.modules,
+            {
+                "mistral_common": ModuleType("mistral_common"),
+                "mistral_common.protocol": ModuleType("mistral_common.protocol"),
+                "mistral_common.protocol.instruct": ModuleType(
+                    "mistral_common.protocol.instruct"
+                ),
+                "mistral_common.protocol.instruct.request": request_module,
+            },
+        ):
+            text = inferencia.generate_text(
+                tokenizer, model, "Usuari", generation_params
+            )
 
         self.assertEqual(text, "Resposta Mistral")
         self.assertEqual(
-            [message.content for message in tokenizer.request.messages],
+            [message["content"] for message in tokenizer.request.messages],
             ["Sistema", "Usuari"],
         )
         self.assertFalse(model.generate_kwargs["do_sample"])
         self.assertEqual(model.generate_kwargs["max_new_tokens"], 12)
+        self.assertNotIn("min_new_tokens", model.generate_kwargs)
         self.assertEqual(tokenizer.decode_tokens, [8])
 
     def test_build_result_splits_reasoning_and_metadata(self):
@@ -382,6 +442,7 @@ class TestInferencia(unittest.TestCase):
                 "temperature": 0.7,
                 "top_p": 0.9,
                 "max_new_tokens": 128,
+                "min_token_len": 32,
             },
             global_config={
                 "seed": 42,
@@ -399,6 +460,7 @@ class TestInferencia(unittest.TestCase):
             inferencia.calculate_sha256("Text prompt"),
         )
         self.assertEqual(resultat["model"]["model_name"], "org/model")
+        self.assertEqual(resultat["generation"]["min_token_len"], 32)
 
     def test_run_pipeline_does_not_load_models_when_there_are_no_prompts(self):
         config = {
