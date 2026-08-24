@@ -462,11 +462,13 @@ def tokenize_chat_messages(
     }
     try:
         inputs = tokenizer.apply_chat_template(messages, **kwargs)
+    except ValueError:
+        return None
     except TypeError:
         kwargs.pop("enable_thinking")
         try:
             inputs = tokenizer.apply_chat_template(messages, **kwargs)
-        except TypeError:
+        except (TypeError, ValueError):
             return None
 
     if not hasattr(inputs, "to"):
@@ -916,9 +918,7 @@ class InferencePipeline:
         avg_times: dict[str, float] = {}
         for model_entry in config["models"]:
             if self.model_ids and model_entry["id"] not in self.model_ids:
-                LOGGER.info(
-                    "S'omet el model %s pel filtre de models", model_entry["id"]
-                )
+                LOGGER.info("S'omet el model %s pel filtre de models", model_entry["id"])
                 continue
             avg_time = run_model(
                 model_entry,

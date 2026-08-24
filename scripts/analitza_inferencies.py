@@ -20,11 +20,11 @@ RECOMMENDED_THRESHOLD = 0.40
 TRANSLATION_CATEGORY = "traduccio"
 
 MODEL_DISPLAY = {
-    "qwen3.8-27b": "Qwen/Qwen3.8-27B",
+    "qwen3.6-27b": "Qwen/Qwen3.6-27B",
     "mistral-small-3.2-24b-instruct-2506": (
         "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     ),
-    "gemma-4-26b-a4b-it": "google/gemma-4-26B-A4B-it",
+    "gemma-3-27b-it": "google/gemma-3-27b-it",
 }
 MODEL_IDS = list(MODEL_DISPLAY)
 
@@ -51,10 +51,8 @@ def _load_original_prompt(inferences_dir: Path, prompt_id: str) -> str:
         inf_path = inferences_dir / model_id / f"{prompt_id}.yaml"
         if not inf_path.is_file():
             continue
-        rel = (
-            (yaml.safe_load(inf_path.read_text("utf-8")) or {})
-            .get("prompt", {})
-            .get("path")
+        rel = (yaml.safe_load(inf_path.read_text("utf-8")) or {}).get("prompt", {}).get(
+            "path"
         )
         prompt_path = REPO_ROOT / rel if rel else None
         if not prompt_path or not prompt_path.is_file():
@@ -64,9 +62,7 @@ def _load_original_prompt(inferences_dir: Path, prompt_id: str) -> str:
             data = yaml.safe_load(raw)
         except yaml.YAMLError:
             data = None
-        return (
-            data["text"] if isinstance(data, dict) and "text" in data else raw
-        ).strip()
+        return (data["text"] if isinstance(data, dict) and "text" in data else raw).strip()
     return "(prompt original no trobat)"
 
 
@@ -132,15 +128,13 @@ def main() -> None:
         if len(outputs) < 2:
             print(f"avís: {prompt_id} té només {len(outputs)} sortida(es), s'omet")
             continue
-        entries.append(
-            {
-                "prompt_id": prompt_id,
-                "prompt_text": _load_original_prompt(inferences_dir, prompt_id),
-                "outputs": outputs,
-                "metrics": pairwise_metrics(outputs),
-                "missing": [m for m in MODEL_IDS if m not in outputs],
-            }
-        )
+        entries.append({
+            "prompt_id": prompt_id,
+            "prompt_text": _load_original_prompt(inferences_dir, prompt_id),
+            "outputs": outputs,
+            "metrics": pairwise_metrics(outputs),
+            "missing": [m for m in MODEL_IDS if m not in outputs],
+        })
 
     entries.sort(key=lambda e: e["metrics"]["combinat_mean"], reverse=True)
     category_summary = _category_summary(entries)
