@@ -30,10 +30,9 @@ class FakeTokenizer:
         self.decode_args = None
 
     def apply_chat_template(
-        self, messages, tokenize, add_generation_prompt, enable_thinking
+        self, messages, tokenize, add_generation_prompt, enable_thinking, **kwargs
     ):
         self.messages = messages
-        assert tokenize is False
         assert add_generation_prompt is True
         assert enable_thinking is False
         return "PROMPT"

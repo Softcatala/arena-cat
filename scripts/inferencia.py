@@ -404,7 +404,12 @@ def generate_text_once(
                 add_generation_prompt=True,
                 enable_thinking=False,
             )
-        except TypeError:
+        except TypeError as exc:
+            LOGGER.warning(
+                "TypeError aplicant la plantilla de xat; "
+                "es reintenta sense enable_thinking: %s",
+                exc,
+            )
             formatted_prompt = tokenizer.apply_chat_template(
                 messages,
                 tokenize=False,
@@ -464,7 +469,12 @@ def tokenize_chat_messages(
         inputs = tokenizer.apply_chat_template(messages, **kwargs)
     except ValueError:
         return None
-    except TypeError:
+    except TypeError as exc:
+        LOGGER.warning(
+            "TypeError aplicant la plantilla de xat; "
+            "es reintenta sense enable_thinking: %s",
+            exc,
+        )
         kwargs.pop("enable_thinking")
         try:
             inputs = tokenizer.apply_chat_template(messages, **kwargs)
