@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useState, type RefObject } from "react";
 
 export interface OnboardingStep {
   ref: RefObject<HTMLElement | null>;
@@ -39,7 +39,19 @@ export default function Onboarding({
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [step]);
+    // `step` és un objecte nou a cada render del pare (p. ex. pel compte
+    // enrere de la tasca): dependre'n reexecutaria l'scroll cada segon.
+    // `index` és l'únic canvi real que ens interessa.
+  }, [index]);
+
+  // Tanca amb Esc, com qualsevol diàleg modal.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onDone();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onDone]);
 
   function next() {
     if (index === steps.length - 1) onDone();

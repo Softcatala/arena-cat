@@ -29,10 +29,10 @@ export default function TaskView() {
   /** No queden tasques per al filtre actual (el backend ha respost 404). */
   const [exhausted, setExhausted] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
-  const originalTextRef = useRef<HTMLElement>(null);
-  const responsesRef = useRef<HTMLDivElement>(null);
-  const voteRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const originalTextRef = useRef<HTMLElement | null>(null);
+  const responsesRef = useRef<HTMLDivElement | null>(null);
+  const voteRef = useRef<HTMLDivElement | null>(null);
 
   const loadProgress = useCallback(async () => {
     // El progrés és informatiu: si falla, no bloquegem l'avaluació.
@@ -156,7 +156,9 @@ export default function TaskView() {
   // Dreceres de teclat: cada avaluador fa 90 vots o més, i obligar-lo a moure el
   // ratolí fins al botó a cada tasca és una fricció que se suma 90 vegades.
   useEffect(() => {
-    if (locked || !task) return;
+    // Sense aquesta guarda, votar amb tecles funcionaria per sota del
+    // tutorial mentre és obert, sense que la persona ho vegi.
+    if (locked || !task || showOnboarding) return;
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -172,7 +174,7 @@ export default function TaskView() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [locked, task, resolve]);
+  }, [locked, task, resolve, showOnboarding]);
 
   const parts = task ? splitPrompt(task.prompt) : null;
   const isCorrection = task?.category_code === "correccio";

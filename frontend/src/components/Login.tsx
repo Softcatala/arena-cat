@@ -121,7 +121,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
                 <a
                   href="https://www.softcatala.org/avis-legal/"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="underline hover:text-brand-700"
                 >
                   avís legal
