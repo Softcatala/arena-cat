@@ -206,7 +206,23 @@ export default function TaskView() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
-      <h2 className="mb-4 text-2xl font-bold text-brand-600">Avaluació de respostes</h2>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold text-brand-600">Avaluació de respostes</h2>
+
+        {/* Discret a propòsit: aquesta pantalla es repeteix 90+ vegades per
+            avaluador, i el tutorial només cal la primera vegada. Al costat del
+            filtre no hi cabia al mòbil: hi xocava amb el «pendents», que no es
+            pot encongir perquè és `whitespace-nowrap`. */}
+        {task && (
+          <button
+            type="button"
+            onClick={() => setShowOnboarding(true)}
+            className="shrink-0 text-sm text-slate-500 underline hover:text-brand-600"
+          >
+            Tutorial
+          </button>
+        )}
+      </div>
 
       {/* Filtre i progrés comparteixen línia: dues files senceres abans de la tasca
           empenyien massa avall el text, que és el que s'ha de llegir. El rètol
@@ -228,18 +244,6 @@ export default function TaskView() {
         </select>
 
         {progress && <ProgressBar progress={progress} className="flex-1" />}
-
-        {/* Discret a propòsit: aquesta pantalla es repeteix 90+ vegades per
-            avaluador, i el tutorial només cal la primera vegada. */}
-        {task && (
-          <button
-            type="button"
-            onClick={() => setShowOnboarding(true)}
-            className="shrink-0 text-sm text-slate-500 underline hover:text-brand-600"
-          >
-            Tutorial
-          </button>
-        )}
       </div>
 
       {message && (
