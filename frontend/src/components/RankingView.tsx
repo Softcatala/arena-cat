@@ -11,6 +11,9 @@ export default function RankingView({ onLogin }: { onLogin: () => void }) {
   useEffect(() => {
     let cancelled = false;
     setMessage(null);
+    // Sense això, en canviar de categoria es veuria un instant la capçalera
+    // nova amb la taula encara plena de dades de l'anterior.
+    setRanking(null);
     void api
       .ranking(category)
       .then((next) => {
@@ -40,6 +43,7 @@ export default function RankingView({ onLogin }: { onLogin: () => void }) {
           <button
             key={item.code}
             type="button"
+            aria-pressed={category === item.code}
             onClick={() => setCategory(item.code)}
             className={
               category === item.code
