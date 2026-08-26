@@ -9,7 +9,7 @@
  */
 
 import { readDetail, readErrorCode, TASK_TOKEN_INVALID } from "./errors";
-import type { CategoryFilter, Progress, SessionState, Task, Winner } from "./types";
+import type { CategoryFilter, Progress, Ranking, SessionState, Task, Winner } from "./types";
 
 // `||` i no `??`: una variable definida però buida (cosa fàcil en un fitxer .env)
 // ha de caure igualment al valor per defecte, o les crides perdrien el prefix /api.
@@ -89,6 +89,12 @@ export const api = {
     }),
 
   progress: () => request<Progress>("/task/progress"),
+
+  // Públic: no cal sessió per veure el rànquing.
+  ranking: (category: CategoryFilter) =>
+    request<Ranking>(
+      category ? `/ranking?category_code=${encodeURIComponent(category)}` : "/ranking",
+    ),
 
   vote: (token: string, winner: Winner) =>
     request<{ status: string }>("/vote", {

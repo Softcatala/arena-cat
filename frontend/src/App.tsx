@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import logotip from "./assets/softcatala-logotip.png";
 import Login from "./components/Login";
+import RankingView from "./components/RankingView";
 import TaskView from "./components/TaskView";
 import { clearTask } from "./taskStore";
 import type { SessionState } from "./types";
@@ -13,6 +15,7 @@ export default function App() {
   // `null` mentre no sabem si hi ha sessió: sense aquest estat intermedi
   // ensenyaríem el formulari un instant a qui ja té la sessió oberta.
   const [session, setSession] = useState<SessionState | null>(null);
+  const navigate = useNavigate();
 
   const refresh = useCallback(async () => {
     try {
@@ -43,7 +46,10 @@ export default function App() {
 
   function logout() {
     clearTask();
-    void api.logout().finally(() => setSession(UNKNOWN));
+    void api.logout().finally(() => {
+      setSession(UNKNOWN);
+      navigate("/login");
+    });
   }
 
   return (
@@ -78,10 +84,26 @@ export default function App() {
       <main>
         {session === null ? (
           <p className="px-4 py-10 text-center text-slate-500">Carregant…</p>
-        ) : session.authenticated ? (
-          <TaskView />
         ) : (
-          <Login onLoggedIn={refresh} />
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                session.authenticated ? <Navigate to="/" replace /> : <Login onLoggedIn={refresh} />
+              }
+            />
+            <Route
+              path="/"
+              element={
+                session.authenticated ? (
+                  <TaskView />
+                ) : (
+                  <RankingView onLogin={() => navigate("/login")} />
+                )
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         )}
       </main>
 
