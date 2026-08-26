@@ -4,6 +4,7 @@ import { api, ApiError } from "../api";
 import { splitPrompt } from "../diff";
 import { clearTask, loadSavedTask, saveTask, secondsUntilVote } from "../taskStore";
 import { CATEGORIES, type CategoryFilter, type Progress, type Task, type Winner } from "../types";
+import Onboarding, { type OnboardingStep } from "./Onboarding";
 import ProgressBar from "./ProgressBar";
 import ResponseCard from "./ResponseCard";
 
@@ -27,6 +28,11 @@ export default function TaskView() {
   const [remaining, setRemaining] = useState(0);
   /** No queden tasques per al filtre actual (el backend ha respost 404). */
   const [exhausted, setExhausted] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const originalTextRef = useRef<HTMLElement>(null);
+  const responsesRef = useRef<HTMLDivElement>(null);
+  const voteRef = useRef<HTMLDivElement>(null);
 
   const loadProgress = useCallback(async () => {
     // El progrés és informatiu: si falla, no bloquegem l'avaluació.
@@ -171,6 +177,33 @@ export default function TaskView() {
   const parts = task ? splitPrompt(task.prompt) : null;
   const isCorrection = task?.category_code === "correccio";
 
+  const onboardingSteps: OnboardingStep[] = [
+    {
+      ref: headerRef,
+      title: "Què se li ha demanat al model",
+      text: "Aquí veus la categoria de la tasca i la instrucció exacta que s'ha enviat als dos models.",
+    },
+    ...(parts?.source
+      ? [
+          {
+            ref: originalTextRef,
+            title: "Text original",
+            text: "Aquest és el text de partida, tal com el va rebre el model, sense cap correcció.",
+          },
+        ]
+      : []),
+    {
+      ref: responsesRef,
+      title: "Compara les dues respostes",
+      text: "Llegeix la resposta A i la B. No saps quin model ha generat cadascuna: és una avaluació cega.",
+    },
+    {
+      ref: voteRef,
+      title: "Vota",
+      text: "Tria quina resposta és millor, si estan empatades o si cap de les dues és bona. També pots fer servir les dreceres A, B, E i C.",
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       {/* Filtre i progrés comparteixen línia: dues files senceres abans de la tasca
@@ -193,6 +226,18 @@ export default function TaskView() {
         </select>
 
         {progress && <ProgressBar progress={progress} className="flex-1" />}
+
+        {/* Discret a propòsit: aquesta pantalla es repeteix 90+ vegades per
+            avaluador, i el tutorial només cal la primera vegada. */}
+        {task && (
+          <button
+            type="button"
+            onClick={() => setShowOnboarding(true)}
+            className="shrink-0 text-sm text-slate-500 underline hover:text-brand-600"
+          >
+            Tutorial
+          </button>
+        )}
       </div>
 
       {message && (
@@ -207,7 +252,7 @@ export default function TaskView() {
 
       {task && parts && (
         <>
-          <section className="mb-4">
+          <section ref={headerRef} className="mb-4">
             <h2 className="mb-1 text-sm font-semibold tracking-wide text-brand-600 uppercase">
               {CATEGORIES.find((item) => item.code === task.category_code)?.label}
             </h2>
@@ -220,6 +265,9 @@ export default function TaskView() {
           {parts.source &&
             (isCorrection ? (
               <details
+                ref={(el) => {
+                  originalTextRef.current = el;
+                }}
                 open
                 className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
               >
@@ -231,7 +279,10 @@ export default function TaskView() {
                 </p>
               </details>
             ) : (
-              <section className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <section
+                ref={originalTextRef}
+                className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+              >
                 <h3 className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
                   Text original
                 </h3>
@@ -242,7 +293,7 @@ export default function TaskView() {
           {isCorrection && <DiffLegend />}
 
           {/* Apilades al mòbil, en dues columnes a partir de pantalla mitjana. */}
-          <div className="mb-6 grid gap-4 md:grid-cols-2">
+          <div ref={responsesRef} className="mb-6 grid gap-4 md:grid-cols-2">
             <ResponseCard
               label="Resposta A"
               text={task.response_a}
@@ -260,7 +311,7 @@ export default function TaskView() {
               són sempre a l'abast del polze. A partir de `md` tornen al flux normal. */}
           <div className="fixed inset-x-0 bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
             <div className="mx-auto max-w-5xl">
-              <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+              <div ref={voteRef} className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                 {VOTE_OPTIONS.map((option) => (
                   <button
                     key={option.winner}
@@ -303,6 +354,10 @@ export default function TaskView() {
               </div>
             </div>
           </div>
+
+          {showOnboarding && (
+            <Onboarding steps={onboardingSteps} onDone={() => setShowOnboarding(false)} />
+          )}
         </>
       )}
     </div>
