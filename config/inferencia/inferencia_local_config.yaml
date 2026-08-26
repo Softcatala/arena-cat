@@ -6,7 +6,7 @@ parametres_generacio:
   temperature: 0
   top_p: 1.0
   max_new_tokens: 16
-  min_token_len: 75
+  min_token_len: 25
   system_prompt: ""
 
 models:

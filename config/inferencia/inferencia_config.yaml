@@ -8,7 +8,7 @@ parametres_generacio:
   temperature: 0.7
   top_p: 0.9
   max_new_tokens: 1024
-  min_token_len: 75
+  min_token_len: 25
   # System prompt idèntic en intenció per a tots
   system_prompt: "Ets un assistent d'intel·ligència artificial útil, precís i que respon exclusivament en llengua catalana. Contesta només amb el que es demana sense cap explicació ni text addicional."
 
