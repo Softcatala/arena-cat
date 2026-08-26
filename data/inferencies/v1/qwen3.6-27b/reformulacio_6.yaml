@@ -5,6 +5,7 @@ backend:
 fingerprint:
   generation:
     max_new_tokens: 1024
+    min_token_len: 25
     system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
       respon exclusivament en llengua catalana. Contesta només amb el que es demana
       sense cap explicació ni text addicional.
@@ -13,6 +14,7 @@ fingerprint:
   prompt_sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
 generation:
   max_new_tokens: 1024
+  min_token_len: 25
   seed: 42
   temperature: 0.7
   top_p: 0.9
@@ -21,26 +23,22 @@ model:
   model_name: Qwen/Qwen3.6-27B
   revision: main
 output:
-  answer: 'NARRADOR: Finalment, dissabte torna la vida al mercat municipal. Després
-    de sis setmanes d’obres, les instal·lacions han canviat.
+  answer: 'NARRADOR: El mercat municipal reobrirà dissabte, després de sis setmanes
+    d’obres intensives. S’han renovat la teulada, els punts de llum i les cambres
+    frigorífiques.
 
 
-    VEU 1: He vist que han renovat la teulada, els punts de llum i les cambres frigorífiques.
-    Tot sembla més modern.
+    VEU 1: Les parades de peix i fruita tornen al passadís central, però la fleca
+    ocuparà un espai provisional fins al novembre.
 
 
-    VEU 2: I la distribució també. Les parades de peix i fruita tornen al passadís
-    central, tot i que la fleca romandrà en un espai provisional fins al novembre.
+    VEU 2: Exacte. A més, a les deu del matí hi haurà una visita guiada per als veïns
+    i una demostració de cuina amb productes de temporada.
 
 
-    NARRADOR: La celebració comença a les deu del matí.
-
-
-    VEU 1: Hi haurà una visita guiada per als veïns per conèixer les millores.
-
-
-    VEU 2: I, com no, una demostració de cuina amb productes de temporada per acabar
-    de posar els sentits.'
+    NARRADOR: Tot preparat per a aquesta nova etapa, amb millores estructurals i una
+    programació especial per celebrar la tornada de l’activitat comercial al cor del
+    barri.'
 prompt:
   id: reformulacio_6
   path: data/prompts/v1/reformulacio_6.txt
@@ -48,6 +46,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 8d843f41110b01dc6e86118b601d7475b2ae0708
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
   seed: 42
-  timestamp: '2026-08-12T20:49:12.538695Z'
+  timestamp: '2026-08-26T05:31:14.776144Z'

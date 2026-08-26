@@ -5,6 +5,7 @@ backend:
 fingerprint:
   generation:
     max_new_tokens: 1024
+    min_token_len: 25
     system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
       respon exclusivament en llengua catalana. Contesta només amb el que es demana
       sense cap explicació ni text addicional.
@@ -13,6 +14,7 @@ fingerprint:
   prompt_sha256: 983c08d58f44c65aa8c97328128222822aed2d2472e1f91d8161039971dbfac9
 generation:
   max_new_tokens: 1024
+  min_token_len: 25
   seed: 42
   temperature: 0.7
   top_p: 0.9
@@ -21,50 +23,36 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: 'A l''Ajuntament de [Nom del municipi]
+  answer: '**Assumpte: Queixa per falta de manteniment de l''enllumenat públic i deteriorament
+    de la vorera**
 
 
-    Assumpte: Queixa per falta de manteniment de l''enllumenat públic i estat de les
-    voreres
+    A l''Ajuntament de [nom de la ciutat],
 
 
-    Estimats Srs./Sres.:
+    Per mitjà del present, us comuniquem una situació que està afectant greument la
+    seguretat i la qualitat de vida dels veïns i veïnes del carrer [nom del carrer].
+    Concretament, des de fa tres setmanes l''enllumenat públic d''aquest carrer no
+    funciona, cosa que genera una visibilitat pràcticament nul·la durant les hores
+    nocturnes. Malgrat les insistents trucades realitzades, no hem rebut cap resposta
+    ni acció per part dels serveis municipals.
 
 
-    Per mitjà de la present, volem expressar la nostra queixa formal pel deficiente
-    estat del servei d''enllumenat públic i de les voreres al nostre carrer. Concretament,
-    des de fa tres setmanes, la llum del carrer [nom del carrer] no funciona, la qual
-    cosa genera una situació de total foscor durant les hores nocturnes, posant en
-    perill la seguretat dels veïns i trànseunts.
+    A més, ahir mateix es va produir la caiguda d''una de les llums del segon pis,
+    provocada per un clot present a la vorera. Aquesta situació no només representa
+    un perill per a les persones que transiten per la zona, sinó que també evidencia
+    la necessitat urgent de reparar i mantenir les infraestructures públiques.
 
 
-    Malgrat haver contactat repetidament amb els serveis corresponents per a sol·licitar
-    la reparació, no hem rebut cap resposta ni acció per part de l''Ajuntament.
-
-
-    A més, ahir, 20 de [mes], es va produir la caiguda de la llum del segon pis d''un
-    habitatge del carrer, a causa d''un clot existent a la vorera. Aquesta situació
-    no només afecta l''estètica de la zona, sinó que també representa un risc per
-    a la ciutadania.
-
-
-    Per tot això, us sol·licitem que es realitzin les reparacions necessàries de manera
-    immediata, així com que es garanteixi el manteniment adequat de les instal·lacions
-    públiques per a evitar incidents similars en el futur.
+    En conseqüència, us demanem que es prenguin les mesures oportunes per solucionar
+    aquests problemes de manera immediata, garantint així la seguretat i el benestar
+    dels ciutadans.
 
 
     Atentament,
 
 
-    [Nom i cognoms]
-
-    [Adreça]
-
-    [Codi postal]
-
-    [Localitat]
-
-    [Data]'
+    [El vostre nom o representació de la veïna/veïnat]'
 prompt:
   id: reformulacio_3
   path: data/prompts/v1/reformulacio_3.txt
@@ -72,6 +60,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
   seed: 42
-  timestamp: '2026-08-12T02:55:11.844655Z'
+  timestamp: '2026-08-26T05:31:14.776144Z'

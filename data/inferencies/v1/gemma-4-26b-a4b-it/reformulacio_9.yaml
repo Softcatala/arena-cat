@@ -1,0 +1,40 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: a39d7a6a7f1372d48f0bd7b5c98d9e0af6a9e276789899df3abf95e10e783692
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-4-26b-a4b-it
+  model_name: google/gemma-4-26B-A4B-it
+  revision: main
+output:
+  answer: Ja està aquí el moment que esperaves! Les inscripcions per a la nostra gran
+    cursa popular del 12 d'octubre ja estan obertes. Somena 10 quilòmetres de pura
+    superació i energia. No importa l'edat que tinguis, aquí et som esperem. Les places
+    són molt limitades i inclouen la samarreta oficial i l'avituallament. No et quedis
+    fora i reserva el teu lloc ara mateix. Som equip!
+prompt:
+  id: reformulacio_9
+  path: data/prompts/v1/reformulacio_9.txt
+  sha256: a39d7a6a7f1372d48f0bd7b5c98d9e0af6a9e276789899df3abf95e10e783692
+reasoning:
+  content: null
+run:
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
+  seed: 42
+  timestamp: '2026-08-26T05:31:14.776144Z'

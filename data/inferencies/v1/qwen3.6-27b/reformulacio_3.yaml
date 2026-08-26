@@ -5,6 +5,7 @@ backend:
 fingerprint:
   generation:
     max_new_tokens: 1024
+    min_token_len: 25
     system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
       respon exclusivament en llengua catalana. Contesta només amb el que es demana
       sense cap explicació ni text addicional.
@@ -13,6 +14,7 @@ fingerprint:
   prompt_sha256: 983c08d58f44c65aa8c97328128222822aed2d2472e1f91d8161039971dbfac9
 generation:
   max_new_tokens: 1024
+  min_token_len: 25
   seed: 42
   temperature: 0.7
   top_p: 0.9
@@ -21,20 +23,19 @@ model:
   model_name: Qwen/Qwen3.6-27B
   revision: main
 output:
-  answer: 'A l’Atenció de l’Ajuntament,
+  answer: 'Benvolguts/udes,
 
 
-    Per mitjà d’aquesta comunicació, volem expressar el nostre profund malestar per
-    la situació actual del nostre carrer. Fa tres setmanes que el farol de carrer
-    principal no funciona, la qual cosa provoca una total absència d’il·luminació
-    nocturna i compromet la seguretat dels vianants. Malgrat les múltiples incidències
-    telefonades, no hem rebut cap resposta ni solució per part dels serveis corresponents.
+    Us escric per presentar una queixa formal sobre la falta d''il·luminació pública
+    al nostre carrer. Fa tres setmanes que una de les llums no funciona, la qual cosa
+    provoca una absència total de visibilitat durant la nit. Malgrat les múltiples
+    trucades realitzades, no s''ha pres cap mesura correctiva.
 
 
-    A més, cal destacar que ahir va caure també el segon farol a causa de l’existència
-    d’un clot a la vorera. Sol·licitem que es prenguin les mesures urgents per a la
-    reparació de la il·luminació i de la vorera, així com una resposta formal sobre
-    l’abastiment d’aquests treballs.
+    A més, cal destacar que ahir es va produir la caiguda d''un veí a causa d''un
+    clot existent a la vorera. Sol·licitem, per tant, que es procedeixi immediatament
+    a la reparació de la llum i a la correcció de l''irregularitat de la vorera per
+    garantir la seguretat ciutadana.
 
 
     Atentament,'
@@ -45,6 +46,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
   seed: 42
-  timestamp: '2026-08-12T02:55:11.844655Z'
+  timestamp: '2026-08-26T05:31:14.776144Z'

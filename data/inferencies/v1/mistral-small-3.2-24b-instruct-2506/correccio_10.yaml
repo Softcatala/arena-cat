@@ -5,6 +5,7 @@ backend:
 fingerprint:
   generation:
     max_new_tokens: 1024
+    min_token_len: 25
     system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
       respon exclusivament en llengua catalana. Contesta només amb el que es demana
       sense cap explicació ni text addicional.
@@ -13,6 +14,7 @@ fingerprint:
   prompt_sha256: b973ecf0223b506a6b9c53cd83e965d782c3bb9650cd88d38c44e13fb5c82ca4
 generation:
   max_new_tokens: 1024
+  min_token_len: 25
   seed: 42
   temperature: 0.7
   top_p: 0.9
@@ -24,7 +26,7 @@ output:
   answer: En Pau era un pop molt curiós que vivia al fons del mar. Cada matí sortia
     de la seva cova per explorar nous racons entre les roques i els coralls. Li agradava
     jugar amb els peixos, perseguir bombolles i amagar-se quan veia algun cranc, una
-    mica roncinaire. Amb els seus vuit braços podia abraçar els seus amics i recollir
+    mica rondinaire. Amb els seus vuit braços podia abraçar els seus amics i recollir
     petxines de tots els colors. Un dia va trobar una estrella de mar que s'havia
     perdut i la va ajudar a tornar a casa. Des d'aquell moment, tothom va saber que
     en Pau era un pop valent, amable i molt generós.
@@ -35,6 +37,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
   seed: 42
-  timestamp: '2026-08-12T02:55:11.844655Z'
+  timestamp: '2026-08-26T05:31:14.776144Z'

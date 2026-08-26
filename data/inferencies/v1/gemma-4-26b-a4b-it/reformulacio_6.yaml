@@ -1,0 +1,52 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: gemma-4-26b-a4b-it
+  model_name: google/gemma-4-26B-A4B-it
+  revision: main
+output:
+  answer: '(Efecte de soroll: ambient de mercat amb murmuris de gent)
+
+
+    **Narrador:** Dissabte, després de sis setmanes d''obres, el mercat municipal
+    reobre les seves portes amb la teulada, la il·luminació i les cambres frigorífiques
+    ja renovades.
+
+
+    **Veu 1:** Les parades de peix i fruita tornaran al passadís central, però la
+    fleca ocuparà un espai provisional fins al novembre.
+
+
+    **Veu 2:** No us oblideu! A les deu del matí hi haurà una visita guiada per als
+    veïns i una demostració de cuina amb productes de temporada.
+
+
+    (Efecte de soroll: música alegre de fondo que s''apaga)'
+prompt:
+  id: reformulacio_6
+  path: data/prompts/v1/reformulacio_6.txt
+  sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
+reasoning:
+  content: null
+run:
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
+  seed: 42
+  timestamp: '2026-08-26T05:31:14.776144Z'

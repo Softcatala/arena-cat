@@ -5,6 +5,7 @@ backend:
 fingerprint:
   generation:
     max_new_tokens: 1024
+    min_token_len: 25
     system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
       respon exclusivament en llengua catalana. Contesta només amb el que es demana
       sense cap explicació ni text addicional.
@@ -13,6 +14,7 @@ fingerprint:
   prompt_sha256: 0a293b47116d073d188a68ce434b0acdff6580fb0fa4694b8175e81a8bc3725f
 generation:
   max_new_tokens: 1024
+  min_token_len: 25
   seed: 42
   temperature: 0.7
   top_p: 0.9
@@ -21,10 +23,10 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: El passadís que creua el torrent va ser bloquejat als vehicles després que
-    uns experts trobessin fissures en dues columnes. La corporació municipal ha assegurat
-    que les tasques de restauració començarà el proper setmanal, mentre, els habitants
-    podran travessar amb un transport sense cost de vaixes.
+  answer: La via que creua el torrent s'ha clausurat al trànsit després que uns professionals
+    observessin fissures en dues columnes. L'entitat local ha garantit que les activitats
+    de manteniment s'iniciaran el proper setmanal, mentre, els habitants podran passar
+    amb un transport sense cost de bots.
 prompt:
   id: reformulacio_8
   path: data/prompts/v1/reformulacio_8.txt
@@ -32,6 +34,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 8b48a314d57fe8d32212c5100ac291b0be2818cd
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
   seed: 42
-  timestamp: '2026-08-12T02:55:11.844655Z'
+  timestamp: '2026-08-26T05:31:14.776144Z'

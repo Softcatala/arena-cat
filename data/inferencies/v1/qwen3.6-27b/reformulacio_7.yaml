@@ -5,6 +5,7 @@ backend:
 fingerprint:
   generation:
     max_new_tokens: 1024
+    min_token_len: 25
     system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
       respon exclusivament en llengua catalana. Contesta només amb el que es demana
       sense cap explicació ni text addicional.
@@ -13,6 +14,7 @@ fingerprint:
   prompt_sha256: b5117c5a7c7b9b56aa0750a29f46ddfdea71fae64696ba8f02e0ebd6436cd902
 generation:
   max_new_tokens: 1024
+  min_token_len: 25
   seed: 42
   temperature: 0.7
   top_p: 0.9
@@ -21,15 +23,14 @@ model:
   model_name: Qwen/Qwen3.6-27B
   revision: main
 output:
-  answer: Finalment, el tren ha arribat a Girona, tot i els vint minuts de retard
-    que ens han fet esperar sota la marquesina mentre la pluja caia suaument. Amb
-    la meva maleta vermella a sota el braç i la carpeta dels documents de matrícula
-    ben protegida, he respirat fondo. L'adreça del pis compartit al barri de Sant
-    Narcís ja la tinc ben clara al cap, però abans de buscar l'autobús, no he pogut
-    evitar trucar a la meva mare per assegurar-li que ho he fet bé. Ara comença la
-    veritable aventura. Demà al matí tinc la primera reunió d'acollida a la facultat,
-    i encara em tremolen una mica les mans, però estic preparada per a aquest nou
-    començament.
+  answer: El tren ha arribat amb vint minuts de retard a l'estació de Girona. A fora
+    plovia suaument i molts passatgers esperàvem sota la marquesina. Jo portava la
+    meva maleta vermella, una carpeta amb els documents de matrícula i l'adreça del
+    pis compartit al barri de Sant Narcís. Abans d'agafar l'autobús, he trucat a la
+    meva mare per dir-li que havia arribat bé. La veu tranquil·la m'ha donat forces.
+    Demà al matí tinc la primera reunió d'acollida a la facultat. Em sento una mica
+    nerviosa, però també emocionada per començar aquesta nova etapa lluny de casa.
+    La pluja fina acompanya el meu primer pas en aquesta ciutat que ara serà la meva.
 prompt:
   id: reformulacio_7
   path: data/prompts/v1/reformulacio_7.txt
@@ -37,6 +38,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 8d843f41110b01dc6e86118b601d7475b2ae0708
+  git_commit: 9d9f80fd991094346282a50e572b9443c5963493
   seed: 42
-  timestamp: '2026-08-12T19:32:01.339664Z'
+  timestamp: '2026-08-26T05:31:14.776144Z'
