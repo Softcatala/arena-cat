@@ -220,14 +220,14 @@ export default function TaskView() {
               <span className="font-semibold tracking-wide text-slate-500 uppercase">
                 Tipus de tasca:
               </span>{" "}
-              <span className="font-semibold tracking-wide text-slate-700 uppercase">
+              <span className="text-base font-semibold text-slate-700">
                 {CATEGORIES.find((item) => item.code === task.category_code)?.label}
               </span>
             </p>
             <h3 className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
               Indicació enviada al model
             </h3>
-            <p className="text-lg text-slate-900">{parts.instruction}</p>
+            <code className="text-base font-semibold text-slate-700">«{parts.instruction}»</code>
           </section>
 
           {/* A correcció el text es pot plegar: el diff de cada targeta ja el conté, i
@@ -255,8 +255,13 @@ export default function TaskView() {
               </section>
             ))}
 
-          <p className="mb-3 text-sm text-slate-600">
-            La vostra tasca és avaluar la resposta dels dos models.
+          <p className="mb-3 text-sm">
+            <span className="font-semibold tracking-wide text-slate-500 uppercase">
+              La vostra tasca:
+            </span>{" "}
+            <span className="text-base font-semibold text-slate-700">
+              avaluar la resposta dels dos models.
+            </span>
           </p>
 
           {isCorrection && <DiffLegend />}
