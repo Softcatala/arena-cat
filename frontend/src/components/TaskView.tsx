@@ -173,6 +173,8 @@ export default function TaskView() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
+      <h2 className="mb-4 text-2xl font-bold text-brand-600">Avaluació de respostes</h2>
+
       {/* Filtre i progrés comparteixen línia: dues files senceres abans de la tasca
           empenyien massa avall el text, que és el que s'ha de llegir. El rètol
           «Categoria» desapareix perquè el desplegable ja diu què fa. */}
@@ -208,9 +210,23 @@ export default function TaskView() {
       {task && parts && (
         <>
           <section className="mb-4">
-            <h2 className="mb-1 text-sm font-semibold tracking-wide text-brand-600 uppercase">
-              {CATEGORIES.find((item) => item.code === task.category_code)?.label}
-            </h2>
+            {/* Sense aquestes frases, algú nou podia confondre l'enunciat de sota
+                amb instruccions per a ell mateix, quan en realitat és el que es va
+                demanar als dos models (Jordi, issue #56). Reutilitzem l'estil de
+                «Text original» (mb-1 text-sm font-semibold tracking-wide uppercase)
+                perquè els rètols de la pàgina segueixin un sol llenguatge visual. */}
+            <hr className="mb-4 border-slate-200" />
+            <p className="mb-1 text-sm">
+              <span className="font-semibold tracking-wide text-slate-500 uppercase">
+                Tipus de tasca:
+              </span>{" "}
+              <span className="font-semibold tracking-wide text-slate-700 uppercase">
+                {CATEGORIES.find((item) => item.code === task.category_code)?.label}
+              </span>
+            </p>
+            <h3 className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
+              Indicació enviada al model
+            </h3>
             <p className="text-lg text-slate-900">{parts.instruction}</p>
           </section>
 
@@ -238,6 +254,10 @@ export default function TaskView() {
                 <p className="leading-relaxed whitespace-pre-wrap text-slate-800">{parts.source}</p>
               </section>
             ))}
+
+          <p className="mb-3 text-sm text-slate-600">
+            La vostra tasca és avaluar la resposta dels dos models.
+          </p>
 
           {isCorrection && <DiffLegend />}
 
