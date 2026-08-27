@@ -38,3 +38,31 @@ export interface Progress {
 }
 
 export type Winner = "a" | "b" | "tie" | "neither";
+
+export interface RankedModel {
+  rank: number;
+  model: string;
+  bt_skill: number;
+}
+
+export interface RankingConfidence {
+  category_code: CategoryCode | null;
+  best_model: string | null;
+  n_prompts: number;
+  n_decisive_votes: number;
+  p_best_is_best: number;
+  confidence_interval: { lo: number; hi: number };
+  is_stable: boolean;
+}
+
+/** Resposta de `GET /api/ranking`. */
+export interface Ranking {
+  category_code: CategoryCode | null;
+  n_votes_total: number;
+  n_votes_decisive: number;
+  n_ties: number;
+  n_neither: number;
+  best_model: string | null;
+  ranked_models: RankedModel[];
+  confidence: RankingConfidence;
+}

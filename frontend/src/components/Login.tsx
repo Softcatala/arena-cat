@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { api, ApiError } from "../api";
 
@@ -157,6 +158,15 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
           {isRegister ? "Inicia la sessió" : "Crea'n un"}
         </button>
       </p>
+
+      <hr className="my-6 border-slate-200" />
+
+      <Link
+        to="/"
+        className="block w-full rounded-md border border-slate-300 px-4 py-2 text-center font-medium text-slate-700 hover:border-brand-500 hover:text-brand-600"
+      >
+        Consulta el rànquing
+      </Link>
     </div>
   );
 }
