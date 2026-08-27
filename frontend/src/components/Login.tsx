@@ -115,7 +115,19 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
                 onChange={(event) => setConsent(event.target.checked)}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-brand-500"
               />
-              <span>Accepto el tractament de les meves dades per participar en l'avaluació.</span>
+              <span>
+                Accepto el tractament de les meves dades per participar en l'avaluació, d'acord amb
+                l'{" "}
+                <a
+                  href="https://www.softcatala.org/avis-legal/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-brand-700"
+                >
+                  avís legal
+                </a>
+                .
+              </span>
             </label>
           </>
         )}

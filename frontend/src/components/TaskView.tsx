@@ -4,6 +4,7 @@ import { api, ApiError } from "../api";
 import { splitPrompt } from "../diff";
 import { clearTask, loadSavedTask, saveTask, secondsUntilVote } from "../taskStore";
 import { CATEGORIES, type CategoryFilter, type Progress, type Task, type Winner } from "../types";
+import Onboarding, { type OnboardingStep } from "./Onboarding";
 import ProgressBar from "./ProgressBar";
 import ResponseCard from "./ResponseCard";
 
@@ -27,6 +28,11 @@ export default function TaskView() {
   const [remaining, setRemaining] = useState(0);
   /** No queden tasques per al filtre actual (el backend ha respost 404). */
   const [exhausted, setExhausted] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const originalTextRef = useRef<HTMLElement | null>(null);
+  const responsesRef = useRef<HTMLDivElement | null>(null);
+  const voteRef = useRef<HTMLDivElement | null>(null);
 
   const loadProgress = useCallback(async () => {
     // El progrés és informatiu: si falla, no bloquegem l'avaluació.
@@ -150,7 +156,9 @@ export default function TaskView() {
   // Dreceres de teclat: cada avaluador fa 90 vots o més, i obligar-lo a moure el
   // ratolí fins al botó a cada tasca és una fricció que se suma 90 vegades.
   useEffect(() => {
-    if (locked || !task) return;
+    // Sense aquesta guarda, votar amb tecles funcionaria per sota del
+    // tutorial mentre és obert, sense que la persona ho vegi.
+    if (locked || !task || showOnboarding) return;
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -166,13 +174,58 @@ export default function TaskView() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [locked, task, resolve]);
+  }, [locked, task, resolve, showOnboarding]);
 
   const parts = task ? splitPrompt(task.prompt) : null;
   const isCorrection = task?.category_code === "correccio";
 
+  const onboardingSteps: OnboardingStep[] = [
+    {
+      ref: headerRef,
+      title: "Què se li ha demanat al model",
+      text: "Aquí veus la categoria de la tasca i la instrucció exacta que s'ha enviat als dos models.",
+    },
+    ...(parts?.source
+      ? [
+          {
+            ref: originalTextRef,
+            title: "Text original",
+            text: "Aquest és el text de partida, tal com el va rebre el model, sense cap correcció.",
+          },
+        ]
+      : []),
+    {
+      ref: responsesRef,
+      title: "Compara les dues respostes",
+      text: "Llegeix la resposta A i la B. No saps quin model ha generat cadascuna: és una avaluació cega.",
+    },
+    {
+      ref: voteRef,
+      title: "Vota",
+      text: "Tria quina resposta és millor, si estan empatades o si cap de les dues és bona. També pots fer servir les dreceres A, B, E i C.",
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold text-brand-600">Avaluació de respostes</h2>
+
+        {/* Discret a propòsit: aquesta pantalla es repeteix 90+ vegades per
+            avaluador, i el tutorial només cal la primera vegada. Al costat del
+            filtre no hi cabia al mòbil: hi xocava amb el «pendents», que no es
+            pot encongir perquè és `whitespace-nowrap`. */}
+        {task && (
+          <button
+            type="button"
+            onClick={() => setShowOnboarding(true)}
+            className="shrink-0 text-sm text-slate-500 underline hover:text-brand-600"
+          >
+            Tutorial
+          </button>
+        )}
+      </div>
+
       {/* Filtre i progrés comparteixen línia: dues files senceres abans de la tasca
           empenyien massa avall el text, que és el que s'ha de llegir. El rètol
           «Categoria» desapareix perquè el desplegable ja diu què fa. */}
@@ -207,11 +260,25 @@ export default function TaskView() {
 
       {task && parts && (
         <>
-          <section className="mb-4">
-            <h2 className="mb-1 text-sm font-semibold tracking-wide text-brand-600 uppercase">
-              {CATEGORIES.find((item) => item.code === task.category_code)?.label}
-            </h2>
-            <p className="text-lg text-slate-900">{parts.instruction}</p>
+          <section ref={headerRef} className="mb-4">
+            {/* Sense aquestes frases, algú nou podia confondre l'enunciat de sota
+                amb instruccions per a ell mateix, quan en realitat és el que es va
+                demanar als dos models (Jordi, issue #56). Reutilitzem l'estil de
+                «Text original» (mb-1 text-sm font-semibold tracking-wide uppercase)
+                perquè els rètols de la pàgina segueixin un sol llenguatge visual. */}
+            <hr className="mb-4 border-slate-200" />
+            <p className="mb-1 text-sm">
+              <span className="font-semibold tracking-wide text-slate-500 uppercase">
+                Tipus de tasca:
+              </span>{" "}
+              <span className="text-base font-semibold text-slate-700">
+                {CATEGORIES.find((item) => item.code === task.category_code)?.label}
+              </span>
+            </p>
+            <h3 className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
+              Indicació enviada al model
+            </h3>
+            <code className="text-base font-semibold text-slate-700">«{parts.instruction}»</code>
           </section>
 
           {/* A correcció el text es pot plegar: el diff de cada targeta ja el conté, i
@@ -220,6 +287,9 @@ export default function TaskView() {
           {parts.source &&
             (isCorrection ? (
               <details
+                ref={(el) => {
+                  originalTextRef.current = el;
+                }}
                 open
                 className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
               >
@@ -231,7 +301,10 @@ export default function TaskView() {
                 </p>
               </details>
             ) : (
-              <section className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <section
+                ref={originalTextRef}
+                className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+              >
                 <h3 className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
                   Text original
                 </h3>
@@ -239,10 +312,19 @@ export default function TaskView() {
               </section>
             ))}
 
+          <p className="mb-3 text-sm">
+            <span className="font-semibold tracking-wide text-slate-500 uppercase">
+              La vostra tasca:
+            </span>{" "}
+            <span className="text-base font-semibold text-slate-700">
+              avaluar la resposta dels dos models.
+            </span>
+          </p>
+
           {isCorrection && <DiffLegend />}
 
           {/* Apilades al mòbil, en dues columnes a partir de pantalla mitjana. */}
-          <div className="mb-6 grid gap-4 md:grid-cols-2">
+          <div ref={responsesRef} className="mb-6 grid gap-4 md:grid-cols-2">
             <ResponseCard
               label="Resposta A"
               text={task.response_a}
@@ -260,7 +342,7 @@ export default function TaskView() {
               són sempre a l'abast del polze. A partir de `md` tornen al flux normal. */}
           <div className="fixed inset-x-0 bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
             <div className="mx-auto max-w-5xl">
-              <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+              <div ref={voteRef} className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                 {VOTE_OPTIONS.map((option) => (
                   <button
                     key={option.winner}
@@ -303,6 +385,10 @@ export default function TaskView() {
               </div>
             </div>
           </div>
+
+          {showOnboarding && (
+            <Onboarding steps={onboardingSteps} onDone={() => setShowOnboarding(false)} />
+          )}
         </>
       )}
     </div>
