@@ -1,6 +1,6 @@
 /** Tipus compartits, alineats amb els esquemes Pydantic de `backend/app/schemas.py`. */
 
-export type CategoryCode = "correccio" | "reformulacio" | "traduccio";
+export type CategoryCode = "correccio" | "generacio" | "reformulacio" | "traduccio";
 
 /** `""` vol dir «qualsevol»: `GET /api/task` sense `category_code` tria la primera pendent. */
 export type CategoryFilter = CategoryCode | "";
@@ -8,6 +8,7 @@ export type CategoryFilter = CategoryCode | "";
 export const CATEGORIES: { code: CategoryFilter; label: string }[] = [
   { code: "", label: "Qualsevol categoria" },
   { code: "correccio", label: "Correcció" },
+  { code: "generacio", label: "Generació" },
   { code: "reformulacio", label: "Reformulació" },
   { code: "traduccio", label: "Traducció" },
 ];
