@@ -413,35 +413,24 @@ def load_prompts(
 
 def load_categories(
     session: Session,
-    categories: list[CategoryDefinition],
+    definitions: list[CategoryDefinition],
 ) -> dict[str, int]:
     """Sincronitza el catàleg i retorna els identificadors per codi."""
-    existing_by_code = {
-        category.code: category for category in session.scalars(select(Category)).all()
-    }
+    categories = {category.code: category for category in session.scalars(select(Category)).all()}
 
-    for definition in categories:
-        existing = existing_by_code.get(definition.code)
-        if existing is None:
-            existing = Category(
-                code=definition.code,
-                name=definition.name,
-                description=definition.description,
-                evaluation_instructions=definition.evaluation_instructions,
-            )
-            session.add(existing)
-            session.flush()
-            existing_by_code[definition.code] = existing
-        elif (
-            existing.name != definition.name
-            or existing.description != definition.description
-            or existing.evaluation_instructions != definition.evaluation_instructions
-        ):
-            existing.name = definition.name
-            existing.description = definition.description
-            existing.evaluation_instructions = definition.evaluation_instructions
+    for definition in definitions:
+        category = categories.get(definition.code)
+        if category is None:
+            category = Category(code=definition.code)
+            categories[definition.code] = category
+            session.add(category)
 
-    return {code: category.id for code, category in existing_by_code.items()}
+        category.name = definition.name
+        category.description = definition.description
+        category.evaluation_instructions = definition.evaluation_instructions
+
+    session.flush()
+    return {definition.code: categories[definition.code].id for definition in definitions}
 
 
 def load_responses(session: Session, inferencies_dir: Path, version: str, stats: Stats) -> None:
