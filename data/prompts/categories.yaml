@@ -1,0 +1,10 @@
+categories:
+  - code: correccio
+    name: Correcció
+    description: Corregeix aquest text.
+  - code: reformulacio
+    name: Reformulació
+    description: Reformula aquest text.
+  - code: traduccio
+    name: Traducció
+    description: Tradueix aquest text.

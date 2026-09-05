@@ -54,6 +54,23 @@ On first startup, `docker compose` provisions:
 
 El backend de FastAPI exposa els següents endpoints:
 
+### `GET /api/categories`
+
+Retorna el catàleg públic de categories, ordenat per codi. Les dades provenen de la taula
+`categories`, sincronitzada des de `data/prompts/categories.yaml`.
+
+```json
+{
+  "categories": [
+    {
+      "code": "correccio",
+      "name": "Correcció",
+      "description": "Corregeix aquest text."
+    }
+  ]
+}
+```
+
 ### `GET /api/task`
 
 Obté una nova tasca (un prompt amb dues respostes de models diferents) per a que un usuari l'avaluï.
