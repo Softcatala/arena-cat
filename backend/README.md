@@ -65,7 +65,8 @@ Retorna el catàleg públic de categories, ordenat per codi. Les dades provenen 
     {
       "code": "correccio",
       "name": "Correcció",
-      "description": "Corregeix aquest text."
+      "description": "Corregeix aquest text.",
+      "evaluation_instructions": "- Correcció ortogràfica i gramatical.\n- Conservació del significat original.\n- Naturalitat en català.\n- Absència de canvis innecessaris."
     }
   ]
 }

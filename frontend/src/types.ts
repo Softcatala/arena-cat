@@ -9,6 +9,7 @@ export interface Category {
   code: CategoryCode;
   name: string;
   description: string | null;
+  evaluation_instructions: string | null;
 }
 
 /** El backend no revela mai quin model ha generat cada resposta: l'avaluació és cega. */

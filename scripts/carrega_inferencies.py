@@ -86,11 +86,12 @@ class CategoryDefinition(BaseModel):
     code: str = Field(pattern=r"^[a-z][a-z0-9_]*$")
     name: str
     description: str | None = None
+    evaluation_instructions: str
 
-    @field_validator("name")
+    @field_validator("name", "evaluation_instructions")
     @classmethod
-    def validate_name(cls, value: str) -> str:
-        """Normalitza el nom i rebutja cadenes buides."""
+    def validate_required_text(cls, value: str) -> str:
+        """Normalitza els textos obligatoris i rebutja cadenes buides."""
         value = value.strip()
         if not value:
             raise ValueError("el nom no pot ser buit")
@@ -426,13 +427,19 @@ def load_categories(
                 code=definition.code,
                 name=definition.name,
                 description=definition.description,
+                evaluation_instructions=definition.evaluation_instructions,
             )
             session.add(existing)
             session.flush()
             existing_by_code[definition.code] = existing
-        elif existing.name != definition.name or existing.description != definition.description:
+        elif (
+            existing.name != definition.name
+            or existing.description != definition.description
+            or existing.evaluation_instructions != definition.evaluation_instructions
+        ):
             existing.name = definition.name
             existing.description = definition.description
+            existing.evaluation_instructions = definition.evaluation_instructions
 
     return {code: category.id for code, category in existing_by_code.items()}
 

@@ -118,7 +118,7 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 
 ### 8. Carregar prompts i inferències a la base de dades
 
-`scripts/carrega_inferencies.py` sincronitza `data/prompts/categories.yaml` amb la taula `categories` i publica els fitxers disponibles localment a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/v1/*.txt` (text pla, clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/v1/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
+`scripts/carrega_inferencies.py` sincronitza `data/prompts/categories.yaml`, la font de veritat de les categories, amb la taula `categories` i publica els fitxers disponibles localment a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/v1/*.txt` (text pla, clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/v1/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
 
 Les inferències de referència es conserven a la branca `dades_inferencia`, separades de les branques de codi. El target `make load_reference_inferences` crea o reutilitza un worktree paral·lel i apunta el carregador a les dades de referència.
 

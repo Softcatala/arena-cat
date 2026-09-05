@@ -11,6 +11,7 @@ class CategoryResponse(BaseModel):
     code: str
     name: str
     description: str | None
+    evaluation_instructions: str | None
 
 
 class CategoriesResponse(BaseModel):

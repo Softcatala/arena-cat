@@ -63,13 +63,18 @@ def _count(session, model) -> int:
     return session.scalar(select(func.count()).select_from(model))
 
 
-def write_categories(path: Path, name: str = "Cultura") -> None:
+def write_categories(
+    path: Path,
+    name: str = "Cultura",
+    evaluation_instructions: str = "Comprova quatre aspectes importants.",
+) -> None:
     """Escriu un catàleg mínim per provar-ne la sincronització."""
     path.write_text(
         f"""categories:
   - code: cultura
     name: {name}
     description: Avalua coneixements culturals.
+    evaluation_instructions: {evaluation_instructions}
 """,
         encoding="utf-8",
     )
@@ -82,11 +87,16 @@ def test_categories_are_inserted_updated_and_loaded_idempotently(session, dirs, 
 
     loader.run_load(session, prompts_dir, inferencies_dir, categories_file=categories_file)
     loader.run_load(session, prompts_dir, inferencies_dir, categories_file=categories_file)
-    write_categories(categories_file, name="Cultura catalana")
+    write_categories(
+        categories_file,
+        name="Cultura catalana",
+        evaluation_instructions="Comprova quatre criteris culturals.",
+    )
     loader.run_load(session, prompts_dir, inferencies_dir, categories_file=categories_file)
 
     category = session.scalar(select(Category).where(Category.code == "cultura"))
     assert category.name == "Cultura catalana"
+    assert category.evaluation_instructions == "Comprova quatre criteris culturals."
     assert (
         session.scalar(select(func.count()).select_from(Category).where(Category.code == "cultura"))
         == 1
