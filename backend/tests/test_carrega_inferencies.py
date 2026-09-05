@@ -87,9 +87,10 @@ def test_categories_are_inserted_updated_and_loaded_idempotently(session, dirs, 
 
     category = session.scalar(select(Category).where(Category.code == "cultura"))
     assert category.name == "Cultura catalana"
-    assert session.scalar(
-        select(func.count()).select_from(Category).where(Category.code == "cultura")
-    ) == 1
+    assert (
+        session.scalar(select(func.count()).select_from(Category).where(Category.code == "cultura"))
+        == 1
+    )
 
 
 @pytest.mark.parametrize(
