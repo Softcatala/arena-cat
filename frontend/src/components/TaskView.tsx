@@ -320,12 +320,24 @@ export default function TaskView({ categories }: { categories: Category[] }) {
             ))}
 
           <div className="mb-3">
-            <p className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
-              La vostra tasca:
+            <p className="mb-1 text-sm">
+              <span className="font-semibold tracking-wide text-slate-500 uppercase">
+                La vostra tasca:
+              </span>{" "}
+              <span className="text-base font-semibold text-slate-700">
+                avaluar la resposta dels dos models.
+              </span>
             </p>
-            <p className="text-base leading-relaxed whitespace-pre-line text-slate-700">
-              {taskCategory?.evaluation_instructions ?? "Avaluar la resposta dels dos models."}
-            </p>
+            {taskCategory?.evaluation_instructions && (
+              <>
+                <p className="mt-3 mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                  A tenir en compte:
+                </p>
+                <p className="text-base leading-relaxed whitespace-pre-line text-slate-700">
+                  {taskCategory.evaluation_instructions}
+                </p>
+              </>
+            )}
           </div>
 
           {isCorrection && <DiffLegend />}
