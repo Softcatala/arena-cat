@@ -177,6 +177,7 @@ export default function TaskView({ categories }: { categories: Category[] }) {
   }, [locked, task, resolve, showOnboarding]);
 
   const parts = task ? splitPrompt(task.prompt) : null;
+  const taskCategory = categories.find((item) => item.code === task?.category_code);
   const isCorrection = task?.category_code === "correccio";
 
   const onboardingSteps: OnboardingStep[] = [
@@ -278,8 +279,7 @@ export default function TaskView({ categories }: { categories: Category[] }) {
                 Tipus de tasca:
               </span>{" "}
               <span className="text-base font-semibold text-slate-700">
-                {categories.find((item) => item.code === task.category_code)?.name ??
-                  task.category_code}
+                {taskCategory?.name ?? task.category_code}
               </span>
             </p>
             <h3 className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
@@ -319,14 +319,14 @@ export default function TaskView({ categories }: { categories: Category[] }) {
               </section>
             ))}
 
-          <p className="mb-3 text-sm">
-            <span className="font-semibold tracking-wide text-slate-500 uppercase">
+          <div className="mb-3">
+            <p className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
               La vostra tasca:
-            </span>{" "}
-            <span className="text-base font-semibold text-slate-700">
-              avaluar la resposta dels dos models.
-            </span>
-          </p>
+            </p>
+            <p className="text-base leading-relaxed whitespace-pre-line text-slate-700">
+              {taskCategory?.evaluation_instructions ?? "Avaluar la resposta dels dos models."}
+            </p>
+          </div>
 
           {isCorrection && <DiffLegend />}
 
