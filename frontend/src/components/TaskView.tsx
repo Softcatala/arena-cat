@@ -274,15 +274,10 @@ export default function TaskView({ categories }: { categories: Category[] }) {
                 «Text original» (mb-1 text-sm font-semibold tracking-wide uppercase)
                 perquè els rètols de la pàgina segueixin un sol llenguatge visual. */}
             <hr className="mb-4 border-slate-200" />
-            <div className="mb-3">
-              <p className="mb-1 text-sm">
-                <span className="font-semibold tracking-wide text-slate-500 uppercase">
-                  La vostra tasca és
-                </span>{" "}
-                <span className="text-base font-semibold text-slate-700">
-                  avaluar la resposta dels dos models
-                  {taskCategory?.evaluation_instructions ? " tenint en compte:" : "."}
-                </span>
+            <div className="mb-6">
+              <p className="mb-2 text-base font-semibold leading-relaxed text-slate-700">
+                Avalueu les dues respostes
+                {taskCategory?.evaluation_instructions ? " tenint en compte:" : "."}
               </p>
               {taskCategory?.evaluation_instructions && (
                 <ul className="grid list-disc gap-x-8 gap-y-1 pl-5 text-base leading-relaxed text-slate-700 md:grid-cols-2">
