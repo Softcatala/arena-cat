@@ -274,14 +274,24 @@ export default function TaskView({ categories }: { categories: Category[] }) {
                 «Text original» (mb-1 text-sm font-semibold tracking-wide uppercase)
                 perquè els rètols de la pàgina segueixin un sol llenguatge visual. */}
             <hr className="mb-4 border-slate-200" />
-            <p className="mb-1 text-sm">
-              <span className="font-semibold tracking-wide text-slate-500 uppercase">
-                Tipus de tasca:
-              </span>{" "}
-              <span className="text-base font-semibold text-slate-700">
-                {taskCategory?.name ?? task.category_code}
-              </span>
-            </p>
+            <div className="mb-6">
+              <p className="mb-2 text-base font-semibold leading-relaxed text-slate-700">
+                Avalueu les dues respostes
+                {taskCategory?.evaluation_instructions ? " tenint en compte:" : "."}
+              </p>
+              {taskCategory?.evaluation_instructions && (
+                <ul className="grid list-disc gap-x-8 gap-y-1 pl-5 text-base leading-relaxed text-slate-700 md:grid-cols-2">
+                  {taskCategory.evaluation_instructions
+                    .split("\n")
+                    .map((line) => line.trim())
+                    .filter(Boolean)
+                    .map((line, index) => (
+                      <li key={index}>{line.replace(/^[-*•]\s+/, "")}</li>
+                    ))}
+                </ul>
+              )}
+            </div>
+
             <h3 className="mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
               Indicació enviada al model
             </h3>
@@ -318,27 +328,6 @@ export default function TaskView({ categories }: { categories: Category[] }) {
                 <p className="leading-relaxed whitespace-pre-wrap text-slate-800">{parts.source}</p>
               </section>
             ))}
-
-          <div className="mb-3">
-            <p className="mb-1 text-sm">
-              <span className="font-semibold tracking-wide text-slate-500 uppercase">
-                La vostra tasca:
-              </span>{" "}
-              <span className="text-base font-semibold text-slate-700">
-                avaluar la resposta dels dos models.
-              </span>
-            </p>
-            {taskCategory?.evaluation_instructions && (
-              <>
-                <p className="mt-3 mb-1 text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                  A tenir en compte:
-                </p>
-                <p className="text-base leading-relaxed whitespace-pre-line text-slate-700">
-                  {taskCategory.evaluation_instructions}
-                </p>
-              </>
-            )}
-          </div>
 
           {isCorrection && <DiffLegend />}
 
