@@ -18,7 +18,11 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // Quan cal verificar el correu, la pantalla d'espera substitueix el formulari.
-  const [pending, setPending] = useState<{ email: string; justSent: boolean } | null>(null);
+  const [pending, setPending] = useState<{
+    email: string;
+    justSent: boolean;
+    cooldownSeconds: number;
+  } | null>(null);
 
   const isRegister = mode === "register";
 
@@ -46,11 +50,11 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
     setError(null);
     try {
       if (isRegister) {
-        const { status } = await api.register(email, password, consent);
+        const { status, resend_cooldown_seconds } = await api.register(email, password, consent);
         // Amb la verificació activada, el compte no deixa entrar fins que la persona
         // obri l'enllaç del correu: iniciar sessió ara només donaria un 403.
         if (status === "pending_verification") {
-          setPending({ email, justSent: true });
+          setPending({ email, justSent: true, cooldownSeconds: resend_cooldown_seconds ?? 0 });
           return;
         }
       }
@@ -60,7 +64,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
       // El backend només respon 403 a l'entrada quan la contrasenya és correcta però el
       // correu no està verificat.
       if (!isRegister && err instanceof ApiError && err.status === 403) {
-        setPending({ email, justSent: false });
+        setPending({ email, justSent: false, cooldownSeconds: 0 });
         return;
       }
       setError(err instanceof ApiError ? err.message : "No s'ha pogut connectar amb l'API");
@@ -74,6 +78,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
       <VerificationPending
         email={pending.email}
         justSent={pending.justSent}
+        cooldownSeconds={pending.cooldownSeconds}
         onBack={() => {
           setPending(null);
           setMode("login");

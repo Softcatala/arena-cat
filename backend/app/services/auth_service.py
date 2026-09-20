@@ -143,7 +143,13 @@ def register_user(
     verification_email = VerificationEmail(
         email=email, token=create_email_verification_token(user.id, email)
     )
-    return RegisterResponse(status="pending_verification"), verification_email
+    return (
+        RegisterResponse(
+            status="pending_verification",
+            resend_cooldown_seconds=settings.verification_resend_cooldown_seconds,
+        ),
+        verification_email,
+    )
 
 
 def request_verification_resend(

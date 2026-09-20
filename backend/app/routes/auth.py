@@ -36,7 +36,7 @@ def _send_in_background(
         )
 
 
-@router.post("/auth/register")
+@router.post("/auth/register", response_model_exclude_none=True)
 def register(
     payload: RegisterRequest, db: DbSession, background_tasks: BackgroundTasks
 ) -> RegisterResponse:
@@ -58,7 +58,9 @@ def resend_verification(
 ) -> ResendVerificationResponse:
     """Reenvia el correu de verificació. Respon igual tant si el compte existeix com si no."""
     _send_in_background(background_tasks, auth_service.request_verification_resend(db, payload))
-    return ResendVerificationResponse()
+    return ResendVerificationResponse(
+        resend_cooldown_seconds=get_settings().verification_resend_cooldown_seconds
+    )
 
 
 @router.post("/auth/login")

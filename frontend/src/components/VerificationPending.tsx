@@ -2,28 +2,27 @@ import { useEffect, useState } from "react";
 
 import { api, ApiError } from "../api";
 
-/** Coincideix amb el valor per defecte de `VERIFICATION_RESEND_COOLDOWN_SECONDS`
- *  del backend: abans no serviria de res tornar-ho a demanar.
- */
-const RESEND_COOLDOWN_SECONDS = 60;
-
 /** Pantalla d'«ha d'arribar-te un correu». Apareix després de l'alta i quan es
  *  vol entrar amb un compte encara sense verificar.
  *
  *  `justSent` és cert només després de l'alta, quan el correu acaba de sortir:
- *  llavors el reenviament comença bloquejat. Si la persona hi arriba en voler
- *  entrar, no sabem quan va sortir l'últim, així que el deixem disponible.
+ *  llavors el reenviament comença bloquejat durant `cooldownSeconds`, l'espera que
+ *  ha comunicat el backend (és configurable, i abans no serviria de res tornar-ho a
+ *  demanar). Si la persona hi arriba en voler entrar, no sabem quan va sortir
+ *  l'últim, així que el deixem disponible.
  */
 export default function VerificationPending({
   email,
   justSent,
+  cooldownSeconds,
   onBack,
 }: {
   email: string;
   justSent: boolean;
+  cooldownSeconds: number;
   onBack: () => void;
 }) {
-  const [secondsLeft, setSecondsLeft] = useState(justSent ? RESEND_COOLDOWN_SECONDS : 0);
+  const [secondsLeft, setSecondsLeft] = useState(justSent ? cooldownSeconds : 0);
   const [resent, setResent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -38,9 +37,9 @@ export default function VerificationPending({
     setBusy(true);
     setError(null);
     try {
-      await api.resendVerification(email);
+      const { resend_cooldown_seconds } = await api.resendVerification(email);
       setResent(true);
-      setSecondsLeft(RESEND_COOLDOWN_SECONDS);
+      setSecondsLeft(resend_cooldown_seconds);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No s'ha pogut connectar amb l'API");
     } finally {
@@ -70,7 +69,7 @@ export default function VerificationPending({
         {resent && (
           <p className="mb-4 rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-700">
             Si l'adreça és correcta, rebràs un altre correu en uns instants. Si en vas demanar un fa
-            menys d'un minut, espera una mica.
+            poc, espera una mica.
           </p>
         )}
       </div>

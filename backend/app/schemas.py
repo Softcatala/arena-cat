@@ -59,6 +59,8 @@ class RegisterRequest(BaseModel):
 
 class RegisterResponse(BaseModel):
     status: str = "pending_verification"
+    # Segons que cal esperar per demanar un altre correu; només si se n'ha enviat un.
+    resend_cooldown_seconds: int | None = None
 
 
 class VerifyEmailRequest(BaseModel):
@@ -77,6 +79,8 @@ class ResendVerificationResponse(BaseModel):
     """Resposta única: no revela si l'adreça existeix ni si s'ha enviat el correu."""
 
     status: str = "requested"
+    # És l'espera configurada, no la del compte: no revela si l'adreça existeix.
+    resend_cooldown_seconds: int
 
 
 class LoginRequest(BaseModel):

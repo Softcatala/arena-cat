@@ -63,7 +63,7 @@ def test_register_requires_email_verification_when_enabled(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"status": "pending_verification"}
+    assert response.json()["status"] == "pending_verification"
 
     created_user = session.scalar(
         select(User).where(User.email == "verificacio_obligatoria@example.com")
@@ -563,7 +563,7 @@ def test_register_sends_verification_email(client, session, outbox, require_emai
     response = _register(client, "correu_enviat@example.com")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "pending_verification"}
+    assert response.json()["status"] == "pending_verification"
     (message,) = outbox
     assert message["To"] == "correu_enviat@example.com"
 
@@ -606,7 +606,7 @@ def test_register_succeeds_even_if_the_mail_server_fails(
     response = _register(client, "smtp_caigut@example.com")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "pending_verification"}
+    assert response.json()["status"] == "pending_verification"
     assert session.scalar(select(User).where(User.email == "smtp_caigut@example.com"))
 
 
@@ -618,7 +618,7 @@ def test_resend_sends_a_new_email_to_an_unverified_user(
     response = _resend(client, "reenviament@example.com")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "requested"}
+    assert response.json()["status"] == "requested"
     (message,) = outbox
     assert message["To"] == "reenviament@example.com"
     assert verify_email_verification_token(_token_from(message))["user_id"] == str(user.id)
@@ -637,6 +637,29 @@ def test_resend_answers_the_same_for_unknown_and_known_emails(
     assert known.status_code == unknown.status_code == 200
     assert known.json() == unknown.json()
     assert [message["To"] for message in outbox] == ["existent@example.com"]
+
+
+def test_register_and_resend_report_the_configured_resend_cooldown(
+    client, create_user, monkeypatch, require_email_verification
+):
+    """El frontend en fa el compte enrere: ha de coincidir amb l'espera real."""
+    monkeypatch.setenv("VERIFICATION_RESEND_COOLDOWN_SECONDS", "300")
+    get_settings.cache_clear()
+    create_user("espera_configurada@example.com", verified=False)
+
+    registered = _register(client, "espera_nova@example.com")
+    known = _resend(client, "espera_configurada@example.com")
+    unknown = _resend(client, "espera_desconeguda@example.com")
+
+    assert registered.json()["resend_cooldown_seconds"] == 300
+    assert known.json() == unknown.json()
+    assert known.json()["resend_cooldown_seconds"] == 300
+
+
+def test_register_does_not_report_a_cooldown_when_no_email_is_sent(client):
+    response = _register(client, "sense_espera@example.com")
+
+    assert response.json() == {"status": "verified"}
 
 
 def test_resend_does_nothing_for_an_already_verified_user(

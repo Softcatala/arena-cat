@@ -80,8 +80,10 @@ curl -s -X POST "$BASE_URL/api/auth/resend-verification" \
 Resposta esperada (`200`):
 
 ```json
-{"status": "requested"}
+{"status": "requested", "resend_cooldown_seconds": 60}
 ```
+
+`resend_cooldown_seconds` és l'espera configurada; el frontend l'usa per al compte enrere del botó.
 
 ---
 
