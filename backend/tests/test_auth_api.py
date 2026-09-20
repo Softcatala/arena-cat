@@ -530,3 +530,21 @@ def test_get_ranking_without_category_returns_global(client, session, create_use
         response = client.get("/api/ranking", params={"category_code": category_code})
         assert response.status_code == 200
         assert response.json()["n_participants"] == expected
+
+
+def test_login_with_wrong_password_does_not_reveal_an_unverified_account(
+    client, create_user, require_email_verification
+):
+    create_user("no_revelar@example.com", verified=False)
+
+    wrong_password = client.post(
+        "/api/auth/login",
+        json={"email": "no_revelar@example.com", "password": "una-altra-contrasenya"},
+    )
+    unknown_email = client.post(
+        "/api/auth/login",
+        json={"email": "ningu@example.com", "password": "una-altra-contrasenya"},
+    )
+
+    assert wrong_password.status_code == unknown_email.status_code == 401
+    assert wrong_password.json() == unknown_email.json()

@@ -165,14 +165,15 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     if user is None or user.deleted_at is not None:
         raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
+
+    # Després de la contrasenya: així només el propietari del compte veu que li cal verificar.
     if get_settings().require_email_verification and user.email_verified_at is None:
         raise HTTPException(
             status_code=403,
             detail="Email no verificat. Verifica el teu email primer.",
         )
-
-    if not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
     # Crea la sessió
     raw_token = new_session_token()
