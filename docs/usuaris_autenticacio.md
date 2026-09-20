@@ -92,6 +92,16 @@ Les contrasenyes es xifren amb **Argon2id** (via `argon2-cffi`):
 Argon2id és una funció de derivació de clau resistent a atacs per GPU i inclou la sal a la
 pròpia sortida, de manera que no cal gestionar-la per separat.
 
+#### Política de les contrasenyes noves
+
+Una contrasenya nova (alta i restabliment) ha de tenir entre 8 i 128 caràcters, almenys
+**una majúscula i un número** (`NewPassword` a
+[`schemas.py`](../backend/app/schemas.py); compten les lletres majúscules i els dígits de
+qualsevol alfabet, com `À` o `Ç`). No hi ha llista de contrasenyes habituals ni més regles
+de composició. L'**entrada no l'aplica**: un compte antic ha de poder entrar amb la
+contrasenya que va triar. Els formularis del frontend hi avisen abans d'enviar-los
+(`frontend/src/password.ts`), però qui decideix és el backend, que respon HTTP 422.
+
 ### Hash del correu — HMAC-SHA256 amb pepper
 
 `compute_email_hash(email)` normalitza el correu (`strip().lower()`) i en calcula un
@@ -308,11 +318,11 @@ Tots els endpoints pengen del prefix d'autenticació definit a
 
 | Mètode | Ruta | Cos de petició | Resposta | Errors |
 | --- | --- | --- | --- | --- |
-| `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification" }` | 400 (sense consentiment), 409 (correu ja registrat) |
+| `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification" }` | 400 (sense consentiment), 409 (correu ja registrat), 422 (contrasenya que no compleix la política) |
 | `POST` | `/auth/verify` | `{ token }` | `{ status: "verified" }` | 400 (token invàlid), 404 (usuari no trobat) |
 | `POST` | `/auth/resend-verification` | `{ email }` | `{ status: "requested" }` (sempre) | 422 (correu mal format) |
 | `POST` | `/auth/forgot-password` | `{ email }` | `{ status: "requested" }` (sempre) | 422 (correu mal format) |
-| `POST` | `/auth/reset-password` | `{ token, new_password }` | `{ status: "password_reset" }` | 400 (enllaç invàlid, caducat o ja utilitzat), 422 (contrasenya fora de 8–128 caràcters) |
+| `POST` | `/auth/reset-password` | `{ token, new_password }` | `{ status: "password_reset" }` | 400 (enllaç invàlid, caducat o ja utilitzat), 422 (contrasenya que no compleix la política) |
 | `POST` | `/auth/login` | `{ email, password }` | `{ status: "logged_in" }` + cookie | 401 (credencials), 403 (correu no verificat, amb contrasenya correcta) |
 | `POST` | `/auth/logout` | *(cookie)* | `{ status: "logged_out" }` | — |
 | `POST` | `/auth/delete-account` | `{ current_password }` + cookie | `{ status: "deleted" }` | 401 (sessió/contrasenya) |

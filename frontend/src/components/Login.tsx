@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api, ApiError } from "../api";
+import { PASSWORD_MIN_LENGTH, passwordProblem, repeatedDiverges } from "../password";
 import { Field, INPUT } from "./Field";
+import PasswordRules from "./PasswordRules";
 import VerificationPending from "./VerificationPending";
 
 type Mode = "login" | "register";
@@ -37,6 +39,11 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
     if (isRegister) {
       // Es pot recuperar l'accés per correu, però una errada en teclejar la
       // contrasenya obligaria a fer-ho just després de crear el compte.
+      const problem = passwordProblem(password);
+      if (problem) {
+        setError(problem);
+        return;
+      }
       if (password !== repeated) {
         setError("Les dues contrasenyes no coincideixen.");
         return;
@@ -118,17 +125,21 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
           />
         </Field>
 
-        <Field label="Contrasenya" hint={isRegister ? "Mínim 8 caràcters." : undefined}>
+        <Field label="Contrasenya">
           <input
             type="password"
             required
-            minLength={8}
+            // Només a l'alta: entrant, un compte antic pot tenir una contrasenya més curta.
+            minLength={isRegister ? PASSWORD_MIN_LENGTH : undefined}
+            aria-describedby={isRegister ? "password-rules" : undefined}
             autoComplete={isRegister ? "new-password" : "current-password"}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className={INPUT}
           />
         </Field>
+
+        {isRegister && <PasswordRules id="password-rules" password={password} />}
 
         {!isRegister && (
           <p className="-mt-2 text-right text-sm">
@@ -144,13 +155,18 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
               <input
                 type="password"
                 required
-                minLength={8}
+                minLength={PASSWORD_MIN_LENGTH}
                 autoComplete="new-password"
                 value={repeated}
                 onChange={(event) => setRepeated(event.target.value)}
                 className={INPUT}
               />
             </Field>
+            {repeatedDiverges(password, repeated) && (
+              <p role="status" className="-mt-2 text-xs text-brand-700">
+                Les dues contrasenyes no coincideixen.
+              </p>
+            )}
 
             {/* Consentiment explícit: el backend en desa la data i la versió a
                 `users`, així que ha de reflectir un acte real de la persona. */}

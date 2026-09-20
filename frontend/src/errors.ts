@@ -73,6 +73,9 @@ function tradueix(item: ValidationItem): string {
         : `${camp} no pot superar els ${max} caràcters.`;
     }
 
+    case "password_policy":
+      return "La contrasenya ha de tenir almenys una majúscula i un número.";
+
     case "value_error":
       return esCorreu ? "El correu electrònic no és vàlid." : `${camp} no és vàlid.`;
 

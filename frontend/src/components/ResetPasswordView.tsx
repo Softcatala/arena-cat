@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { api, ApiError } from "../api";
+import { PASSWORD_MIN_LENGTH, passwordProblem, repeatedDiverges } from "../password";
 import { Field, INPUT } from "./Field";
+import PasswordRules from "./PasswordRules";
 
 /** Destinació de l'enllaç del correu de restabliment: `/reset-password?token=…`. */
 export default function ResetPasswordView() {
@@ -18,6 +20,11 @@ export default function ResetPasswordView() {
 
   async function submit() {
     if (!token) return;
+    const problem = passwordProblem(password);
+    if (problem) {
+      setError(problem);
+      return;
+    }
     if (password !== repeated) {
       setError("Les dues contrasenyes no coincideixen.");
       return;
@@ -82,12 +89,13 @@ export default function ResetPasswordView() {
           void submit();
         }}
       >
-        <Field label="Contrasenya nova" hint="Mínim 8 caràcters.">
+        <Field label="Contrasenya nova">
           <input
             type="password"
             required
-            minLength={8}
+            minLength={PASSWORD_MIN_LENGTH}
             maxLength={128}
+            aria-describedby="password-rules"
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -95,11 +103,13 @@ export default function ResetPasswordView() {
           />
         </Field>
 
+        <PasswordRules id="password-rules" password={password} />
+
         <Field label="Repeteix la contrasenya">
           <input
             type="password"
             required
-            minLength={8}
+            minLength={PASSWORD_MIN_LENGTH}
             maxLength={128}
             autoComplete="new-password"
             value={repeated}
@@ -107,6 +117,12 @@ export default function ResetPasswordView() {
             className={INPUT}
           />
         </Field>
+
+        {repeatedDiverges(password, repeated) && (
+          <p role="status" className="-mt-2 text-xs text-brand-700">
+            Les dues contrasenyes no coincideixen.
+          </p>
+        )}
 
         {error && (
           <p role="alert" className="rounded-md bg-brand-100 px-3 py-2 text-sm text-brand-700">
