@@ -33,6 +33,7 @@ const CAMPS: Record<string, string> = {
   email: "El correu electrònic",
   password: "La contrasenya",
   current_password: "La contrasenya actual",
+  new_password: "La contrasenya nova",
   consent: "El consentiment",
   token: "El testimoni de la tasca",
   winner: "El vot",
@@ -71,6 +72,9 @@ function tradueix(item: ValidationItem): string {
         ? `${camp} és massa llarg.`
         : `${camp} no pot superar els ${max} caràcters.`;
     }
+
+    case "password_policy":
+      return "La contrasenya ha de tenir almenys una majúscula i un número.";
 
     case "value_error":
       return esCorreu ? "El correu electrònic no és vàlid." : `${camp} no és vàlid.`;

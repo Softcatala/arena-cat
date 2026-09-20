@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api, ApiError } from "../api";
+import { PASSWORD_MIN_LENGTH, passwordProblem, repeatedDiverges } from "../password";
+import { Field, INPUT } from "./Field";
+import PasswordRules from "./PasswordRules";
 import VerificationPending from "./VerificationPending";
 
 type Mode = "login" | "register";
@@ -34,8 +37,13 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
 
   async function submit() {
     if (isRegister) {
-      // El backend no té recuperació de contrasenya: una errada en teclejar-la
-      // deixaria el compte inaccessible per sempre.
+      // Es pot recuperar l'accés per correu, però una errada en teclejar la
+      // contrasenya obligaria a fer-ho just després de crear el compte.
+      const problem = passwordProblem(password);
+      if (problem) {
+        setError(problem);
+        return;
+      }
       if (password !== repeated) {
         setError("Les dues contrasenyes no coincideixen.");
         return;
@@ -117,11 +125,13 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
           />
         </Field>
 
-        <Field label="Contrasenya" hint={isRegister ? "Mínim 8 caràcters." : undefined}>
+        <Field label="Contrasenya">
           <input
             type="password"
             required
-            minLength={8}
+            // Només a l'alta: entrant, un compte antic pot tenir una contrasenya més curta.
+            minLength={isRegister ? PASSWORD_MIN_LENGTH : undefined}
+            aria-describedby={isRegister ? "password-rules" : undefined}
             autoComplete={isRegister ? "new-password" : "current-password"}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -129,19 +139,34 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
           />
         </Field>
 
+        {isRegister && <PasswordRules id="password-rules" password={password} />}
+
+        {!isRegister && (
+          <p className="-mt-2 text-right text-sm">
+            <Link to="/forgot-password" className="text-brand-600 underline hover:text-brand-700">
+              Has oblidat la contrasenya?
+            </Link>
+          </p>
+        )}
+
         {isRegister && (
           <>
             <Field label="Repeteix la contrasenya">
               <input
                 type="password"
                 required
-                minLength={8}
+                minLength={PASSWORD_MIN_LENGTH}
                 autoComplete="new-password"
                 value={repeated}
                 onChange={(event) => setRepeated(event.target.value)}
                 className={INPUT}
               />
             </Field>
+            {repeatedDiverges(password, repeated) && (
+              <p role="status" className="-mt-2 text-xs text-brand-700">
+                Les dues contrasenyes no coincideixen.
+              </p>
+            )}
 
             {/* Consentiment explícit: el backend en desa la data i la versió a
                 `users`, així que ha de reflectir un acte real de la persona. */}
@@ -204,26 +229,5 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
         Consulta el rànquing
       </Link>
     </div>
-  );
-}
-
-const INPUT =
-  "w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none";
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
-      {children}
-      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
-    </label>
   );
 }

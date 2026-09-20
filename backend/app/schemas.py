@@ -1,9 +1,29 @@
+import unicodedata
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
+from pydantic_core import PydanticCustomError
 
 from app.models import Winner
+
+
+def _require_capital_and_digit(password: str) -> str:
+    """Exigeix almenys una majúscula i un número; la longitud ja l'ha comprovat el camp."""
+    has_capital = any(unicodedata.category(char) == "Lu" for char in password)
+    has_digit = any(unicodedata.category(char) == "Nd" for char in password)
+    if not (has_capital and has_digit):
+        raise PydanticCustomError(
+            "password_policy", "La contrasenya ha de tenir almenys una majúscula i un número"
+        )
+    return password
+
+
+# Contrasenya nova (alta i restabliment). L'entrada no la fa servir: qui ja té un compte
+# ha de poder entrar amb la contrasenya que va triar, encara que no compleixi la política.
+NewPassword = Annotated[
+    str, Field(min_length=8, max_length=128), AfterValidator(_require_capital_and_digit)
+]
 
 
 class CategoryResponse(BaseModel):
@@ -53,7 +73,7 @@ class VoteResponse(BaseModel):
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: NewPassword
     consent: bool
 
 
@@ -81,6 +101,27 @@ class ResendVerificationResponse(BaseModel):
     status: str = "requested"
     # És l'espera configurada, no la del compte: no revela si l'adreça existeix.
     resend_cooldown_seconds: int
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ForgotPasswordResponse(BaseModel):
+    """Resposta única: no revela si l'adreça existeix ni si s'ha enviat el correu."""
+
+    status: str = "requested"
+    # És l'espera configurada, no la del compte: no revela si l'adreça existeix.
+    resend_cooldown_seconds: int
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: NewPassword
+
+
+class ResetPasswordResponse(BaseModel):
+    status: str = "password_reset"
 
 
 class LoginRequest(BaseModel):

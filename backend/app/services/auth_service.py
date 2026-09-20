@@ -1,8 +1,9 @@
+import hmac
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
@@ -13,29 +14,43 @@ from app.schemas import (
     ExportDataResponse,
     ExportUserResponse,
     ExportVoteResponse,
+    ForgotPasswordRequest,
     LoginRequest,
     LogoutRequest,
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
 from app.security import (
     compute_email_hash,
     create_email_verification_token,
+    create_password_reset_token,
     hash_password,
     hash_session_token,
     new_session_token,
+    password_fingerprint,
     verify_email_verification_token,
     verify_password,
+    verify_password_reset_token,
 )
 
 
 @dataclass(frozen=True)
 class VerificationEmail:
     """Correu de verificació pendent d'enviar: l'adreça i el token de l'enllaç."""
+
+    email: str
+    token: str
+
+
+@dataclass(frozen=True)
+class PasswordResetEmail:
+    """Correu de restabliment pendent d'enviar: l'adreça i el token de l'enllaç."""
 
     email: str
     token: str
@@ -187,6 +202,87 @@ def request_verification_resend(
     )
 
 
+def request_password_reset(
+    db: OrmSession, payload: ForgotPasswordRequest
+) -> PasswordResetEmail | None:
+    """Prepara el correu de restabliment si el compte hi té dret; si no, no fa res.
+
+    Reserva l'enviament amb un únic UPDATE condicional, com el reenviament de la
+    verificació. També s'envia a comptes sense verificar: qui no ha arribat a verificar
+    el correu i ha oblidat la contrasenya no té cap altra sortida, i fer servir l'enllaç
+    ja demostra que controla la bústia (vegeu `reset_password`).
+    El resultat no depèn de si l'adreça existeix, i qui crida respon igual sempre.
+    """
+    settings = get_settings()
+    now = datetime.now(UTC)
+    cutoff = now - timedelta(seconds=settings.password_reset_cooldown_seconds)
+    claimed = db.execute(
+        update(User)
+        .where(
+            User.email == payload.email.strip().lower(),
+            User.deleted_at.is_(None),
+            or_(User.password_reset_sent_at.is_(None), User.password_reset_sent_at <= cutoff),
+        )
+        .values(password_reset_sent_at=now)
+        .returning(User.id, User.email, User.password_hash)
+    ).first()
+    _commit(db)
+
+    if claimed is None:
+        return None
+    return PasswordResetEmail(
+        email=claimed.email,
+        token=create_password_reset_token(claimed.id, claimed.password_hash),
+    )
+
+
+def reset_password(db: OrmSession, payload: ResetPasswordRequest) -> ResetPasswordResponse:
+    """Canvia la contrasenya amb un token de restabliment i revoca totes les sessions.
+
+    El token només serveix un cop: duu l'empremta de la contrasenya que substitueix, i
+    el canvi es fa amb un UPDATE condicional a aquest hash, de manera que dues peticions
+    simultànies amb el mateix enllaç no poden passar totes dues.
+
+    L'enllaç només arriba a qui controla la bústia, així que fer-lo servir també verifica
+    el correu si encara no ho estava.
+    """
+    invalid = HTTPException(status_code=400, detail="Enllaç de restabliment invàlid o caducat")
+
+    token_payload = verify_password_reset_token(payload.token)
+    if not token_payload:
+        raise invalid
+
+    user = db.get(User, int(token_payload["user_id"]))
+    if user is None or user.deleted_at is not None or user.password_hash is None:
+        raise invalid
+    if not hmac.compare_digest(
+        str(token_payload.get("pwd", "")), password_fingerprint(user.password_hash)
+    ):
+        raise invalid
+
+    now = datetime.now(UTC)
+    changed = db.execute(
+        update(User)
+        .where(User.id == user.id, User.password_hash == user.password_hash)
+        .values(
+            password_hash=hash_password(payload.new_password),
+            email_verified_at=func.coalesce(User.email_verified_at, now),
+        )
+        .returning(User.id)
+    ).first()
+    if changed is None:
+        raise invalid
+
+    # Qui tingui una sessió oberta amb la contrasenya antiga hi queda fora.
+    db.execute(
+        update(Session)
+        .where(Session.user_id == user.id, Session.revoked_at.is_(None))
+        .values(revoked_at=now)
+    )
+    _commit(db)
+    return ResetPasswordResponse()
+
+
 def verify_email(db: OrmSession, payload: VerifyEmailRequest) -> VerifyEmailResponse:
     """Valida el token de verificació i marca el correu com a verificat."""
     token_payload = verify_email_verification_token(payload.token)
@@ -219,7 +315,8 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     if user is None or user.deleted_at is not None:
         raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
-    if not verify_password(payload.password, user.password_hash):
+    verified_hash = user.password_hash
+    if not verify_password(payload.password, verified_hash):
         raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
     # Després de la contrasenya: així només el propietari del compte veu que li cal verificar.
@@ -228,6 +325,14 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
             status_code=403,
             detail="Email no verificat. Verifica el teu email primer.",
         )
+
+    # Un restabliment de contrasenya pot haver acabat des que s'ha validat: la sessió nova no
+    # ha de sobreviure a un canvi que revoca les altres. Es reserva la fila de l'usuari fins
+    # al commit de la sessió; així el restabliment o bé ha acabat abans (i el hash ja no
+    # coincideix) o bé espera i, en revocar, ja veu aquesta sessió.
+    current_hash = db.scalar(select(User.password_hash).where(User.id == user.id).with_for_update())
+    if current_hash != verified_hash:
+        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
     # Crea la sessió
     raw_token = new_session_token()

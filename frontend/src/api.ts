@@ -113,6 +113,22 @@ export const api = {
       body: JSON.stringify({ answers }),
     }),
 
+  // Respon 200 amb el mateix cos tant si el correu existeix com si no, i també quan
+  // encara cal esperar: així no revela quines adreces hi són ni si n'ha enviat cap.
+  // `resend_cooldown_seconds` és l'espera configurada al backend, la mateixa per a tothom.
+  forgotPassword: (email: string) =>
+    request<{ status: string; resend_cooldown_seconds: number }>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  // El token és el de l'enllaç del correu i només serveix un cop.
+  resetPassword: (token: string, newPassword: string) =>
+    request<{ status: string }>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, new_password: newPassword }),
+    }),
+
   // Sense `category_code` el backend recorre les categories i serveix la primera
   // que encara tingui feina per a aquest usuari.
   nextTask: (category: CategoryFilter) =>

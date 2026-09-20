@@ -1,0 +1,14 @@
+Hola!
+
+Gràcies per registrar-vos a Arena Cat, la plataforma de Softcatalà per avaluar models d'IA en català.
+
+Per activar el vostre compte, confirmeu l'adreça de correu amb aquest enllaç (caduca d'aquí a {{ hours }} hores):
+
+{{ link }}
+
+Si no us heu registrat vosaltres, podeu ignorar aquest missatge.
+
+Softcatalà
+
+{{ notice_headline }}
+{{ notice_detail }}

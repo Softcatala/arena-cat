@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifiqueu el vostre correu d'Arena Cat</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f4f4;">
+  <table width="100%" bgcolor="#f4f4f4" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; padding: 20px;">
+          <!-- Contingut principal -->
+          <tr>
+            <td style="font-family: Open Sans, sans-serif; color: #333; text-align: left; padding: 20px;">
+              <h1 style="margin: 0; font-size: 36px; font-style: normal; font-weight: 100; line-height: 39.6px; color: #333333;">Arena Cat</h1><br>
+              <p style="font-size: 17px; color: #333;">Gràcies per registrar-vos a Arena Cat, la plataforma de Softcatalà per avaluar models d'IA en català.</p>
+              <p style="font-size: 17px; color: #333;">Per activar el vostre compte, confirmeu l'adreça de correu amb aquest enllaç (caduca d'aquí a {{ hours }} hores):</p>
+              <a href="{{ link }}"
+                 style="display: inline-block; background-color: #E64B3C; color: #ffffff; padding: 12px 30px; text-transform: uppercase; letter-spacing: 2px;
+                 text-decoration: none; font-size: 13px;">
+                Verifiqueu el correu
+              </a>
+              <p>L'adreça és <a href="{{ link }}">{{ link }}</a></p>
+              <p style="font-size: 14px; color: #777;">Si no us heu registrat vosaltres, podeu ignorar aquest missatge.</p>
+            </td>
+          </tr>
+          <!-- Peu de pàgina -->
+          <tr>
+            <td style="font-family: Open Sans, sans-serif; padding: 20px; font-size: 12px; color: #777;">
+              <div style="text-align: left;">
+                {{ notice_headline }}<br>
+                {{ notice_detail }}
+              </div>
+              <div style="text-align: center; padding-top: 12px;">
+                © Softcatalà
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

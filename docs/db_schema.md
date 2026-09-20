@@ -40,6 +40,7 @@ erDiagram
         timestamptz email_verified_at
         timestamptz qualified_at
         timestamptz verification_sent_at
+        timestamptz password_reset_sent_at
         varchar(32) consent_version
         timestamptz consent_at
         timestamptz created_at

@@ -554,7 +554,9 @@ def _resend(client, email: str):
 
 def _token_from(message) -> str:
     """Extreu el token de l'enllaç de verificació d'un correu enviat."""
-    match = re.search(r"/verify\?token=(\S+)", message.get_content())
+    match = re.search(
+        r"/verify\?token=(\S+)", message.get_body(preferencelist=("plain",)).get_content()
+    )
     assert match is not None
     return unquote(match.group(1))
 
