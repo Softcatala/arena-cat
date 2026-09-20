@@ -18,11 +18,10 @@ logger = logging.getLogger(__name__)
 
 SMTP_TIMEOUT_SECONDS = 10
 
-# Peu comú dels correus: ningú llegeix les respostes a l'adreça remitent.
-AUTOMATIC_NOTICE = (
-    "Aquest és un correu automàtic. Si us plau, no respongueu a aquest missatge: "
-    "les respostes no es processen."
-)
+# Peu comú dels correus: ningú llegeix les respostes a l'adreça remitent. Són dues línies
+# perquè, en una de sola, l'última paraula quedava penjada a la línia següent.
+NOTICE_HEADLINE = "Aquest és un correu automàtic."
+NOTICE_DETAIL = "Si us plau, no respongueu a aquest missatge: les respostes no es processen."
 
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "email_templates"
 
@@ -48,7 +47,7 @@ def _set_body(message: EmailMessage, template: str, **context: object) -> None:
     El text pla va primer: els clients mostren l'última versió que entenen.
     """
     environment = _templates()
-    context = {"notice": AUTOMATIC_NOTICE, **context}
+    context = {"notice_headline": NOTICE_HEADLINE, "notice_detail": NOTICE_DETAIL, **context}
     message.set_content(environment.get_template(f"{template}.txt").render(context))
     message.add_alternative(
         environment.get_template(f"{template}.html").render(context), subtype="html"

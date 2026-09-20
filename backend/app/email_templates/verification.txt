@@ -10,4 +10,5 @@ Si no us heu registrat vosaltres, podeu ignorar aquest missatge.
 
 Softcatalà
 
-{{ notice }}
+{{ notice_headline }}
+{{ notice_detail }}

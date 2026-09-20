@@ -1,6 +1,7 @@
 """Tests del servei d'enviament de correu. SMTP està simulat: no hi ha xarxa."""
 
 import logging
+import re
 import smtplib
 
 import pytest
@@ -424,3 +425,40 @@ def test_password_reset_email_warns_not_to_share_the_link(smtp_env):
 
     assert "No compartiu aquest enllaç" in plain(message)
     assert "No compartiu aquest enllaç" in html(message)
+
+
+@pytest.mark.parametrize("kind", ["verification", "password_reset"])
+def test_html_footer_has_a_left_aligned_notice_and_a_centered_copyright(smtp_env, kind):
+    """L'avís es llegeix com el cos del correu; només el «© Softcatalà» va centrat."""
+    smtp_env()
+    build = {
+        "verification": email_service.build_verification_message,
+        "password_reset": email_service.build_password_reset_message,
+    }[kind]
+
+    footer = html(build("usuari@example.com", "https://arena.example.org/x?token=t")).split(
+        "<!-- Peu de pàgina -->"
+    )[1]
+
+    # L'avís, en dues línies i alineat a l'esquerra: en una de sola, l'última paraula
+    # quedava penjada i centrada a la línia següent.
+    assert re.search(
+        r"text-align: left[^>]*>\s*Aquest és un correu automàtic\.\s*<br>\s*Si us plau", footer
+    )
+    assert re.search(r"text-align: center[^>]*>\s*© Softcatalà", footer)
+
+
+@pytest.mark.parametrize("kind", ["verification", "password_reset"])
+def test_plain_text_notice_is_on_its_own_two_lines(smtp_env, kind):
+    smtp_env()
+    build = {
+        "verification": email_service.build_verification_message,
+        "password_reset": email_service.build_password_reset_message,
+    }[kind]
+
+    body = plain(build("usuari@example.com", "https://arena.example.org/x?token=t"))
+
+    assert body.rstrip().endswith(
+        "Aquest és un correu automàtic.\n"
+        "Si us plau, no respongueu a aquest missatge: les respostes no es processen."
+    )
