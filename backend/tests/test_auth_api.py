@@ -1,4 +1,7 @@
+import re
+import smtplib
 from datetime import UTC, datetime, timedelta
+from urllib.parse import unquote
 
 import pytest
 from sqlalchemy import select
@@ -10,7 +13,10 @@ from app.security import (
     create_email_verification_token,
     hash_password,
     hash_session_token,
+    verify_email_verification_token,
 )
+from app.services import email_service
+from app.services.auth_service import anonymize_user_rgpd
 from tests.conftest import DEFAULT_PASSWORD
 
 
@@ -57,7 +63,7 @@ def test_register_requires_email_verification_when_enabled(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"status": "pending_verification"}
+    assert response.json()["status"] == "pending_verification"
 
     created_user = session.scalar(
         select(User).where(User.email == "verificacio_obligatoria@example.com")
@@ -530,3 +536,219 @@ def test_get_ranking_without_category_returns_global(client, session, create_use
         response = client.get("/api/ranking", params={"category_code": category_code})
         assert response.status_code == 200
         assert response.json()["n_participants"] == expected
+
+
+# --- Enviament del correu de verificació -------------------------------------------------
+
+
+def _register(client, email: str):
+    return client.post(
+        "/api/auth/register",
+        json={"email": email, "password": DEFAULT_PASSWORD, "consent": True},
+    )
+
+
+def _resend(client, email: str):
+    return client.post("/api/auth/resend-verification", json={"email": email})
+
+
+def _token_from(message) -> str:
+    """Extreu el token de l'enllaç de verificació d'un correu enviat."""
+    match = re.search(r"/verify\?token=(\S+)", message.get_content())
+    assert match is not None
+    return unquote(match.group(1))
+
+
+def test_register_sends_verification_email(client, session, outbox, require_email_verification):
+    response = _register(client, "correu_enviat@example.com")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "pending_verification"
+    (message,) = outbox
+    assert message["To"] == "correu_enviat@example.com"
+
+    user = session.scalar(select(User).where(User.email == "correu_enviat@example.com"))
+    assert verify_email_verification_token(_token_from(message))["user_id"] == str(user.id)
+    assert user.verification_sent_at is not None
+
+
+def test_link_from_the_email_completes_verification_and_allows_login(
+    client, outbox, require_email_verification
+):
+    _register(client, "flux_complet@example.com")
+    token = _token_from(outbox[0])
+
+    verify = client.post("/api/auth/verify", json={"token": token})
+    login = client.post(
+        "/api/auth/login",
+        json={"email": "flux_complet@example.com", "password": DEFAULT_PASSWORD},
+    )
+
+    assert verify.status_code == 200
+    assert login.status_code == 200
+
+
+def test_register_does_not_send_email_when_verification_is_disabled(client, outbox):
+    response = _register(client, "sense_correu@example.com")
+
+    assert response.json() == {"status": "verified"}
+    assert outbox == []
+
+
+def test_register_succeeds_even_if_the_mail_server_fails(
+    client, session, monkeypatch, require_email_verification
+):
+    def broken_send(message):
+        raise smtplib.SMTPException("servidor caigut")
+
+    monkeypatch.setattr(email_service, "send_email", broken_send)
+
+    response = _register(client, "smtp_caigut@example.com")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "pending_verification"
+    assert session.scalar(select(User).where(User.email == "smtp_caigut@example.com"))
+
+
+def test_resend_sends_a_new_email_to_an_unverified_user(
+    client, session, create_user, outbox, require_email_verification
+):
+    user = create_user("reenviament@example.com", verified=False)
+
+    response = _resend(client, "reenviament@example.com")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "requested"
+    (message,) = outbox
+    assert message["To"] == "reenviament@example.com"
+    assert verify_email_verification_token(_token_from(message))["user_id"] == str(user.id)
+    session.refresh(user)
+    assert user.verification_sent_at is not None
+
+
+def test_resend_answers_the_same_for_unknown_and_known_emails(
+    client, create_user, outbox, require_email_verification
+):
+    create_user("existent@example.com", verified=False)
+
+    known = _resend(client, "existent@example.com")
+    unknown = _resend(client, "no_existeix@example.com")
+
+    assert known.status_code == unknown.status_code == 200
+    assert known.json() == unknown.json()
+    assert [message["To"] for message in outbox] == ["existent@example.com"]
+
+
+def test_register_and_resend_report_the_configured_resend_cooldown(
+    client, create_user, monkeypatch, require_email_verification
+):
+    """El frontend en fa el compte enrere: ha de coincidir amb l'espera real."""
+    monkeypatch.setenv("VERIFICATION_RESEND_COOLDOWN_SECONDS", "300")
+    get_settings.cache_clear()
+    create_user("espera_configurada@example.com", verified=False)
+
+    registered = _register(client, "espera_nova@example.com")
+    known = _resend(client, "espera_configurada@example.com")
+    unknown = _resend(client, "espera_desconeguda@example.com")
+
+    assert registered.json()["resend_cooldown_seconds"] == 300
+    assert known.json() == unknown.json()
+    assert known.json()["resend_cooldown_seconds"] == 300
+
+
+def test_register_does_not_report_a_cooldown_when_no_email_is_sent(client):
+    response = _register(client, "sense_espera@example.com")
+
+    assert response.json() == {"status": "verified"}
+
+
+def test_resend_does_nothing_for_an_already_verified_user(
+    client, create_user, outbox, require_email_verification
+):
+    create_user("ja_verificat@example.com", verified=True)
+
+    response = _resend(client, "ja_verificat@example.com")
+
+    assert response.status_code == 200
+    assert outbox == []
+
+
+def test_resend_does_nothing_for_a_deleted_account(
+    client, session, create_user, outbox, require_email_verification
+):
+    user = create_user("donat_de_baixa@example.com", verified=False)
+    anonymize_user_rgpd(user, datetime.now(UTC))
+    session.commit()
+
+    response = _resend(client, "donat_de_baixa@example.com")
+
+    assert response.status_code == 200
+    assert outbox == []
+
+
+def test_resend_does_nothing_when_verification_is_disabled(client, create_user, outbox):
+    create_user("flag_desactivat@example.com", verified=False)
+
+    response = _resend(client, "flag_desactivat@example.com")
+
+    assert response.status_code == 200
+    assert outbox == []
+
+
+def test_resend_is_silently_limited_by_a_cooldown(
+    client, create_user, outbox, require_email_verification
+):
+    create_user("massa_rapid@example.com", verified=False)
+
+    first = _resend(client, "massa_rapid@example.com")
+    second = _resend(client, "massa_rapid@example.com")
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    assert len(outbox) == 1
+
+
+def test_resend_is_limited_right_after_registering(client, outbox, require_email_verification):
+    _register(client, "just_registrat@example.com")
+
+    response = _resend(client, "just_registrat@example.com")
+
+    assert response.status_code == 200
+    assert len(outbox) == 1
+
+
+def test_resend_works_again_once_the_cooldown_has_passed(
+    client, session, create_user, outbox, require_email_verification
+):
+    user = create_user("passat_el_temps@example.com", verified=False)
+    user.verification_sent_at = datetime.now(UTC) - timedelta(minutes=2)
+    session.commit()
+
+    _resend(client, "passat_el_temps@example.com")
+
+    assert len(outbox) == 1
+
+
+def test_resend_rejects_a_malformed_email(client, outbox, require_email_verification):
+    response = _resend(client, "no-es-un-correu")
+
+    assert response.status_code == 422
+    assert outbox == []
+
+
+def test_login_with_wrong_password_does_not_reveal_an_unverified_account(
+    client, create_user, require_email_verification
+):
+    create_user("no_revelar@example.com", verified=False)
+
+    wrong_password = client.post(
+        "/api/auth/login",
+        json={"email": "no_revelar@example.com", "password": "una-altra-contrasenya"},
+    )
+    unknown_email = client.post(
+        "/api/auth/login",
+        json={"email": "ningu@example.com", "password": "una-altra-contrasenya"},
+    )
+
+    assert wrong_password.status_code == unknown_email.status_code == 401
+    assert wrong_password.json() == unknown_email.json()

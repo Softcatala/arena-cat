@@ -76,7 +76,7 @@ export const api = {
   // `users`, i enviar-lo sempre cert fabricaria un consentiment que ningú ha donat.
   // La versió no s'envia: el backend la pren de la seva pròpia configuració.
   register: (email: string, password: string, consent: boolean) =>
-    request<{ status: string }>("/auth/register", {
+    request<{ status: string; resend_cooldown_seconds?: number }>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ email, password, consent }),
     }),
@@ -88,6 +88,22 @@ export const api = {
     }),
 
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
+
+  // El token és el de l'enllaç del correu. Verificar dues vegades no és cap error.
+  verifyEmail: (token: string) =>
+    request<{ status: string }>("/auth/verify", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+
+  // Respon 200 amb el mateix cos tant si el correu existeix com si no, i també quan
+  // encara cal esperar: així no revela quines adreces hi són ni si n'ha enviat cap.
+  // `resend_cooldown_seconds` és l'espera configurada al backend, la mateixa per a tothom.
+  resendVerification: (email: string) =>
+    request<{ status: string; resend_cooldown_seconds: number }>("/auth/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 
   qualification: () => request<Questionnaire>("/qualification"),
 

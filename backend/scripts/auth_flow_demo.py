@@ -7,10 +7,10 @@ resposta, i marca ✓/✗. Si algun pas no retorna l'status esperat, atura el fl
 surt amb codi ≠ 0, de manera que serveix alhora per **visualitzar** i per
 **comprovar** el flux.
 
-El token de verificació de correu no es retorna per l'API (a la v1 només s'escriu
-al log). L'script el genera localment amb `app.security`, que comparteix la mateixa
-`HMAC_SECRET_KEY` del `.env` amb el servidor; per obtenir l'`user_id` consulta la
-base de dades directament.
+El token de verificació de correu no es retorna per l'API (només viatja per correu
+o, sense SMTP, queda al log). L'script el genera localment amb `app.security`, que
+comparteix la mateixa `HMAC_SECRET_KEY` del `.env` amb el servidor; per obtenir
+l'`user_id` consulta la base de dades directament.
 
 Setup de servidor + PostgreSQL
 ------------------------------

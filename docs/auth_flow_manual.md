@@ -47,18 +47,43 @@ Resposta esperada: `403` (email no verificat).
 
 ## 3. Obtenir el token de verificació
 
-A la v1 **no hi ha servei de correu**: el token de verificació s'escriu al **log
-del servidor**. Busca la línia:
+El registre envia un correu amb un enllaç del tipus
+`<FRONTEND_BASE_URL>/verify?token=<TOKEN>`. El token és el valor del paràmetre `token`.
+
+- **Amb SMTP configurat** (`SMTP_HOST` al `.env`): el correu arriba a la bústia de l'adreça
+  registrada. Copia el token de l'enllaç.
+- **Sense SMTP** (`SMTP_HOST` buit, el cas habitual en local): no s'envia res i el missatge
+  sencer, enllaç inclòs, queda al **log del servidor**. Busca la línia:
 
 ```
-Email verification token for demo@example.com: <TOKEN>
+SMTP no configurat; no s'envia el correu per a demo@example.com:
 ```
+
+  i, a sota, l'enllaç `.../verify?token=<TOKEN>`.
 
 Copia'n el valor:
 
 ```bash
-TOKEN='<enganxa-aquí-el-token-del-log>'
+TOKEN='<enganxa-aquí-el-token>'
 ```
+
+Si el correu no arriba, es pot demanar un altre (com a màxim un cop cada
+`VERIFICATION_RESEND_COOLDOWN_SECONDS`, 60 per defecte). La resposta és sempre la mateixa,
+existeixi o no el compte:
+
+```bash
+curl -s -X POST "$BASE_URL/api/auth/resend-verification" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com"}'
+```
+
+Resposta esperada (`200`):
+
+```json
+{"status": "requested", "resend_cooldown_seconds": 60}
+```
+
+`resend_cooldown_seconds` és l'espera configurada; el frontend l'usa per al compte enrere del botó.
 
 ---
 

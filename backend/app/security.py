@@ -11,6 +11,8 @@ from app.config import get_settings
 
 _password_hasher = PasswordHasher()
 TASK_VOTE_WAIT_SECONDS = 10
+# Vigència de l'enllaç de verificació de correu.
+EMAIL_VERIFICATION_TTL_HOURS = 24
 
 
 def _sign_payload(payload: dict, secret: str) -> str:
@@ -66,7 +68,7 @@ def compute_email_hash(email: str) -> str:
 def create_email_verification_token(user_id: int, email: str) -> str:
     """Crea un token temporal per verificar el correu d'un usuari."""
     settings = get_settings()
-    exp = (datetime.now(UTC) + timedelta(hours=24)).timestamp()
+    exp = (datetime.now(UTC) + timedelta(hours=EMAIL_VERIFICATION_TTL_HOURS)).timestamp()
     payload = {
         "user_id": str(user_id),
         "email": email.strip().lower(),

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Cookie, Response
+from fastapi import APIRouter, BackgroundTasks, Cookie, Response
 
 from app.config import get_settings
 from app.deps import CurrentUser, DbSession, OptionalUser
@@ -12,25 +12,55 @@ from app.schemas import (
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
+    ResendVerificationRequest,
+    ResendVerificationResponse,
     SessionResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
-from app.services import auth_service
+from app.services import auth_service, email_service
+from app.services.auth_service import VerificationEmail
 
 router = APIRouter()
 
 
-@router.post("/auth/register")
-def register(payload: RegisterRequest, db: DbSession) -> RegisterResponse:
+def _send_in_background(
+    background_tasks: BackgroundTasks, verification_email: VerificationEmail | None
+) -> None:
+    """Programa l'enviament després de respondre, perquè SMTP no alenteixi la petició."""
+    if verification_email is not None:
+        background_tasks.add_task(
+            email_service.send_verification_email,
+            verification_email.email,
+            verification_email.token,
+        )
+
+
+@router.post("/auth/register", response_model_exclude_none=True)
+def register(
+    payload: RegisterRequest, db: DbSession, background_tasks: BackgroundTasks
+) -> RegisterResponse:
     """Alta d'usuari amb email, contrasenya i consentiment explícit."""
-    return auth_service.register_user(db, payload)
+    response, verification_email = auth_service.register_user(db, payload)
+    _send_in_background(background_tasks, verification_email)
+    return response
 
 
 @router.post("/auth/verify")
 def verify(payload: VerifyEmailRequest, db: DbSession) -> VerifyEmailResponse:
     """Verificació de correu a partir d'un token signat."""
     return auth_service.verify_email(db, payload)
+
+
+@router.post("/auth/resend-verification")
+def resend_verification(
+    payload: ResendVerificationRequest, db: DbSession, background_tasks: BackgroundTasks
+) -> ResendVerificationResponse:
+    """Reenvia el correu de verificació. Respon igual tant si el compte existeix com si no."""
+    _send_in_background(background_tasks, auth_service.request_verification_resend(db, payload))
+    return ResendVerificationResponse(
+        resend_cooldown_seconds=get_settings().verification_resend_cooldown_seconds
+    )
 
 
 @router.post("/auth/login")

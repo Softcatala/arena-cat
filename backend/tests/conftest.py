@@ -26,6 +26,25 @@ CATEGORIES_FILE = REPO_ROOT / "data" / "prompts" / "categories.yaml"
 DEFAULT_PASSWORD = "ContrasenyaSegura123!"
 
 
+@pytest.fixture(autouse=True)
+def _no_real_smtp(monkeypatch):
+    """Impedeix que cap test enviï correu de veritat, encara que el `.env` local tingui SMTP."""
+    monkeypatch.setenv("SMTP_HOST", "")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+@pytest.fixture
+def outbox(monkeypatch):
+    """Captura els correus que l'aplicació enviaria, sense tocar la xarxa."""
+    from app.services import email_service
+
+    sent: list = []
+    monkeypatch.setattr(email_service, "send_email", sent.append)
+    return sent
+
+
 @pytest.fixture(scope="session")
 def engine():
     """Motor cap a la base de dades de tests; crea l'esquema un sol cop."""

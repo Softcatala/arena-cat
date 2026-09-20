@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api, ApiError } from "../api";
+import VerificationPending from "./VerificationPending";
 
 type Mode = "login" | "register";
 
@@ -16,6 +17,12 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Quan cal verificar el correu, la pantalla d'espera substitueix el formulari.
+  const [pending, setPending] = useState<{
+    email: string;
+    justSent: boolean;
+    cooldownSeconds: number;
+  } | null>(null);
 
   const isRegister = mode === "register";
 
@@ -42,16 +49,45 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      // Amb REQUIRE_EMAIL_VERIFICATION=false el backend dona l'usuari per verificat,
-      // així que després de l'alta ja es pot iniciar sessió.
-      if (isRegister) await api.register(email, password, consent);
+      if (isRegister) {
+        const { status, resend_cooldown_seconds } = await api.register(email, password, consent);
+        // Amb la verificació activada, el compte no deixa entrar fins que la persona
+        // obri l'enllaç del correu: iniciar sessió ara només donaria un 403.
+        if (status === "pending_verification") {
+          setPending({ email, justSent: true, cooldownSeconds: resend_cooldown_seconds ?? 0 });
+          return;
+        }
+      }
       await api.login(email, password);
       onLoggedIn();
     } catch (err) {
+      // El backend només respon 403 a l'entrada quan la contrasenya és correcta però el
+      // correu no està verificat.
+      if (!isRegister && err instanceof ApiError && err.status === 403) {
+        setPending({ email, justSent: false, cooldownSeconds: 0 });
+        return;
+      }
       setError(err instanceof ApiError ? err.message : "No s'ha pogut connectar amb l'API");
     } finally {
       setBusy(false);
     }
+  }
+
+  if (pending) {
+    return (
+      <VerificationPending
+        email={pending.email}
+        justSent={pending.justSent}
+        cooldownSeconds={pending.cooldownSeconds}
+        onBack={() => {
+          setPending(null);
+          setMode("login");
+          setPassword("");
+          setRepeated("");
+          setConsent(false);
+        }}
+      />
+    );
   }
 
   return (

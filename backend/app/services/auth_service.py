@@ -1,8 +1,8 @@
-import logging
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
@@ -18,6 +18,7 @@ from app.schemas import (
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
+    ResendVerificationRequest,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
@@ -31,7 +32,13 @@ from app.security import (
     verify_password,
 )
 
-logger = logging.getLogger(__name__)
+
+@dataclass(frozen=True)
+class VerificationEmail:
+    """Correu de verificació pendent d'enviar: l'adreça i el token de l'enllaç."""
+
+    email: str
+    token: str
 
 
 def _commit(db: OrmSession, *, status_code: int = 500, detail: str = "Error intern") -> None:
@@ -90,8 +97,14 @@ def resolve_session_user(
     return user
 
 
-def register_user(db: OrmSession, payload: RegisterRequest) -> RegisterResponse:
-    """Registra un nou usuari i genera token de verificació de correu."""
+def register_user(
+    db: OrmSession, payload: RegisterRequest
+) -> tuple[RegisterResponse, VerificationEmail | None]:
+    """Registra un nou usuari.
+
+    Si cal verificar el correu, retorna també el correu de verificació pendent d'enviar;
+    l'enviament el fa qui crida, fora de la petició.
+    """
     if not payload.consent:
         raise HTTPException(status_code=400, detail="Cal acceptar el consentiment explícit")
 
@@ -116,6 +129,7 @@ def register_user(db: OrmSession, payload: RegisterRequest) -> RegisterResponse:
         consent_version=settings.consent_version,
         consent_at=now,
         email_verified_at=None if settings.require_email_verification else now,
+        verification_sent_at=now if settings.require_email_verification else None,
     )
 
     db.add(user)
@@ -124,13 +138,53 @@ def register_user(db: OrmSession, payload: RegisterRequest) -> RegisterResponse:
     db.refresh(user)
 
     if not settings.require_email_verification:
-        return RegisterResponse(status="verified")
+        return RegisterResponse(status="verified"), None
 
-    verification_token = create_email_verification_token(user.id, email)
-    # v1: no hi ha servei d'email; deixem el token al log perquè es pugui provar el flux.
-    logger.info("Email verification token for %s: %s", email, verification_token)
+    verification_email = VerificationEmail(
+        email=email, token=create_email_verification_token(user.id, email)
+    )
+    return (
+        RegisterResponse(
+            status="pending_verification",
+            resend_cooldown_seconds=settings.verification_resend_cooldown_seconds,
+        ),
+        verification_email,
+    )
 
-    return RegisterResponse(status="pending_verification")
+
+def request_verification_resend(
+    db: OrmSession, payload: ResendVerificationRequest
+) -> VerificationEmail | None:
+    """Prepara un nou correu de verificació si el compte hi té dret; si no, no fa res.
+
+    Reserva el reenviament amb un únic UPDATE condicional: així dues peticions
+    simultànies no poden saltar-se l'espera. El resultat no depèn de si l'adreça
+    existeix, i qui crida respon igual en tots els casos.
+    """
+    settings = get_settings()
+    if not settings.require_email_verification:
+        return None
+
+    now = datetime.now(UTC)
+    cutoff = now - timedelta(seconds=settings.verification_resend_cooldown_seconds)
+    claimed = db.execute(
+        update(User)
+        .where(
+            User.email == payload.email.strip().lower(),
+            User.deleted_at.is_(None),
+            User.email_verified_at.is_(None),
+            or_(User.verification_sent_at.is_(None), User.verification_sent_at <= cutoff),
+        )
+        .values(verification_sent_at=now)
+        .returning(User.id, User.email)
+    ).first()
+    _commit(db)
+
+    if claimed is None:
+        return None
+    return VerificationEmail(
+        email=claimed.email, token=create_email_verification_token(claimed.id, claimed.email)
+    )
 
 
 def verify_email(db: OrmSession, payload: VerifyEmailRequest) -> VerifyEmailResponse:
@@ -165,14 +219,15 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     if user is None or user.deleted_at is not None:
         raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
+
+    # Després de la contrasenya: així només el propietari del compte veu que li cal verificar.
     if get_settings().require_email_verification and user.email_verified_at is None:
         raise HTTPException(
             status_code=403,
             detail="Email no verificat. Verifica el teu email primer.",
         )
-
-    if not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
     # Crea la sessió
     raw_token = new_session_token()

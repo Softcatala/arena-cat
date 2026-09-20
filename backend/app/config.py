@@ -4,6 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
@@ -35,6 +36,19 @@ class Settings(BaseSettings):
     consent_version: str = "v1"
     # Exigeix verificació de correu abans d'iniciar sessió i votar.
     require_email_verification: bool = False
+    # Segons que cal esperar abans de reenviar el correu de verificació al mateix compte.
+    verification_resend_cooldown_seconds: int = 60
+    # Servidor SMTP dels correus transaccionals. Sense `smtp_host` no s'envia res:
+    # el missatge es deixa al log, cosa que permet provar el flux en desenvolupament.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_security: Literal["starttls", "ssl", "none"] = "starttls"
+    smtp_user: str = ""
+    smtp_password: SecretStr = SecretStr("")
+    email_from_address: str = "arena@softcatala.org"
+    email_from_name: str = "Arena Cat"
+    # URL pública del frontend, per construir els enllaços dels correus.
+    frontend_base_url: str = "http://localhost:5173"
     # Configuració de la cookie i la sessió d'autenticació.
     session_ttl_hours: int
     cookie_name: str
