@@ -77,7 +77,9 @@ def forgot_password(
         background_tasks.add_task(
             email_service.send_password_reset_email, reset_email.email, reset_email.token
         )
-    return ForgotPasswordResponse()
+    return ForgotPasswordResponse(
+        resend_cooldown_seconds=get_settings().password_reset_cooldown_seconds
+    )
 
 
 @router.post("/auth/reset-password")

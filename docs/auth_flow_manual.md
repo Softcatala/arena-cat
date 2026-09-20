@@ -289,7 +289,7 @@ curl -s -X POST "$BASE_URL/api/auth/forgot-password" \
 Resposta esperada (`200`):
 
 ```json
-{"status": "requested"}
+{"status": "requested", "resend_cooldown_seconds": 60}
 ```
 
 El correu porta l'enllaç `<FRONTEND_BASE_URL>/reset-password?token=<TOKEN>`. Sense SMTP

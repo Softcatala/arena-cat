@@ -4,12 +4,11 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../api";
 import { Field, INPUT } from "./Field";
 
-/** Coincideix amb el valor per defecte de `PASSWORD_RESET_COOLDOWN_SECONDS` del
- *  backend: abans no serviria de res tornar-ho a demanar.
+/** Demanar un enllaç per triar una contrasenya nova.
+ *
+ *  El compte enrere del reenviament és l'espera que comunica el backend (és configurable
+ *  i, abans que passi, tornar-ho a demanar no serviria de res).
  */
-const RESEND_COOLDOWN_SECONDS = 60;
-
-/** Demanar un enllaç per triar una contrasenya nova. */
 export default function ForgotPasswordView() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -28,11 +27,11 @@ export default function ForgotPasswordView() {
     setBusy(true);
     setError(null);
     try {
-      await api.forgotPassword(email);
+      const { resend_cooldown_seconds } = await api.forgotPassword(email);
       // La resposta és la mateixa existeixi o no el compte: la pantalla tampoc ho ha de dir.
       setResent(sent);
       setSent(true);
-      setSecondsLeft(RESEND_COOLDOWN_SECONDS);
+      setSecondsLeft(resend_cooldown_seconds);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No s'ha pogut connectar amb l'API");
     } finally {
@@ -56,7 +55,7 @@ export default function ForgotPasswordView() {
           {resent && (
             <p className="mb-4 rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-700">
               Si l'adreça és correcta, rebràs un altre correu en uns instants. Si en vas demanar un
-              fa menys d'un minut, espera una mica.
+              fa poc, espera una mica.
             </p>
           )}
         </div>

@@ -111,6 +111,8 @@ class ForgotPasswordResponse(BaseModel):
     """Resposta única: no revela si l'adreça existeix ni si s'ha enviat el correu."""
 
     status: str = "requested"
+    # És l'espera configurada, no la del compte: no revela si l'adreça existeix.
+    resend_cooldown_seconds: int
 
 
 class ResetPasswordRequest(BaseModel):

@@ -65,7 +65,7 @@ def test_forgot_password_sends_a_reset_link_to_a_verified_user(
     response = _forgot(client, "oblidada@example.com")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "requested"}
+    assert response.json()["status"] == "requested"
     (message,) = outbox
     assert message["To"] == "oblidada@example.com"
     payload = verify_password_reset_token(_token_from(message))
@@ -84,6 +84,19 @@ def test_forgot_password_answers_the_same_for_unknown_and_known_emails(client, c
     assert known.status_code == unknown.status_code == 200
     assert known.json() == unknown.json()
     assert [message["To"] for message in outbox] == ["existent@example.com"]
+
+
+def test_forgot_password_reports_the_configured_cooldown(client, create_user, monkeypatch):
+    """El frontend en fa el compte enrere: ha de coincidir amb l'espera real."""
+    monkeypatch.setenv("PASSWORD_RESET_COOLDOWN_SECONDS", "300")
+    get_settings.cache_clear()
+    create_user("espera_reset@example.com")
+
+    known = _forgot(client, "espera_reset@example.com")
+    unknown = _forgot(client, "espera_reset_desconeguda@example.com")
+
+    assert known.json() == unknown.json()
+    assert known.json()["resend_cooldown_seconds"] == 300
 
 
 def test_forgot_password_sends_nothing_to_an_unverified_account_when_verification_is_required(
