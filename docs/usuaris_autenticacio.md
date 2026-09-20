@@ -155,7 +155,7 @@ fitxer `.env` (mai s'ha de versionar):
 | `verification_resend_cooldown_seconds` | Espera mínima entre dos correus de verificació al mateix compte (60 per defecte). |
 | `password_reset_cooldown_seconds` | Espera mínima entre dos correus de restabliment al mateix compte (60 per defecte). |
 | `smtp_host`, `smtp_port`, `smtp_security` | Servidor SMTP i xifratge (`starttls`, `ssl` o `none`). Amb `smtp_host` buit no s'envia res: el missatge queda al log. |
-| `smtp_user`, `smtp_password` | Credencials SMTP. La contrasenya és un secret (`SecretStr`): no apareix als logs. |
+| `smtp_user`, `smtp_password` | Credencials SMTP. La contrasenya és un secret (`SecretStr`): no apareix als logs. Si el servidor no anuncia AUTH (p. ex. des de la xarxa interna), s'envia sense autenticar i es deixa un avís al log. |
 | `email_from_address`, `email_from_name` | Remitent dels correus. El servidor SMTP pot exigir una adreça concreta. |
 | `frontend_base_url` | URL pública del frontend, base de l'enllaç `…/verify?token=…` del correu. |
 

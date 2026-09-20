@@ -19,6 +19,8 @@ class FakeSMTP:
 
     instances: list["FakeSMTP"] = []
     error: Exception | None = None
+    # Si el servidor anuncia l'extensió AUTH (com fa des de fora de la xarxa interna).
+    auth_supported = True
 
     def __init__(self, host, port, timeout=None, context=None):
         self.host = host
@@ -41,6 +43,12 @@ class FakeSMTP:
     def starttls(self, context=None):
         self.calls.append("starttls")
 
+    def ehlo_or_helo_if_needed(self):
+        pass
+
+    def has_extn(self, name):
+        return FakeSMTP.auth_supported if name.lower() == "auth" else True
+
     def login(self, user, password):
         self.calls.append(("login", user, password))
 
@@ -58,6 +66,7 @@ class FakeSMTPSSL(FakeSMTP):
 def fake_smtp(monkeypatch):
     FakeSMTP.instances = []
     FakeSMTP.error = None
+    FakeSMTP.auth_supported = True
     monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
     monkeypatch.setattr(email_service.smtplib, "SMTP_SSL", FakeSMTPSSL)
     return FakeSMTP
@@ -272,3 +281,45 @@ def test_send_password_reset_email_never_raises(smtp_env, fake_smtp, caplog):
     email_service.send_password_reset_email("usuari@example.com", "token")
 
     assert "No s'ha pogut enviar" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("security", "port"), [("starttls", "587"), ("ssl", "465"), ("none", "25")]
+)
+def test_send_email_skips_the_login_when_the_server_does_not_offer_auth(
+    smtp_env, fake_smtp, caplog, security, port
+):
+    """Un servidor de la xarxa interna pot no anunciar AUTH: llavors s'envia sense autenticar."""
+    smtp_env(SMTP_SECURITY=security, SMTP_PORT=port)
+    fake_smtp.auth_supported = False
+    message = email_service.build_verification_message("usuari@example.com", "https://x/verify")
+
+    email_service.send_email(message)
+
+    (connection,) = fake_smtp.instances
+    assert not any(isinstance(call, tuple) and call[0] == "login" for call in connection.calls)
+    assert connection.sent == [message]
+    assert "no anuncia AUTH" in caplog.text
+
+
+def test_send_email_does_not_warn_about_auth_when_the_server_offers_it(smtp_env, fake_smtp, caplog):
+    smtp_env()
+    message = email_service.build_verification_message("usuari@example.com", "https://x/verify")
+
+    email_service.send_email(message)
+
+    (connection,) = fake_smtp.instances
+    assert ("login", "arena", "secret") in connection.calls
+    assert "no anuncia AUTH" not in caplog.text
+
+
+def test_send_email_does_not_warn_about_auth_when_no_user_is_configured(
+    smtp_env, fake_smtp, caplog
+):
+    smtp_env(SMTP_USER="", SMTP_PASSWORD="")
+    fake_smtp.auth_supported = False
+    message = email_service.build_verification_message("usuari@example.com", "https://x/verify")
+
+    email_service.send_email(message)
+
+    assert "no anuncia AUTH" not in caplog.text

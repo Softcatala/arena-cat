@@ -110,7 +110,14 @@ def send_email(message: EmailMessage) -> None:
             connection.starttls(context=context)
             connection.ehlo()
         if settings.smtp_user:
-            connection.login(settings.smtp_user, settings.smtp_password.get_secret_value())
+            # Un servidor pot no oferir AUTH a certs clients (p. ex. a la xarxa interna, on
+            # accepta el correu sense credencials). Intentar-hi entrar només donaria un
+            # error, així que s'envia sense autenticar i es deixa un avís al log.
+            connection.ehlo_or_helo_if_needed()
+            if connection.has_extn("auth"):
+                connection.login(settings.smtp_user, settings.smtp_password.get_secret_value())
+            else:
+                logger.warning("El servidor SMTP no anuncia AUTH: s'envia sense autenticar")
         connection.send_message(message)
 
 
