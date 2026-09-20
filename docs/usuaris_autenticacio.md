@@ -16,6 +16,7 @@ El sistema d'autenticació és responsable de:
 
 - Registrar avaluadors amb correu, contrasenya i **consentiment explícit**.
 - Verificar la propietat del correu mitjançant un token signat.
+- Recuperar l'accés quan s'oblida la contrasenya, per correu i amb un enllaç d'un sol ús.
 - Autenticar l'usuari i mantenir una **sessió** basada en cookie.
 - Autoritzar les operacions sensibles (obtenir tasques i votar) a usuaris verificats.
 - Complir el RGPD: exportació de dades i baixa amb anonimització.
@@ -39,6 +40,7 @@ L'autenticació s'articula sobre dues taules: `users` i `sessions`. El diagrama 
 | `email_verified_at` | `timestamptz` *nullable* | Moment de verificació del correu. `NULL` mentre no s'ha verificat. |
 | `qualified_at` | `timestamptz` *nullable* | Moment de superació de la prova de competència lingüística. `NULL` mentre no s'ha superat. |
 | `verification_sent_at` | `timestamptz` *nullable* | Últim cop que s'ha enviat el correu de verificació. Limita els reenviaments. |
+| `password_reset_sent_at` | `timestamptz` *nullable* | Últim cop que s'ha enviat el correu de restabliment de contrasenya. Limita les sol·licituds. |
 | `consent_version` | `varchar(32)` | Versió del consentiment acceptada al registre. |
 | `consent_at` | `timestamptz` *nullable* | Moment en què es va donar el consentiment. |
 | `created_at` | `timestamptz` | Data d'alta (per defecte `now()`). |
@@ -141,6 +143,7 @@ fitxer `.env` (mai s'ha de versionar):
 | `cookie_samesite` | Política `SameSite` de la cookie (`lax`, `strict` o `none`). |
 | `require_email_verification` | Exigeix correu verificat per iniciar sessió i votar (`false` per defecte). |
 | `verification_resend_cooldown_seconds` | Espera mínima entre dos correus de verificació al mateix compte (60 per defecte). |
+| `password_reset_cooldown_seconds` | Espera mínima entre dos correus de restabliment al mateix compte (60 per defecte). |
 | `smtp_host`, `smtp_port`, `smtp_security` | Servidor SMTP i xifratge (`starttls`, `ssl` o `none`). Amb `smtp_host` buit no s'envia res: el missatge queda al log. |
 | `smtp_user`, `smtp_password` | Credencials SMTP. La contrasenya és un secret (`SecretStr`): no apareix als logs. |
 | `email_from_address`, `email_from_name` | Remitent dels correus. El servidor SMTP pot exigir una adreça concreta. |
@@ -229,6 +232,52 @@ sequenceDiagram
     API-->>C: esborra cookie
 ```
 
+### 6. Recuperació de contrasenya (`request_password_reset` i `reset_password`)
+
+Dos endpoints, tots dos públics: qui ha perdut la contrasenya no té sessió.
+
+**Demanar l'enllaç — `POST /auth/forgot-password`**
+
+1. Un únic `UPDATE` condicional reserva l'enviament: el compte ha d'existir, no estar donat
+   de baixa i no haver rebut un correu de restabliment en els darrers
+   `password_reset_cooldown_seconds`. Amb la verificació de correu exigida, també ha d'estar
+   verificat: els comptes sense verificar han de demanar primer un reenviament de la
+   verificació.
+2. Si es compleix, s'envia en segon pla un correu amb l'enllaç
+   `<frontend_base_url>/reset-password?token=…`, vàlid **1 hora**.
+3. **La resposta és sempre la mateixa** (`200 { status: "requested" }`), existeixi o no el
+   compte, com al reenviament de la verificació.
+
+**Triar la contrasenya nova — `POST /auth/reset-password`**
+
+1. Es valida el token (signatura, caducitat i `purpose="password_reset"`) → HTTP 400 si
+   no és vàlid. Un token de verificació de correu no serveix aquí, ni al revés.
+2. El token duu l'**empremta** (HMAC) del hash de contrasenya que substitueix; si ja no
+   coincideix amb la contrasenya de l'usuari, o l'usuari està donat de baixa → HTTP 400.
+3. La contrasenya es canvia amb un `UPDATE` condicional al hash antic. Per això **l'enllaç
+   només serveix un cop**, fins i tot si arriben dues peticions alhora, i sense cap taula
+   de tokens.
+4. Es **revoquen totes les sessions** de l'usuari: qui tingués una sessió oberta amb la
+   contrasenya antiga en queda fora.
+5. No s'inicia sessió automàticament: la persona ha d'entrar amb la contrasenya nova.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as Backend
+    participant DB as PostgreSQL
+    participant M as Servidor SMTP
+
+    C->>API: POST /auth/forgot-password (email)
+    API->>DB: UPDATE password_reset_sent_at (si toca)
+    API-->>C: requested (sempre)
+    API-)M: correu amb l'enllaç de restabliment (en segon pla)
+    C->>API: POST /auth/reset-password (token, new_password)
+    API->>DB: UPDATE password_hash WHERE password_hash = antic
+    API->>DB: revoca les sessions de l'usuari
+    API-->>C: password_reset
+```
+
 ## Autorització
 
 La funció [`resolve_session_user`](../backend/app/services/auth_service.py) resol l'usuari
@@ -262,6 +311,8 @@ Tots els endpoints pengen del prefix d'autenticació definit a
 | `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification" }` | 400 (sense consentiment), 409 (correu ja registrat) |
 | `POST` | `/auth/verify` | `{ token }` | `{ status: "verified" }` | 400 (token invàlid), 404 (usuari no trobat) |
 | `POST` | `/auth/resend-verification` | `{ email }` | `{ status: "requested" }` (sempre) | 422 (correu mal format) |
+| `POST` | `/auth/forgot-password` | `{ email }` | `{ status: "requested" }` (sempre) | 422 (correu mal format) |
+| `POST` | `/auth/reset-password` | `{ token, new_password }` | `{ status: "password_reset" }` | 400 (enllaç invàlid, caducat o ja utilitzat), 422 (contrasenya fora de 8–128 caràcters) |
 | `POST` | `/auth/login` | `{ email, password }` | `{ status: "logged_in" }` + cookie | 401 (credencials), 403 (correu no verificat, amb contrasenya correcta) |
 | `POST` | `/auth/logout` | *(cookie)* | `{ status: "logged_out" }` | — |
 | `POST` | `/auth/delete-account` | `{ current_password }` + cookie | `{ status: "deleted" }` | 401 (sessió/contrasenya) |

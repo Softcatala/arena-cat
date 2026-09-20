@@ -1,3 +1,4 @@
+import hmac
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -13,29 +14,43 @@ from app.schemas import (
     ExportDataResponse,
     ExportUserResponse,
     ExportVoteResponse,
+    ForgotPasswordRequest,
     LoginRequest,
     LogoutRequest,
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
 from app.security import (
     compute_email_hash,
     create_email_verification_token,
+    create_password_reset_token,
     hash_password,
     hash_session_token,
     new_session_token,
+    password_fingerprint,
     verify_email_verification_token,
     verify_password,
+    verify_password_reset_token,
 )
 
 
 @dataclass(frozen=True)
 class VerificationEmail:
     """Correu de verificació pendent d'enviar: l'adreça i el token de l'enllaç."""
+
+    email: str
+    token: str
+
+
+@dataclass(frozen=True)
+class PasswordResetEmail:
+    """Correu de restabliment pendent d'enviar: l'adreça i el token de l'enllaç."""
 
     email: str
     token: str
@@ -185,6 +200,83 @@ def request_verification_resend(
     return VerificationEmail(
         email=claimed.email, token=create_email_verification_token(claimed.id, claimed.email)
     )
+
+
+def request_password_reset(
+    db: OrmSession, payload: ForgotPasswordRequest
+) -> PasswordResetEmail | None:
+    """Prepara el correu de restabliment si el compte hi té dret; si no, no fa res.
+
+    Reserva l'enviament amb un únic UPDATE condicional, com el reenviament de la
+    verificació. Amb la verificació de correu exigida, només s'envia a comptes
+    verificats: els altres han de demanar primer un reenviament de la verificació.
+    El resultat no depèn de si l'adreça existeix, i qui crida respon igual sempre.
+    """
+    settings = get_settings()
+    now = datetime.now(UTC)
+    cutoff = now - timedelta(seconds=settings.password_reset_cooldown_seconds)
+    conditions = [
+        User.email == payload.email.strip().lower(),
+        User.deleted_at.is_(None),
+        or_(User.password_reset_sent_at.is_(None), User.password_reset_sent_at <= cutoff),
+    ]
+    if settings.require_email_verification:
+        conditions.append(User.email_verified_at.is_not(None))
+
+    claimed = db.execute(
+        update(User)
+        .where(*conditions)
+        .values(password_reset_sent_at=now)
+        .returning(User.id, User.email, User.password_hash)
+    ).first()
+    _commit(db)
+
+    if claimed is None:
+        return None
+    return PasswordResetEmail(
+        email=claimed.email,
+        token=create_password_reset_token(claimed.id, claimed.password_hash),
+    )
+
+
+def reset_password(db: OrmSession, payload: ResetPasswordRequest) -> ResetPasswordResponse:
+    """Canvia la contrasenya amb un token de restabliment i revoca totes les sessions.
+
+    El token només serveix un cop: duu l'empremta de la contrasenya que substitueix, i
+    el canvi es fa amb un UPDATE condicional a aquest hash, de manera que dues peticions
+    simultànies amb el mateix enllaç no poden passar totes dues.
+    """
+    invalid = HTTPException(status_code=400, detail="Enllaç de restabliment invàlid o caducat")
+
+    token_payload = verify_password_reset_token(payload.token)
+    if not token_payload:
+        raise invalid
+
+    user = db.get(User, int(token_payload["user_id"]))
+    if user is None or user.deleted_at is not None or user.password_hash is None:
+        raise invalid
+    if not hmac.compare_digest(
+        str(token_payload.get("pwd", "")), password_fingerprint(user.password_hash)
+    ):
+        raise invalid
+
+    changed = db.execute(
+        update(User)
+        .where(User.id == user.id, User.password_hash == user.password_hash)
+        .values(password_hash=hash_password(payload.new_password))
+        .returning(User.id)
+    ).first()
+    if changed is None:
+        raise invalid
+
+    # Qui tingui una sessió oberta amb la contrasenya antiga hi queda fora.
+    db.execute(
+        update(Session)
+        .where(Session.user_id == user.id, Session.revoked_at.is_(None))
+        .values(revoked_at=datetime.now(UTC))
+    )
+    _commit(db)
+    return ResetPasswordResponse()
 
 
 def verify_email(db: OrmSession, payload: VerifyEmailRequest) -> VerifyEmailResponse:

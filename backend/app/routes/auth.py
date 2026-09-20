@@ -6,6 +6,8 @@ from app.schemas import (
     DeleteAccountRequest,
     DeleteAccountResponse,
     ExportDataResponse,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
@@ -14,6 +16,8 @@ from app.schemas import (
     RegisterResponse,
     ResendVerificationRequest,
     ResendVerificationResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     SessionResponse,
     VerifyEmailRequest,
     VerifyEmailResponse,
@@ -61,6 +65,25 @@ def resend_verification(
     return ResendVerificationResponse(
         resend_cooldown_seconds=get_settings().verification_resend_cooldown_seconds
     )
+
+
+@router.post("/auth/forgot-password")
+def forgot_password(
+    payload: ForgotPasswordRequest, db: DbSession, background_tasks: BackgroundTasks
+) -> ForgotPasswordResponse:
+    """Envia l'enllaç per triar una contrasenya nova. Respon igual existeixi o no el compte."""
+    reset_email = auth_service.request_password_reset(db, payload)
+    if reset_email is not None:
+        background_tasks.add_task(
+            email_service.send_password_reset_email, reset_email.email, reset_email.token
+        )
+    return ForgotPasswordResponse()
+
+
+@router.post("/auth/reset-password")
+def reset_password(payload: ResetPasswordRequest, db: DbSession) -> ResetPasswordResponse:
+    """Canvia la contrasenya amb el token de l'enllaç i tanca totes les sessions."""
+    return auth_service.reset_password(db, payload)
 
 
 @router.post("/auth/login")

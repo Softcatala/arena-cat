@@ -130,6 +130,10 @@ class User(Base):
     verification_sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Últim cop que s'ha enviat el correu de restabliment de contrasenya.
+    password_reset_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     consent_version: Mapped[str] = mapped_column(String(32), nullable=False)
     consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

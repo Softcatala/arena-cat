@@ -6,7 +6,11 @@ import smtplib
 import pytest
 
 from app.config import get_settings
-from app.security import create_email_verification_token, verify_email_verification_token
+from app.security import (
+    create_email_verification_token,
+    create_password_reset_token,
+    verify_email_verification_token,
+)
 from app.services import email_service
 
 
@@ -224,3 +228,47 @@ def test_smtp_password_is_not_exposed_in_settings(smtp_env):
     smtp_env(SMTP_PASSWORD="contrasenya-molt-secreta")
 
     assert "contrasenya-molt-secreta" not in repr(get_settings())
+
+
+def test_password_reset_link_uses_frontend_base_url(smtp_env):
+    smtp_env(FRONTEND_BASE_URL="https://arena.example.org/")
+
+    link = email_service.build_password_reset_link("abc.def_ghi-jkl")
+
+    assert link == "https://arena.example.org/reset-password?token=abc.def_ghi-jkl"
+
+
+def test_password_reset_message_headers_and_body(smtp_env):
+    smtp_env()
+
+    message = email_service.build_password_reset_message(
+        "usuari@example.com", "https://arena.example.org/reset-password?token=xyz"
+    )
+
+    assert message["To"] == "usuari@example.com"
+    assert message["From"] == "Arena Cat <arena@example.org>"
+    assert message["Subject"] == "Restableix la contrasenya d'Arena Cat"
+    body = message.get_content()
+    assert "https://arena.example.org/reset-password?token=xyz" in body
+    assert "1 hora" in body
+
+
+def test_send_password_reset_email_sends_a_message_with_a_valid_token(smtp_env, fake_smtp):
+    smtp_env()
+    token = create_password_reset_token(7, "hash-actual")
+
+    email_service.send_password_reset_email("usuari@example.com", token)
+
+    (connection,) = fake_smtp.instances
+    (message,) = connection.sent
+    assert message["To"] == "usuari@example.com"
+    assert f"/reset-password?token={token}" in message.get_content()
+
+
+def test_send_password_reset_email_never_raises(smtp_env, fake_smtp, caplog):
+    smtp_env()
+    fake_smtp.error = smtplib.SMTPException("boom")
+
+    email_service.send_password_reset_email("usuari@example.com", "token")
+
+    assert "No s'ha pogut enviar" in caplog.text

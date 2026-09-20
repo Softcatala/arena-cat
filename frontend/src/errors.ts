@@ -33,6 +33,7 @@ const CAMPS: Record<string, string> = {
   email: "El correu electrònic",
   password: "La contrasenya",
   current_password: "La contrasenya actual",
+  new_password: "La contrasenya nova",
   consent: "El consentiment",
   token: "El testimoni de la tasca",
   winner: "El vot",

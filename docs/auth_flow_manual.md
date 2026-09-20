@@ -271,3 +271,43 @@ curl -s -o /dev/null -w "%{http_code}\n" -b "$COOKIES" "$BASE_URL/api/auth/expor
 ```
 
 Resposta esperada: `401`.
+
+---
+
+## 14. (Opcional) Recuperar la contrasenya
+
+Cal un compte que encara existeixi (no l'hagis donat de baixa al pas 12b). Es demana un
+enllaç per triar una contrasenya nova; la resposta és sempre la mateixa, existeixi o no el
+compte:
+
+```bash
+curl -s -X POST "$BASE_URL/api/auth/forgot-password" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"$EMAIL\"}"
+```
+
+Resposta esperada (`200`):
+
+```json
+{"status": "requested"}
+```
+
+El correu porta l'enllaç `<FRONTEND_BASE_URL>/reset-password?token=<TOKEN>`. Sense SMTP
+configurat, el missatge sencer queda al **log del servidor**. Copia'n el token i canvia la
+contrasenya:
+
+```bash
+RESET_TOKEN='<enganxa-aquí-el-token>'
+curl -s -X POST "$BASE_URL/api/auth/reset-password" \
+  -H "Content-Type: application/json" \
+  -d "{\"token\":\"$RESET_TOKEN\",\"new_password\":\"NovaContrasenya456!\"}"
+```
+
+Resposta esperada (`200`):
+
+```json
+{"status": "password_reset"}
+```
+
+L'enllaç **només serveix un cop**: si repeteixes la petició, la resposta és `400`. Totes les
+sessions del compte es tanquen, i cal iniciar sessió amb la contrasenya nova.

@@ -13,6 +13,8 @@ _password_hasher = PasswordHasher()
 TASK_VOTE_WAIT_SECONDS = 10
 # Vigència de l'enllaç de verificació de correu.
 EMAIL_VERIFICATION_TTL_HOURS = 24
+# Vigència de l'enllaç de restabliment de contrasenya.
+PASSWORD_RESET_TTL_MINUTES = 60
 
 
 def _sign_payload(payload: dict, secret: str) -> str:
@@ -85,6 +87,45 @@ def verify_email_verification_token(token: str) -> dict | None:
     if not payload:
         return None
     if payload.get("purpose") != "email_verify":
+        return None
+    return payload
+
+
+def password_fingerprint(password_hash: str) -> str:
+    """Empremta del hash de contrasenya actual, signada amb la clau HMAC.
+
+    El token de restabliment la duu perquè deixi de ser vàlid quan la contrasenya
+    canvia, i així només es pot fer servir un cop. No revela el hash: el payload del
+    token és llegible, però l'empremta no es pot invertir sense la clau.
+    """
+    secret = get_settings().hmac_secret_key
+    return hmac.new(secret.encode("utf-8"), password_hash.encode("utf-8"), "sha256").hexdigest()
+
+
+def create_password_reset_token(user_id: int, password_hash: str) -> str:
+    """Crea un token temporal per triar una contrasenya nova."""
+    settings = get_settings()
+    exp = (datetime.now(UTC) + timedelta(minutes=PASSWORD_RESET_TTL_MINUTES)).timestamp()
+    payload = {
+        "user_id": str(user_id),
+        "pwd": password_fingerprint(password_hash),
+        "purpose": "password_reset",
+        "exp": exp,
+    }
+    return _sign_payload(payload, settings.hmac_secret_key)
+
+
+def verify_password_reset_token(token: str) -> dict | None:
+    """Valida i retorna el payload d'un token de restabliment de contrasenya.
+
+    Només comprova signatura, caducitat i finalitat: que l'empremta encara
+    coincideixi amb la contrasenya de l'usuari ho ha de comprovar qui el fa servir.
+    """
+    settings = get_settings()
+    payload = _verify_signed_payload(token, settings.hmac_secret_key)
+    if not payload:
+        return None
+    if payload.get("purpose") != "password_reset":
         return None
     return payload
 

@@ -108,4 +108,4 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
 - Detecció d'abusos i ponderació de contribucions sobre el lligam vot↔usuari ja existent.
 - Indicador d'objectiu i progrés a la pàgina d'avaluació.
 - **Millores del correu de verificació**: plantilla HTML i gestió de rebots (l'enviament SMTP bàsic ja existeix).
-- Recuperació de contrasenya i canvi d'email amb re-verificació.
+- Canvi d'email amb re-verificació (la recuperació de contrasenya ja existeix).

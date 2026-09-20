@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     require_email_verification: bool = False
     # Segons que cal esperar abans de reenviar el correu de verificació al mateix compte.
     verification_resend_cooldown_seconds: int = 60
+    # Segons que cal esperar abans de tornar a enviar un correu de restabliment de
+    # contrasenya al mateix compte.
+    password_reset_cooldown_seconds: int = 60
     # Servidor SMTP dels correus transaccionals. Sense `smtp_host` no s'envia res:
     # el missatge es deixa al log, cosa que permet provar el flux en desenvolupament.
     smtp_host: str = ""

@@ -83,6 +83,25 @@ class ResendVerificationResponse(BaseModel):
     resend_cooldown_seconds: int
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ForgotPasswordResponse(BaseModel):
+    """Resposta única: no revela si l'adreça existeix ni si s'ha enviat el correu."""
+
+    status: str = "requested"
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class ResetPasswordResponse(BaseModel):
+    status: str = "password_reset"
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

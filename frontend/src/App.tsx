@@ -3,10 +3,12 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import logotip from "./assets/softcatala-logotip.png";
+import ForgotPasswordView from "./components/ForgotPasswordView";
 import HowItWorksView from "./components/HowItWorksView";
 import Login from "./components/Login";
 import QualificationView from "./components/QualificationView";
 import RankingView from "./components/RankingView";
+import ResetPasswordView from "./components/ResetPasswordView";
 import TaskView from "./components/TaskView";
 import VerifyView from "./components/VerifyView";
 import { clearTask } from "./taskStore";
@@ -120,6 +122,12 @@ export default function App() {
             {/* Obert a tothom: qui rep el correu encara no té sessió, i qui en té una
                 també pot obrir l'enllaç. */}
             <Route path="/verify" element={<VerifyView />} />
+            <Route
+              path="/forgot-password"
+              element={session.authenticated ? <Navigate to="/" replace /> : <ForgotPasswordView />}
+            />
+            {/* Obert a tothom, com /verify: qui ha perdut la contrasenya no té sessió. */}
+            <Route path="/reset-password" element={<ResetPasswordView />} />
             <Route
               path="/qualification"
               element={

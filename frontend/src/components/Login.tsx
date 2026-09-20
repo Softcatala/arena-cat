@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api, ApiError } from "../api";
+import { Field, INPUT } from "./Field";
 import VerificationPending from "./VerificationPending";
 
 type Mode = "login" | "register";
@@ -34,8 +35,8 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
 
   async function submit() {
     if (isRegister) {
-      // El backend no té recuperació de contrasenya: una errada en teclejar-la
-      // deixaria el compte inaccessible per sempre.
+      // Es pot recuperar l'accés per correu, però una errada en teclejar la
+      // contrasenya obligaria a fer-ho just després de crear el compte.
       if (password !== repeated) {
         setError("Les dues contrasenyes no coincideixen.");
         return;
@@ -129,6 +130,14 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
           />
         </Field>
 
+        {!isRegister && (
+          <p className="-mt-2 text-right text-sm">
+            <Link to="/forgot-password" className="text-brand-600 underline hover:text-brand-700">
+              Has oblidat la contrasenya?
+            </Link>
+          </p>
+        )}
+
         {isRegister && (
           <>
             <Field label="Repeteix la contrasenya">
@@ -204,26 +213,5 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
         Consulta el rànquing
       </Link>
     </div>
-  );
-}
-
-const INPUT =
-  "w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none";
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
-      {children}
-      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
-    </label>
   );
 }
