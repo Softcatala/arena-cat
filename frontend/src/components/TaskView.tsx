@@ -209,18 +209,14 @@ export default function TaskView({ categories }: { categories: Category[] }) {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-brand-600">Avaluació de respostes</h2>
 
-        {/* Discret a propòsit: aquesta pantalla es repeteix 90+ vegades per
-            avaluador, i el tutorial només cal la primera vegada. Al costat del
-            filtre no hi cabia al mòbil: hi xocava amb el «pendents», que no es
-            pot encongir perquè és `whitespace-nowrap`. */}
         {task && (
           <button
             type="button"
             onClick={() => setShowOnboarding(true)}
-            className="shrink-0 text-sm text-slate-500 underline hover:text-brand-600"
+            className="min-h-11 shrink-0 rounded-md border border-brand-300 bg-brand-100 px-4 py-2 text-base font-semibold text-brand-700 hover:bg-brand-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             Tutorial
           </button>

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import logotip from "./assets/softcatala-logotip.png";
+import HowItWorksView from "./components/HowItWorksView";
 import Login from "./components/Login";
 import QualificationView from "./components/QualificationView";
 import RankingView from "./components/RankingView";
@@ -108,6 +109,7 @@ export default function App() {
           <p className="px-4 py-10 text-center text-slate-500">Carregant…</p>
         ) : (
           <Routes>
+            <Route path="/com-funciona" element={<HowItWorksView />} />
             <Route
               path="/login"
               element={
