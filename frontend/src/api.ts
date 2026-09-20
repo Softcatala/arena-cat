@@ -89,6 +89,21 @@ export const api = {
 
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
 
+  // El token és el de l'enllaç del correu. Verificar dues vegades no és cap error.
+  verifyEmail: (token: string) =>
+    request<{ status: string }>("/auth/verify", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+
+  // Respon 200 amb el mateix cos tant si el correu existeix com si no, i també quan
+  // encara cal esperar: així no revela quines adreces hi són ni si n'ha enviat cap.
+  resendVerification: (email: string) =>
+    request<{ status: string }>("/auth/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
   qualification: () => request<Questionnaire>("/qualification"),
 
   submitQualification: (answers: Record<string, QualificationChoice>) =>

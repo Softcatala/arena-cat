@@ -7,6 +7,7 @@ import Login from "./components/Login";
 import QualificationView from "./components/QualificationView";
 import RankingView from "./components/RankingView";
 import TaskView from "./components/TaskView";
+import VerifyView from "./components/VerifyView";
 import { clearTask } from "./taskStore";
 import type { Category, SessionState } from "./types";
 
@@ -114,6 +115,9 @@ export default function App() {
                 session.authenticated ? <Navigate to="/" replace /> : <Login onLoggedIn={refresh} />
               }
             />
+            {/* Obert a tothom: qui rep el correu encara no té sessió, i qui en té una
+                també pot obrir l'enllaç. */}
+            <Route path="/verify" element={<VerifyView />} />
             <Route
               path="/qualification"
               element={
