@@ -9,9 +9,10 @@ progrés de l'avaluador, l'omissió de tasques i el ressaltat de diferències de
 categoria «correcció».
 
 Els usuaris sense acreditar accedeixen a `/qualification`: un sol formulari de
-deu preguntes amb tres opcions, dues per categoria i dues generals. Mostra la
-nota global, el desglossament per categoria i les explicacions després de
-lliurar-lo. Permet repetir els intents fallits i començar a avaluar quan se supera.
+deu preguntes amb tres opcions, dues per categoria i dues generals. Després de
+lliurar-lo, el formulari se substitueix pel total d'encerts i l'estat de superació,
+sense correccions ni desglossament per categoria. Permet repetir els intents
+fallits i començar a avaluar quan se supera.
 Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 

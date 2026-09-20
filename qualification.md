@@ -8,8 +8,8 @@ La implementació s’ha de fer amb **el mínim de codi possible**: reutilitzar 
 
 - **Pantalla:** pàgina separada amb un únic formulari de deu preguntes. Cada pregunta té tres opcions (A, B i C), amb selecció única i una sola resposta correcta.
 - **Puntuació:** cal respondre les deu preguntes; cada encert val un punt i cada error, zero. El llindar es llegeix del YAML i s’aplica a la nota global; inicialment és **8 encerts de 10**.
-- **Resultat:** mostrar la nota global, els encerts de cada categoria i els de les preguntes generals (0–2 per bloc), amb les explicacions al final del formulari. Si se supera, habilitar «Comença a avaluar»; altrament, permetre repetir.
-- **Configuració:** les preguntes, les opcions de resposta, les solucions i el llindar es desen a `data/qualification.yaml`. El fitxer tindrà `min_correct: 8` i una llista `questions`; cada pregunta inclourà l’identificador, `category_code` (nul per a les generals), l’enunciat, les tres opcions, la resposta correcta i l’explicació. El backend llegeix aquesta configuració per servir i corregir la prova; les solucions no s’envien abans de lliurar-la.
+- **Resultat:** substituir el formulari pel total d’encerts, el llindar i l’estat de superació, sense mostrar correccions, solucions ni desglossament per categoria. Si se supera, habilitar «Comença a avaluar»; altrament, permetre repetir.
+- **Configuració:** les preguntes, les opcions de resposta, les solucions i el llindar es desen a `data/qualification.yaml`. El fitxer tindrà `min_correct: 8` i una llista `questions`; cada pregunta inclourà l’identificador, `category_code` (nul per a les generals), l’enunciat, les tres opcions, la resposta correcta i l’explicació. El backend llegeix aquesta configuració per servir i corregir la prova; les solucions i les explicacions no s’envien al client.
 - **Acreditació:** afegir el camp nullable `qualified_at` a la taula `users`, amb migració Alembic i actualització de `docs/db_schema.md`. En superar la prova, el backend hi desa la data i l’hora de superació a la base de dades; mentre no se supera, el valor és `NULL`. En els accessos següents, un valor informat acredita l’usuari i evita repetir la prova. L’acreditació és global i persistent entre sessions. Dirigir els usuaris sense acreditar al formulari i rebutjar els seus vots reals al backend. Les respostes de la prova queden fora del rànquing.
 - **Verificació:** comprovar el repartiment 2+2+2+2+2, els casos 7/10 i 8/10 amb el llindar inicial, que canviar `min_correct` al YAML modifica el criteri d’aprovació, una resposta vàlida A/B/C per pregunta, formularis incomplets, repetició, persistència, bloqueig de vots directes a l’API i exclusió de les respostes de prova de les estadístiques.
 
@@ -27,7 +27,7 @@ En traducció, els textos originals són en **castellà**, com els prompts actua
 
 ## Preguntes i solucionari
 
-Les explicacions següents es mostraran després de lliurar el formulari.
+Les explicacions següents documenten el criteri de correcció del qüestionari i no es mostren en el resultat.
 
 ### 1. Correcció: interrogativa indirecta
 

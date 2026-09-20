@@ -108,20 +108,11 @@ class QualificationRequest(BaseModel):
     answers: dict[str, QualificationChoice]
 
 
-class QualificationFeedback(BaseModel):
-    id: str
-    category_code: str | None
-    correct: bool
-    correct_answer: QualificationChoice
-    explanation: str
-
-
 class QualificationResult(BaseModel):
     score: int
     total: int
     min_correct: int
     passed: bool
-    results: list[QualificationFeedback]
 
 
 class LogoutRequest(BaseModel):

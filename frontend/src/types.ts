@@ -47,13 +47,6 @@ export interface QualificationResult {
   total: number;
   min_correct: number;
   passed: boolean;
-  results: {
-    id: string;
-    category_code: CategoryCode | null;
-    correct: boolean;
-    correct_answer: QualificationChoice;
-    explanation: string;
-  }[];
 }
 
 /** Progrés global de l'avaluador, en cel·les (prompt × parella de models). */

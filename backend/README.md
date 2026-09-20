@@ -77,8 +77,9 @@ Retorna el catàleg públic de categories, ordenat per codi. Les dades provenen 
 Requereixen una sessió vàlida i la verificació del correu, si està activada.
 El `GET` retorna les preguntes, les tres opcions i el llindar, sense solucions.
 El `POST` rep `{"answers": {"q1": "B", "q2": "C", "...": "..."}}`, amb una
-resposta A/B/C per pregunta, i retorna la puntuació, si s'ha superat la prova i
-la correcció amb explicacions. Un formulari incomplet o invàlid retorna 422.
+resposta A/B/C per pregunta, i retorna només el total d'encerts, el nombre de
+preguntes, el llindar i si s'ha superat la prova. No retorna solucions ni correccions
+per pregunta. Un formulari incomplet o invàlid retorna 422.
 
 Les preguntes, les solucions i `min_correct` es llegeixen de
 [`data/qualification.yaml`](../data/qualification.yaml). Amb el llindar inicial,

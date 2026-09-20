@@ -63,7 +63,7 @@ def test_questionnaire_has_ten_questions_without_solutions(client, unqualified_u
 
 
 @pytest.mark.parametrize("score,passed", [(7, False), (8, True), (10, True)])
-def test_qualification_threshold_and_feedback(
+def test_qualification_returns_only_total_without_solutions(
     client, session, unqualified_user, questionnaire, score, passed
 ):
     response = client.post(
@@ -71,18 +71,12 @@ def test_qualification_threshold_and_feedback(
     )
     assert response.status_code == 200
     result = response.json()
-    assert (result["score"], result["total"], result["min_correct"], result["passed"]) == (
-        score,
-        10,
-        8,
-        passed,
-    )
-    assert sum(item["correct"] for item in result["results"]) == score
-    for item, question in zip(result["results"], questionnaire["questions"], strict=True):
-        assert item["id"] == question["id"]
-        assert item["category_code"] == question["category_code"]
-        assert item["correct_answer"] == question["correct_answer"]
-        assert item["explanation"] == question["explanation"]
+    assert result == {
+        "score": score,
+        "total": 10,
+        "min_correct": 8,
+        "passed": passed,
+    }
     session.refresh(unqualified_user)
     assert (unqualified_user.qualified_at is not None) is passed
     assert client.get("/api/auth/session").json()["qualified"] is passed

@@ -12,7 +12,6 @@ from sqlalchemy.orm import Session
 from app.models import User
 from app.schemas import (
     QualificationChoice,
-    QualificationFeedback,
     QualificationQuestion,
     QualificationRequest,
     QualificationResponse,
@@ -56,17 +55,10 @@ def submit_qualification(
     if set(payload.answers) != {question.id for question in questionnaire.questions}:
         raise HTTPException(status_code=422, detail="Cal respondre totes les preguntes de la prova")
 
-    results = [
-        QualificationFeedback(
-            id=question.id,
-            category_code=question.category_code,
-            correct=payload.answers[question.id] == question.correct_answer,
-            correct_answer=question.correct_answer,
-            explanation=question.explanation,
-        )
+    score = sum(
+        payload.answers[question.id] == question.correct_answer
         for question in questionnaire.questions
-    ]
-    score = sum(result.correct for result in results)
+    )
     passed = score >= questionnaire.min_correct
     if passed:
         db.execute(
@@ -78,8 +70,7 @@ def submit_qualification(
 
     return QualificationResult(
         score=score,
-        total=len(results),
+        total=len(questionnaire.questions),
         min_correct=questionnaire.min_correct,
         passed=passed,
-        results=results,
     )
