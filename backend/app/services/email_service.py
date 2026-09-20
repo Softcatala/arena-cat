@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 SMTP_TIMEOUT_SECONDS = 10
 
+# Peu comú dels correus: ningú llegeix les respostes a l'adreça remitent.
+AUTOMATIC_NOTICE = (
+    "Aquest és un correu automàtic. Si us plau, no respongueu a aquest missatge: "
+    "les respostes no es processen."
+)
+
 
 def _build_link(path: str, token: str) -> str:
     """Enllaç del frontend que porta el token."""
@@ -49,7 +55,8 @@ def build_verification_message(to_email: str, link: str) -> EmailMessage:
         f"(caduca d'aquí a {EMAIL_VERIFICATION_TTL_HOURS} hores):\n\n"
         f"{link}\n\n"
         "Si no t'has registrat tu, pots ignorar aquest missatge.\n\n"
-        "Softcatalà\n"
+        "Softcatalà\n\n"
+        f"{AUTOMATIC_NOTICE}\n"
     )
     return message
 
@@ -74,7 +81,8 @@ def build_password_reset_message(to_email: str, link: str) -> EmailMessage:
         f"{link}\n\n"
         "Si no ho has demanat tu, pots ignorar aquest missatge: la teva contrasenya "
         "actual no canviarà.\n\n"
-        "Softcatalà\n"
+        "Softcatalà\n\n"
+        f"{AUTOMATIC_NOTICE}\n"
     )
     return message
 

@@ -323,3 +323,19 @@ def test_send_email_does_not_warn_about_auth_when_no_user_is_configured(
     email_service.send_email(message)
 
     assert "no anuncia AUTH" not in caplog.text
+
+
+@pytest.mark.parametrize("kind", ["verification", "password_reset"])
+def test_emails_say_they_are_automatic_and_replies_are_not_read(smtp_env, kind):
+    smtp_env()
+    build = {
+        "verification": email_service.build_verification_message,
+        "password_reset": email_service.build_password_reset_message,
+    }[kind]
+
+    body = build("usuari@example.com", "https://arena.example.org/x?token=t").get_content()
+
+    assert "Aquest és un correu automàtic" in body
+    assert "les respostes no es processen" in body
+    # L'avís va al final, per sota de la signatura, com els peus habituals.
+    assert body.rstrip().endswith("les respostes no es processen.")
