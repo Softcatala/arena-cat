@@ -44,12 +44,17 @@ export default function RankingView({
       <p className="mb-5 text-slate-500">
         Marcador públic, duels anònims i rànquing recalculat amb cada vot.
       </p>
-      <Link
-        to="/com-funciona"
-        className="mb-5 flex min-h-11 w-fit items-center rounded-md border border-brand-300 bg-white px-4 py-2 font-semibold text-brand-700 hover:bg-brand-100 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
-      >
-        Com funciona?
-      </Link>
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <p className="text-slate-700">
+          Més informació sobre els objectius i com funciona el projecte:
+        </p>
+        <Link
+          to="/com-funciona"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-brand-500 px-5 py-2 font-semibold text-white hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          Com funciona?
+        </Link>
+      </div>
 
       <div className="mb-5 inline-flex flex-wrap gap-1 rounded-md border border-slate-200 bg-white p-1">
         <button
