@@ -250,9 +250,9 @@ Dos endpoints, tots dos públics: qui ha perdut la contrasenya no té sessió.
 
 1. Un únic `UPDATE` condicional reserva l'enviament: el compte ha d'existir, no estar donat
    de baixa i no haver rebut un correu de restabliment en els darrers
-   `password_reset_cooldown_seconds`. Amb la verificació de correu exigida, també ha d'estar
-   verificat: els comptes sense verificar han de demanar primer un reenviament de la
-   verificació.
+   `password_reset_cooldown_seconds`. Els comptes sense verificar també hi tenen dret:
+   qui no ha arribat a verificar el correu i ha oblidat la contrasenya no té cap altra
+   sortida.
 2. Si es compleix, s'envia en segon pla un correu amb l'enllaç
    `<frontend_base_url>/reset-password?token=…`, vàlid **1 hora**.
 3. **La resposta és sempre la mateixa** (`200 { status: "requested" }`), existeixi o no el
@@ -266,7 +266,9 @@ Dos endpoints, tots dos públics: qui ha perdut la contrasenya no té sessió.
    coincideix amb la contrasenya de l'usuari, o l'usuari està donat de baixa → HTTP 400.
 3. La contrasenya es canvia amb un `UPDATE` condicional al hash antic. Per això **l'enllaç
    només serveix un cop**, fins i tot si arriben dues peticions alhora, i sense cap taula
-   de tokens.
+   de tokens. En el mateix `UPDATE`, si el correu no estava verificat es marca com a
+   verificat: l'enllaç només arriba a qui controla la bústia, així que fer-lo servir ho
+   demostra. La data d'un correu que ja ho estava no es toca.
 4. Es **revoquen totes les sessions** de l'usuari: qui tingués una sessió oberta amb la
    contrasenya antiga en queda fora. Això inclou una entrada que s'estigui fent alhora:
    després de validar la contrasenya, l'entrada reserva la fila de l'usuari

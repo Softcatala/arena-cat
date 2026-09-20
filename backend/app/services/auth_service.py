@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
@@ -208,24 +208,21 @@ def request_password_reset(
     """Prepara el correu de restabliment si el compte hi té dret; si no, no fa res.
 
     Reserva l'enviament amb un únic UPDATE condicional, com el reenviament de la
-    verificació. Amb la verificació de correu exigida, només s'envia a comptes
-    verificats: els altres han de demanar primer un reenviament de la verificació.
+    verificació. També s'envia a comptes sense verificar: qui no ha arribat a verificar
+    el correu i ha oblidat la contrasenya no té cap altra sortida, i fer servir l'enllaç
+    ja demostra que controla la bústia (vegeu `reset_password`).
     El resultat no depèn de si l'adreça existeix, i qui crida respon igual sempre.
     """
     settings = get_settings()
     now = datetime.now(UTC)
     cutoff = now - timedelta(seconds=settings.password_reset_cooldown_seconds)
-    conditions = [
-        User.email == payload.email.strip().lower(),
-        User.deleted_at.is_(None),
-        or_(User.password_reset_sent_at.is_(None), User.password_reset_sent_at <= cutoff),
-    ]
-    if settings.require_email_verification:
-        conditions.append(User.email_verified_at.is_not(None))
-
     claimed = db.execute(
         update(User)
-        .where(*conditions)
+        .where(
+            User.email == payload.email.strip().lower(),
+            User.deleted_at.is_(None),
+            or_(User.password_reset_sent_at.is_(None), User.password_reset_sent_at <= cutoff),
+        )
         .values(password_reset_sent_at=now)
         .returning(User.id, User.email, User.password_hash)
     ).first()
@@ -245,6 +242,9 @@ def reset_password(db: OrmSession, payload: ResetPasswordRequest) -> ResetPasswo
     El token només serveix un cop: duu l'empremta de la contrasenya que substitueix, i
     el canvi es fa amb un UPDATE condicional a aquest hash, de manera que dues peticions
     simultànies amb el mateix enllaç no poden passar totes dues.
+
+    L'enllaç només arriba a qui controla la bústia, així que fer-lo servir també verifica
+    el correu si encara no ho estava.
     """
     invalid = HTTPException(status_code=400, detail="Enllaç de restabliment invàlid o caducat")
 
@@ -260,10 +260,14 @@ def reset_password(db: OrmSession, payload: ResetPasswordRequest) -> ResetPasswo
     ):
         raise invalid
 
+    now = datetime.now(UTC)
     changed = db.execute(
         update(User)
         .where(User.id == user.id, User.password_hash == user.password_hash)
-        .values(password_hash=hash_password(payload.new_password))
+        .values(
+            password_hash=hash_password(payload.new_password),
+            email_verified_at=func.coalesce(User.email_verified_at, now),
+        )
         .returning(User.id)
     ).first()
     if changed is None:
@@ -273,7 +277,7 @@ def reset_password(db: OrmSession, payload: ResetPasswordRequest) -> ResetPasswo
     db.execute(
         update(Session)
         .where(Session.user_id == user.id, Session.revoked_at.is_(None))
-        .values(revoked_at=datetime.now(UTC))
+        .values(revoked_at=now)
     )
     _commit(db)
     return ResetPasswordResponse()

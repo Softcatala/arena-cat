@@ -99,25 +99,56 @@ def test_forgot_password_reports_the_configured_cooldown(client, create_user, mo
     assert known.json()["resend_cooldown_seconds"] == 300
 
 
-def test_forgot_password_sends_nothing_to_an_unverified_account_when_verification_is_required(
+def test_forgot_password_also_sends_to_an_unverified_account(
     client, create_user, outbox, require_email_verification
 ):
+    """Qui no ha verificat el correu i ha oblidat la contrasenya no s'ha de quedar sense sortida."""
     create_user("sense_verificar@example.com", verified=False)
 
     response = _forgot(client, "sense_verificar@example.com")
 
     assert response.status_code == 200
-    assert outbox == []
+    (message,) = outbox
+    assert message["To"] == "sense_verificar@example.com"
 
 
-def test_forgot_password_works_for_any_account_when_verification_is_not_required(
-    client, create_user, outbox
+def test_forgot_password_answers_the_same_for_unverified_and_unknown_accounts(
+    client, create_user, outbox, require_email_verification
 ):
-    create_user("verificacio_opcional@example.com", verified=False)
+    create_user("pendent@example.com", verified=False)
 
-    _forgot(client, "verificacio_opcional@example.com")
+    known = _forgot(client, "pendent@example.com")
+    unknown = _forgot(client, "no_existeix@example.com")
 
-    assert len(outbox) == 1
+    assert known.status_code == unknown.status_code == 200
+    assert known.json() == unknown.json()
+
+
+def test_reset_password_verifies_the_email_of_an_unverified_account(
+    client, session, create_user, outbox, require_email_verification
+):
+    """L'enllaç només arriba a qui controla la bústia, així que fer-lo servir ho demostra."""
+    user = create_user("verifica_en_restablir@example.com", verified=False)
+    assert _login(client, user.email, DEFAULT_PASSWORD).status_code == 403
+    _forgot(client, user.email)
+
+    response = _reset(client, _token_from(outbox[0]))
+
+    assert response.status_code == 200
+    session.refresh(user)
+    assert user.email_verified_at is not None
+    assert _login(client, user.email, NEW_PASSWORD).status_code == 200
+
+
+def test_reset_password_keeps_the_original_verification_date(client, session, create_user, outbox):
+    user = create_user("ja_verificat_restabliment@example.com")
+    verified_at = user.email_verified_at
+    _forgot(client, user.email)
+
+    _reset(client, _token_from(outbox[0]))
+
+    session.refresh(user)
+    assert user.email_verified_at == verified_at
 
 
 def test_forgot_password_sends_nothing_to_a_deleted_account(client, session, create_user, outbox):
