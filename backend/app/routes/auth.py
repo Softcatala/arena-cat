@@ -66,6 +66,7 @@ def get_session(current_user: OptionalUser) -> SessionResponse:
         authenticated=True,
         email=current_user.email,
         email_verified=current_user.email_verified_at is not None,
+        qualified=current_user.qualified_at is not None,
     )
 
 

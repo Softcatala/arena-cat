@@ -4,16 +4,19 @@ FROM python:3.12-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Establim el directori de treball a dins del contenidor
-WORKDIR /app
+WORKDIR /app/backend
 
 # Copiem només els fitxers de dependències
-COPY pyproject.toml uv.lock ./
+COPY backend/pyproject.toml backend/uv.lock ./
 
 # Instal·lem les dependències
 RUN uv sync --frozen --no-install-project
 
-# Copiem la resta del codi (app/, scripts/, etc.)
-COPY . .
+# Copiem el codi, les migracions i el qüestionari
+COPY backend/app/ app/
+COPY backend/migrations/ migrations/
+COPY backend/alembic.ini .
+COPY data/qualification.yaml /app/data/qualification.yaml
 
 # Exposem el port 8000
 EXPOSE 8000

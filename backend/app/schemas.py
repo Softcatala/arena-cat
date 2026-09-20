@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -83,6 +84,44 @@ class SessionResponse(BaseModel):
     authenticated: bool
     email: str | None = None
     email_verified: bool = False
+    qualified: bool = False
+
+
+QualificationChoice = Literal["A", "B", "C"]
+
+
+class QualificationQuestion(BaseModel):
+    id: str
+    category_code: str | None
+    prompt: str
+    options: dict[QualificationChoice, str] = Field(min_length=3, max_length=3)
+
+
+class QualificationResponse(BaseModel):
+    min_correct: int = Field(ge=1)
+    questions: list[QualificationQuestion] = Field(min_length=1)
+
+
+class QualificationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answers: dict[str, QualificationChoice]
+
+
+class QualificationFeedback(BaseModel):
+    id: str
+    category_code: str | None
+    correct: bool
+    correct_answer: QualificationChoice
+    explanation: str
+
+
+class QualificationResult(BaseModel):
+    score: int
+    total: int
+    min_correct: int
+    passed: bool
+    results: list[QualificationFeedback]
 
 
 class LogoutRequest(BaseModel):
@@ -120,6 +159,7 @@ class ExportUserResponse(BaseModel):
     id: int
     email: str | None
     email_verified_at: datetime | None
+    qualified_at: datetime | None
     consent_version: str
     consent_at: datetime | None
     created_at: datetime

@@ -72,9 +72,30 @@ Retorna el catàleg públic de categories, ordenat per codi. Les dades provenen 
 }
 ```
 
+### `GET /api/qualification` i `POST /api/qualification`
+
+Requereixen una sessió vàlida i la verificació del correu, si està activada.
+El `GET` retorna les preguntes, les tres opcions i el llindar, sense solucions.
+El `POST` rep `{"answers": {"q1": "B", "q2": "C", "...": "..."}}`, amb una
+resposta A/B/C per pregunta, i retorna la puntuació, si s'ha superat la prova i
+la correcció amb explicacions. Un formulari incomplet o invàlid retorna 422.
+
+Les preguntes, les solucions i `min_correct` es llegeixen de
+[`data/qualification.yaml`](../data/qualification.yaml). Amb el llindar inicial,
+8 de 10 encerts acrediten l'usuari: es desa `users.qualified_at` i
+`GET /api/auth/session` retorna `qualified: true` en les sessions següents.
+Els intents fallits es poden repetir; un usuari ja acreditat rep 409 si torna
+a lliurar la prova. No es desen respostes ni es generen vots o estadístiques.
+
+La imatge del backend inclou el YAML. Es construeix des de l'arrel del repositori
+amb `docker compose build api` o `docker build -f backend/Dockerfile .`.
+
 ### `GET /api/task`
 
 Obté una nova tasca (un prompt amb dues respostes de models diferents) per a que un usuari l'avaluï.
+
+Obtenir tasques, consultar-ne el progrés, ometre-les i votar requereix haver
+superat la prova de competència lingüística; altrament, es retorna 403.
 
 **Paràmetres de la URL:**
 - `category_code` (string, obligatori): La categoria de la tasca sol·licitada (p. ex., `correccio`).

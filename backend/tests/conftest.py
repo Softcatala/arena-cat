@@ -73,12 +73,13 @@ def client(session):
 
 @pytest.fixture
 def create_user(session):
-    """Fàbrica per crear usuaris de prova (verificats o no) directament a la base de dades."""
+    """Fàbrica d'usuaris de prova, verificats i acreditats per defecte."""
 
     def _create(
         email: str,
         *,
         verified: bool = True,
+        qualified: bool = True,
         password: str = DEFAULT_PASSWORD,
         consent_version: str = "v1",
     ) -> User:
@@ -89,6 +90,7 @@ def create_user(session):
             consent_version=consent_version,
             consent_at=datetime.now(UTC),
             email_verified_at=datetime.now(UTC) if verified else None,
+            qualified_at=datetime.now(UTC) if qualified else None,
         )
         session.add(user)
         session.commit()

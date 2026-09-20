@@ -66,3 +66,34 @@ def test_initial_migration_is_reversible(ephemeral_db_url):
         assert ENUMS.isdisjoint(_enums(engine))
     finally:
         engine.dispose()
+
+
+def test_qualification_migration_preserves_existing_users(ephemeral_db_url):
+    """L'acreditació és nul·la per als usuaris existents i la migració és reversible."""
+    config = _alembic_config(ephemeral_db_url)
+    engine = create_engine(ephemeral_db_url)
+    try:
+        command.upgrade(config, "e7b2c8a91f04")
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO users "
+                    "(email, email_hash, password_hash, consent_version, consent_at) "
+                    "VALUES ('existing@example.com', 'hash', 'password', 'v1', now())"
+                )
+            )
+        command.upgrade(config, "head")
+        with engine.connect() as connection:
+            row = connection.execute(text("SELECT email, qualified_at FROM users")).one()
+            assert row == ("existing@example.com", None)
+        command.downgrade(config, "e7b2c8a91f04")
+        assert "qualified_at" not in {
+            column["name"] for column in inspect(engine).get_columns("users")
+        }
+        with engine.connect() as connection:
+            assert connection.scalar(text("SELECT email FROM users")) == "existing@example.com"
+        command.upgrade(config, "head")
+        assert "qualified_at" in {column["name"] for column in inspect(engine).get_columns("users")}
+        command.check(config)
+    finally:
+        engine.dispose()

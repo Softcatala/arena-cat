@@ -209,6 +209,7 @@ def anonymize_user_rgpd(user: User, now: datetime) -> None:
     user.email = None
     user.password_hash = None
     user.email_verified_at = None
+    user.qualified_at = None
     user.consent_at = None
     user.deleted_at = now
 
