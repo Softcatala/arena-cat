@@ -78,13 +78,25 @@ def send_email(message: EmailMessage) -> None:
         connection.send_message(message)
 
 
+def _describe(error: OSError) -> str:
+    """Tipus d'error i, si n'hi ha, codi SMTP, per al log.
+
+    No inclou el text de l'excepció ni el traceback: `SMTPRecipientsRefused` i altres
+    hi porten l'adreça del destinatari.
+    """
+    code = getattr(error, "smtp_code", None)
+    name = type(error).__name__
+    return f"{name} (codi SMTP {code})" if code else name
+
+
 def send_verification_email(to_email: str, token: str) -> None:
     """Envia el correu de verificació. No propaga errors: s'executa en segon pla.
 
     Un servidor de correu caigut no ha d'impedir el registre; la persona pot demanar
-    un reenviament. No es registra l'adreça per no deixar dades personals als logs.
+    un reenviament. No es registra l'adreça ni el text de l'error per no deixar dades
+    personals als logs.
     """
     try:
         send_email(build_verification_message(to_email, build_verification_link(token)))
-    except OSError:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
-        logger.exception("No s'ha pogut enviar el correu de verificació")
+    except OSError as error:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
+        logger.error("No s'ha pogut enviar el correu de verificació: %s", _describe(error))

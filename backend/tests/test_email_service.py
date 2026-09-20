@@ -191,6 +191,35 @@ def test_send_verification_email_never_raises(smtp_env, fake_smtp, caplog, error
     assert "No s'ha pogut enviar" in caplog.text
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        smtplib.SMTPRecipientsRefused({"usuari@example.com": (550, b"no such user")}),
+        smtplib.SMTPResponseException(550, "usuari@example.com: mailbox unavailable"),
+        OSError("no s'ha pogut arribar a usuari@example.com"),
+    ],
+)
+def test_send_failure_log_does_not_contain_the_address(smtp_env, fake_smtp, caplog, error):
+    """El text i el traceback d'una excepció SMTP poden dur l'adreça del destinatari."""
+    smtp_env()
+    fake_smtp.error = error
+
+    email_service.send_verification_email("usuari@example.com", "token")
+
+    assert "usuari@example.com" not in caplog.text
+    assert "Traceback" not in caplog.text
+    assert type(error).__name__ in caplog.text
+
+
+def test_send_failure_log_includes_the_smtp_code(smtp_env, fake_smtp, caplog):
+    smtp_env()
+    fake_smtp.error = smtplib.SMTPResponseException(554, "rebutjat")
+
+    email_service.send_verification_email("usuari@example.com", "token")
+
+    assert "554" in caplog.text
+
+
 def test_smtp_password_is_not_exposed_in_settings(smtp_env):
     smtp_env(SMTP_PASSWORD="contrasenya-molt-secreta")
 
