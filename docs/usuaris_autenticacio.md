@@ -38,6 +38,7 @@ L'autenticació s'articula sobre dues taules: `users` i `sessions`. El diagrama 
 | `password_hash` | `text` *nullable* | Hash Argon2id de la contrasenya. |
 | `email_verified_at` | `timestamptz` *nullable* | Moment de verificació del correu. `NULL` mentre no s'ha verificat. |
 | `qualified_at` | `timestamptz` *nullable* | Moment de superació de la prova de competència lingüística. `NULL` mentre no s'ha superat. |
+| `verification_sent_at` | `timestamptz` *nullable* | Últim cop que s'ha enviat el correu de verificació. Limita els reenviaments. |
 | `consent_version` | `varchar(32)` | Versió del consentiment acceptada al registre. |
 | `consent_at` | `timestamptz` *nullable* | Moment en què es va donar el consentiment. |
 | `created_at` | `timestamptz` | Data d'alta (per defecte `now()`). |
@@ -138,6 +139,12 @@ fitxer `.env` (mai s'ha de versionar):
 | `cookie_name` | Nom de la cookie de sessió. |
 | `cookie_secure` | Si la cookie només viatja per HTTPS (`true` a producció). |
 | `cookie_samesite` | Política `SameSite` de la cookie (`lax`, `strict` o `none`). |
+| `require_email_verification` | Exigeix correu verificat per iniciar sessió i votar (`false` per defecte). |
+| `verification_resend_cooldown_seconds` | Espera mínima entre dos correus de verificació al mateix compte (60 per defecte). |
+| `smtp_host`, `smtp_port`, `smtp_security` | Servidor SMTP i xifratge (`starttls`, `ssl` o `none`). Amb `smtp_host` buit no s'envia res: el missatge queda al log. |
+| `smtp_user`, `smtp_password` | Credencials SMTP. La contrasenya és un secret (`SecretStr`): no apareix als logs. |
+| `email_from_address`, `email_from_name` | Remitent dels correus. El servidor SMTP pot exigir una adreça concreta. |
+| `frontend_base_url` | URL pública del frontend, base de l'enllaç `…/verify?token=…` del correu. |
 
 ## Flux d'autenticació
 
@@ -150,9 +157,12 @@ fitxer `.env` (mai s'ha de versionar):
    - Si existeix i està actiu → HTTP 409 («Aquest correu ja està registrat»).
 4. Es xifra la contrasenya amb Argon2id i es crea l'usuari amb `consent_version` i
    `consent_at`.
-5. Es genera un **token de verificació** (24 h). A la v1 no hi ha servei de correu: el
-   token s'escriu al *log* perquè es pugui provar el flux manualment.
-6. Es retorna l'estat `pending_verification`.
+5. Si cal verificar el correu, es genera un **token de verificació** (24 h) i s'envia a
+   l'adreça en un correu amb l'enllaç `<frontend_base_url>/verify?token=…`. L'enviament
+   es fa **en segon pla**, després de respondre (`email_service.send_verification_email`):
+   si el servidor SMTP falla, l'alta no es desfà i la persona pot demanar un reenviament.
+   Sense `smtp_host` configurat, el missatge es deixa al *log*.
+6. Es retorna l'estat `pending_verification` (o `verified` si la verificació no és obligatòria).
 
 ### 2. Verificació de correu (`verify_email`)
 
@@ -164,17 +174,33 @@ fitxer `.env` (mai s'ha de versionar):
    **idempotent**: reverificar no dona error.
 5. Es retorna l'estat `verified`.
 
-### 3. Login (`login_user`)
+### 3. Reenviament del correu (`request_verification_resend`)
+
+`POST /auth/resend-verification` permet demanar un altre correu si el primer no ha arribat.
+
+1. Un únic `UPDATE` condicional reserva el reenviament: el compte ha d'existir, no estar
+   donat de baixa, no estar verificat i no haver rebut un correu en els darrers
+   `verification_resend_cooldown_seconds`. Això evita que dues peticions simultànies
+   saltin l'espera.
+2. Si es compleix, s'actualitza `verification_sent_at` i s'envia un correu nou (en segon pla).
+3. **La resposta és sempre la mateixa** (`200 { status: "requested" }`), tant si l'adreça
+   existeix com si no, si ja està verificada o si l'espera encara no ha acabat. Així no
+   serveix per esbrinar quins correus són al sistema. Els tokens anteriors segueixen
+   sent vàlids fins que caduquen.
+
+### 4. Login (`login_user`)
 
 1. Es busca l'usuari pel correu normalitzat; si no existeix o està de baixa → HTTP 401
    (missatge genèric «Email o contrasenya incorrectes» per no revelar l'existència del
    compte).
-2. Si el correu no està verificat → HTTP 403.
-3. Es verifica la contrasenya amb Argon2id; si falla → HTTP 401 (mateix missatge genèric).
+2. Es verifica la contrasenya amb Argon2id; si falla → HTTP 401 (mateix missatge genèric).
+3. Si el correu no està verificat → HTTP 403. Es comprova **després** de la contrasenya:
+   així només el propietari del compte pot veure que li cal verificar-lo, i un desconegut
+   no pot distingir un compte no verificat d'un que no existeix.
 4. Es crea una sessió: token opac, hash a `token_hash` i `expires_at` a 24 h.
 5. La ruta estableix la cookie `session_token` (vegeu [Seguretat de cookies](#seguretat-de-cookies)).
 
-### 4. Sessió i logout (`logout_user`)
+### 5. Sessió i logout (`logout_user`)
 
 - Cada petició autenticada envia la cookie `session_token`; el backend en calcula el hash
   i busca una sessió **activa**.
@@ -186,11 +212,13 @@ sequenceDiagram
     participant C as Client
     participant API as Backend
     participant DB as PostgreSQL
+    participant M as Servidor SMTP
 
     C->>API: POST /auth/register (email, password, consent)
     API->>DB: crea user (email_hash, Argon2 hash)
-    API-->>C: pending_verification (+ token al log)
-    C->>API: POST /auth/verify (token)
+    API-->>C: pending_verification
+    API-)M: correu amb l'enllaç de verificació (en segon pla)
+    C->>API: POST /auth/verify (token de l'enllaç)
     API->>DB: email_verified_at = now()
     API-->>C: verified
     C->>API: POST /auth/login (email, password)
@@ -233,7 +261,8 @@ Tots els endpoints pengen del prefix d'autenticació definit a
 | --- | --- | --- | --- | --- |
 | `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification" }` | 400 (sense consentiment), 409 (correu ja registrat) |
 | `POST` | `/auth/verify` | `{ token }` | `{ status: "verified" }` | 400 (token invàlid), 404 (usuari no trobat) |
-| `POST` | `/auth/login` | `{ email, password }` | `{ status: "logged_in" }` + cookie | 401 (credencials), 403 (correu no verificat) |
+| `POST` | `/auth/resend-verification` | `{ email }` | `{ status: "requested" }` (sempre) | 422 (correu mal format) |
+| `POST` | `/auth/login` | `{ email, password }` | `{ status: "logged_in" }` + cookie | 401 (credencials), 403 (correu no verificat, amb contrasenya correcta) |
 | `POST` | `/auth/logout` | *(cookie)* | `{ status: "logged_out" }` | — |
 | `POST` | `/auth/delete-account` | `{ current_password }` + cookie | `{ status: "deleted" }` | 401 (sessió/contrasenya) |
 | `GET` | `/auth/export` | *(cookie)* | `{ user, votes }` | 401 (sessió) |
@@ -284,8 +313,11 @@ La cookie de sessió que estableix el login té els atributs següents:
 
 ### Limitacions de la v1 i notes de producció
 
-- **Sense servei de correu:** el token de verificació s'escriu al *log*; cal integrar un
-  servei d'enviament abans de sortir a producció.
+- **Correu:** l'enviament és per SMTP i les credencials es configuren per entorn (mai al
+  repositori). Perquè els correus no acabin a la carpeta de brossa, el domini del remitent
+  ha de tenir SPF, DKIM i DMARC. No hi ha plantilla HTML ni gestió de rebots.
+- **Sense límit per IP:** només hi ha una espera per compte als reenviaments. Limitar les
+  altes massives per adreça IP cal fer-ho al *reverse proxy*.
 - **Cookie no `Secure`:** vegeu la nota anterior.
 - **Neteja de sessions:** les sessions caducades es filtren en consulta, però no hi ha una
   tasca que elimini físicament les files expirades o revocades.

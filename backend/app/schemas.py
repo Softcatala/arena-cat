@@ -69,6 +69,16 @@ class VerifyEmailResponse(BaseModel):
     status: str = "verified"
 
 
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class ResendVerificationResponse(BaseModel):
+    """Resposta única: no revela si l'adreça existeix ni si s'ha enviat el correu."""
+
+    status: str = "requested"
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
