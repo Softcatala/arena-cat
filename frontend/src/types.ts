@@ -27,6 +27,26 @@ export interface SessionState {
   authenticated: boolean;
   email: string | null;
   email_verified: boolean;
+  qualified: boolean;
+}
+
+export type QualificationChoice = "A" | "B" | "C";
+
+export interface Questionnaire {
+  min_correct: number;
+  questions: {
+    id: string;
+    category_code: CategoryCode | null;
+    prompt: string;
+    options: Record<QualificationChoice, string>;
+  }[];
+}
+
+export interface QualificationResult {
+  score: number;
+  total: number;
+  min_correct: number;
+  passed: boolean;
 }
 
 /** Progrés global de l'avaluador, en cel·les (prompt × parella de models). */

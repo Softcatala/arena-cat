@@ -41,6 +41,7 @@ def test_register_user_success(client, session):
     assert created_user.password_hash.startswith("$argon2id$")
     assert created_user.consent_at is not None
     assert created_user.email_verified_at is not None
+    assert created_user.qualified_at is None
 
 
 def test_register_requires_email_verification_when_enabled(
@@ -216,6 +217,7 @@ def test_delete_account_success_anonymizes_and_revokes_sessions(client, session,
     assert user.email is None
     assert user.password_hash is None
     assert user.email_verified_at is None
+    assert user.qualified_at is None
     assert user.consent_at is None
     assert user.deleted_at is not None
     assert user.email_hash == original_email_hash
@@ -318,6 +320,7 @@ def test_session_returns_authenticated_user(client, logged_in_user):
         "authenticated": True,
         "email": "session_ok@example.com",
         "email_verified": True,
+        "qualified": True,
     }
 
 
@@ -325,7 +328,12 @@ def test_session_without_cookie_returns_unauthenticated(client):
     response = client.get("/api/auth/session")
 
     assert response.status_code == 200
-    assert response.json() == {"authenticated": False, "email": None, "email_verified": False}
+    assert response.json() == {
+        "authenticated": False,
+        "email": None,
+        "email_verified": False,
+        "qualified": False,
+    }
 
 
 def test_session_with_invalid_cookie_returns_unauthenticated(client):
@@ -373,6 +381,7 @@ def test_session_reports_unverified_email(client, create_user, login):
         "authenticated": True,
         "email": "session_unverified@example.com",
         "email_verified": False,
+        "qualified": True,
     }
 
 

@@ -1,0 +1,15 @@
+# Limita el context de construcció als fitxers necessaris per a l’API.
+**
+!backend/
+backend/**
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/alembic.ini
+!backend/app/
+!backend/app/**
+!backend/migrations/
+!backend/migrations/**
+!data/
+data/**
+!data/qualification.yaml
+**/__pycache__/

@@ -13,6 +13,9 @@ import type {
   Category,
   CategoryFilter,
   Progress,
+  QualificationChoice,
+  QualificationResult,
+  Questionnaire,
   Ranking,
   SessionState,
   Task,
@@ -85,6 +88,14 @@ export const api = {
     }),
 
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
+
+  qualification: () => request<Questionnaire>("/qualification"),
+
+  submitQualification: (answers: Record<string, QualificationChoice>) =>
+    request<QualificationResult>("/qualification", {
+      method: "POST",
+      body: JSON.stringify({ answers }),
+    }),
 
   // Sense `category_code` el backend recorre les categories i serveix la primera
   // que encara tingui feina per a aquest usuari.

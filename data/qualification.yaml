@@ -1,0 +1,113 @@
+min_correct: 8
+questions:
+- id: q1
+  category_code: correccio
+  prompt: Corregeix «No sé perquè han ajornat la reunió» per expressar que desconeixem el motiu de
+    l’ajornament.
+  options:
+    A: No sé perquè han ajornat la reunió.
+    B: No sé per què han ajornat la reunió.
+    C: No sé per que han ajornat la reunió.
+  correct_answer: B
+  explanation: '«Per què» equival a «per quin motiu»: s’escriu separat i amb accent. A manté l’error
+    i C omet l’accent.'
+- id: q2
+  category_code: correccio
+  prompt: Corregeix «L’universitat ha publicat el calendari provisional» sense canviar-ne el significat.
+  options:
+    A: La universitat ha publicat el calendari definitiu.
+    B: L’universitat ha publicat el calendari provisional.
+    C: La universitat ha publicat el calendari provisional.
+  correct_answer: C
+  explanation: 'Corregeix l’apòstrof i conserva «provisional». A altera el significat i B manté l’error:
+    «la» no s’apostrofa davant de la u àtona d’«universitat».'
+- id: q3
+  category_code: traduccio
+  prompt: 'Text original: «No hace falta reservar, a menos que el grupo sea de más de seis personas.»
+    Què indica aquest avís?'
+  options:
+    A: Cal reservar si el grup té més de sis persones.
+    B: Cal reservar si el grup té sis persones o menys.
+    C: Cal reservar sempre, independentment del nombre de persones.
+  correct_answer: A
+  explanation: '«A menos que» introdueix l’excepció: la reserva és necessària quan se superen les
+    sis persones. B inverteix la condició i C converteix l’excepció en una obligació general.'
+- id: q4
+  category_code: traduccio
+  prompt: 'Text original: «Cuando le pregunté por el retraso, se fue por las ramas y no respondió.»
+    Què va fer la persona?'
+  options:
+    A: Va explicar detalladament el motiu del retard.
+    B: Es va desviar del tema sense respondre la pregunta.
+    C: Va marxar del lloc sense respondre la pregunta.
+  correct_answer: B
+  explanation: «Irse por las ramas» significa desviar-se del tema. A contradiu que no va respondre
+    i C interpreta l’expressió com un desplaçament físic.
+- id: q5
+  category_code: reformulacio
+  prompt: Reformula «No tots els inscrits han confirmat l’assistència» sense alterar-ne el significat.
+  options:
+    A: Cap dels inscrits ha confirmat l’assistència.
+    B: Tots els inscrits han confirmat l’assistència.
+    C: Hi ha inscrits que no han confirmat l’assistència.
+  correct_answer: C
+  explanation: Manté que hi ha persones que no han confirmat. A afirma més del que diu l’original
+    i B el contradiu.
+- id: q6
+  category_code: reformulacio
+  prompt: 'Reformula en un registre formal: «Ei, no podré venir a la reunió de demà. Em podeu passar
+    l’acta?» Conserva la informació original.'
+  options:
+    A: Us comunico que no podré assistir a la reunió de demà i us demano que m’envieu l’acta.
+    B: Us comunico que no podré assistir a la reunió de demà perquè tinc una visita mèdica i us demano
+      que m’envieu l’acta.
+    C: Ei, demà no podré venir a la reunió; passeu-me l’acta, si us plau.
+  correct_answer: A
+  explanation: Adapta el registre i manté el contingut. B inventa el motiu de l’absència i C conserva
+    el to col·loquial.
+- id: q7
+  category_code: generacio
+  prompt: 'Encàrrec: «Escriu un avís formal de dues frases: la biblioteca tancarà divendres per obres
+    i tornarà a obrir dilluns. No hi afegeixis horaris.» Quina resposta el compleix?'
+  options:
+    A: La biblioteca romandrà tancada divendres per obres. Tornarà a obrir dilluns.
+    B: La biblioteca romandrà tancada divendres per obres. Tornarà a obrir dilluns a les nou del
+      matí.
+    C: La biblioteca romandrà tancada dilluns per obres. Tornarà a obrir divendres.
+  correct_answer: A
+  explanation: Respecta el registre, les dues frases i les dades de l’encàrrec. B afegeix un horari
+    i C intercanvia els dies.
+- id: q8
+  category_code: generacio
+  prompt: 'Continua amb una frase sense contradir aquest inici: «L’últim tren ja havia marxat i aquell
+    dia no en passaria cap més. La Júlia encara havia de tornar a casa.»'
+  options:
+    A: Va pujar a l’últim tren, que encara era aturat a l’andana.
+    B: Va trucar a un taxi perquè la portés a casa.
+    C: Va esperar el tren següent, que arribaria al cap de cinc minuts.
+  correct_answer: B
+  explanation: Proposa una continuació compatible amb l’inici. A contradiu que l’últim tren havia
+    marxat i C, que ja no en passarien més aquell dia.
+- id: q9
+  category_code: null
+  prompt: Les formes «jo penso», «jo pense» i «jo pens» s’associen, respectivament, a quines varietats
+    del català?
+  options:
+    A: Valencià, català central i balear.
+    B: Balear, valencià i català central.
+    C: Català central, valencià i balear.
+  correct_answer: C
+  explanation: '«Penso» és la forma habitual en català central; «pense», en valencià; i «pens»,
+    en balear. Totes tres són normatives: cal valorar-les d’acord amb la varietat demanada.'
+- id: q10
+  category_code: null
+  prompt: Un encàrrec demana català balear per a un missatge entre amics de Mallorca. Quina resposta
+    s’hi ajusta pels seus trets lingüístics?
+  options:
+    A: Aquesta tarda tinc temps per venir.
+    B: Avui horabaixa tenc temps per venir.
+    C: Aquesta vesprada tinc temps per venir.
+  correct_answer: B
+  explanation: «Horabaixa» i «tenc» són formes normatives pròpies de Mallorca. A presenta trets
+    del català central i C, del valencià. Les variants d’altres territoris no són errors, però
+    aquí es demana català balear.

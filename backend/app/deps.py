@@ -44,3 +44,15 @@ def get_optional_user(db: DbSession, session_token: SessionCookie = None) -> Use
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentVerifiedUser = Annotated[User, Depends(get_current_verified_user)]
 OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+
+
+def get_current_qualified_user(user: CurrentVerifiedUser) -> User:
+    """Exigeix haver superat la prova abans d'accedir a les avaluacions."""
+    if user.qualified_at is None:
+        raise HTTPException(
+            status_code=403, detail="Cal superar la prova de competència lingüística"
+        )
+    return user
+
+
+CurrentQualifiedUser = Annotated[User, Depends(get_current_qualified_user)]

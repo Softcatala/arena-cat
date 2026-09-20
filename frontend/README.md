@@ -4,9 +4,17 @@
 [Garbellaveus](https://github.com/Softcatala/garbellaveus), amb els colors
 corporatius de Softcatalà.
 
-Cobreix el camí complet **inici de sessió → càrrega de tasca → vot**, amb el
+Cobreix el camí complet **inici de sessió → prova de competència → càrrega de tasca → vot**, amb el
 progrés de l'avaluador, l'omissió de tasques i el ressaltat de diferències de la
 categoria «correcció».
+
+Els usuaris sense acreditar accedeixen a `/qualification`: un sol formulari de
+deu preguntes amb tres opcions, dues per categoria i dues generals. Després de
+lliurar-lo, el formulari se substitueix pel total d'encerts i l'estat de superació,
+sense correccions ni desglossament per categoria. Permet repetir els intents
+fallits i començar a avaluar quan se supera.
+Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
+`users.qualified_at` i evita repetir la prova en sessions posteriors.
 
 ## Requisits
 
@@ -95,6 +103,7 @@ s'hagi decidit.
 | `src/errors.ts` | Tradueix al català els errors de validació de FastAPI, que arriben en anglès. |
 | `src/App.tsx` | Estat de sessió i disposició general (capçalera i peu). |
 | `src/components/Login.tsx` | Alta i inici de sessió. |
+| `src/components/QualificationView.tsx` | Formulari de competència lingüística, correcció i resultat. |
 | `src/components/TaskView.tsx` | Filtre de categoria, tasca, vot, omissió i final de recorregut. |
 | `src/components/ResponseCard.tsx` | Una resposta, amb ressaltat de canvis a «correcció». |
 | `src/components/ProgressBar.tsx` | Progrés global de l'avaluador. |

@@ -37,6 +37,7 @@ L'autenticació s'articula sobre dues taules: `users` i `sessions`. El diagrama 
 | `email_hash` | `varchar(64)` únic, *nullable* | HMAC-SHA256 del correu normalitzat. Es conserva després de la baixa per detectar re-registres. |
 | `password_hash` | `text` *nullable* | Hash Argon2id de la contrasenya. |
 | `email_verified_at` | `timestamptz` *nullable* | Moment de verificació del correu. `NULL` mentre no s'ha verificat. |
+| `qualified_at` | `timestamptz` *nullable* | Moment de superació de la prova de competència lingüística. `NULL` mentre no s'ha superat. |
 | `consent_version` | `varchar(32)` | Versió del consentiment acceptada al registre. |
 | `consent_at` | `timestamptz` *nullable* | Moment en què es va donar el consentiment. |
 | `created_at` | `timestamptz` | Data d'alta (per defecte `now()`). |
@@ -217,6 +218,12 @@ en aquest ordre:
 Si totes les comprovacions passen, retorna l'objecte `User` per injectar-lo a l'endpoint.
 Els endpoints d'exportació i baixa reutilitzen la mateixa funció sense exigir verificació.
 
+La prova de competència (`GET` i `POST /api/qualification`) exigeix un usuari
+verificat. Per obtenir tasques, consultar-ne el progrés, ometre-les o votar,
+`CurrentQualifiedUser` exigeix també `qualified_at` informat; si és nul, retorna
+HTTP 403. En superar la prova, es desa la data a `users`; no cal repetir-la en
+sessions posteriors. `GET /api/auth/session` exposa aquest estat amb `qualified`.
+
 ## Referència d'endpoints
 
 Tots els endpoints pengen del prefix d'autenticació definit a
@@ -239,7 +246,7 @@ Els esquemes de petició i resposta són a [`backend/app/schemas.py`](../backend
 
 L'endpoint `GET /auth/export` requereix una sessió activa i retorna:
 
-- Les dades del compte (`ExportUserResponse`): `id`, `email`, `email_verified_at`,
+- Les dades del compte (`ExportUserResponse`): `id`, `email`, `email_verified_at`, `qualified_at`,
   `consent_version`, `consent_at`, `created_at`, `deleted_at`.
 - Tots els vots de l'usuari (`ExportVoteResponse`), ordenats cronològicament.
 
@@ -252,7 +259,7 @@ L'endpoint `POST /auth/delete-account` implementa el **dret a l'oblit**:
 1. Exigeix una sessió activa i la **contrasenya actual** (reautenticació) → HTTP 401 si
    falla qualsevol de les dues.
 2. Anonimitza l'usuari amb `anonymize_user_rgpd`: buida `email`, `password_hash`,
-   `email_verified_at` i `consent_at`, i estableix `deleted_at`. **Es conserven `id` i
+   `email_verified_at`, `qualified_at` i `consent_at`, i estableix `deleted_at`. **Es conserven `id` i
    `email_hash`** per poder detectar futurs re-registres del mateix correu.
 3. Revoca **totes** les sessions actives de l'usuari.
 4. S'esborra la cookie del client.

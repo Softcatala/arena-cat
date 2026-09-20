@@ -24,7 +24,7 @@ build:
     - export REPO_NAME=$CI_REGISTRY_IMAGE/arena-cat-backend
     - export IMAGE_NAME=$REPO_NAME:$CI_COMMIT_REF_SLUG
     - export DOCKER_PATH=backend/Dockerfile
-    - export DOCKER_CONTEXT=./backend
+    - export DOCKER_CONTEXT=.
     - docker build -f $DOCKER_PATH --tag $IMAGE_NAME $DOCKER_CONTEXT
     - docker push $IMAGE_NAME
     # Frontend

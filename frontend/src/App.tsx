@@ -4,12 +4,18 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import logotip from "./assets/softcatala-logotip.png";
 import Login from "./components/Login";
+import QualificationView from "./components/QualificationView";
 import RankingView from "./components/RankingView";
 import TaskView from "./components/TaskView";
 import { clearTask } from "./taskStore";
 import type { Category, SessionState } from "./types";
 
-const UNKNOWN: SessionState = { authenticated: false, email: null, email_verified: false };
+const UNKNOWN: SessionState = {
+  authenticated: false,
+  email: null,
+  email_verified: false,
+  qualified: false,
+};
 
 export default function App() {
   // `null` mentre no sabem si hi ha sessió: sense aquest estat intermedi
@@ -109,10 +115,26 @@ export default function App() {
               }
             />
             <Route
+              path="/qualification"
+              element={
+                !session.authenticated ? (
+                  <Navigate to="/login" replace />
+                ) : session.qualified ? (
+                  <Navigate to="/" replace />
+                ) : categories ? (
+                  <QualificationView categories={categories} onContinue={refresh} />
+                ) : (
+                  <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />
+                )
+              }
+            />
+            <Route
               path="/"
               element={
                 session.authenticated ? (
-                  categories ? (
+                  !session.qualified ? (
+                    <Navigate to="/qualification" replace />
+                  ) : categories ? (
                     <TaskView categories={categories} />
                   ) : (
                     <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />

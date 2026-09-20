@@ -125,6 +125,7 @@ class User(Base):
     email_verified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    qualified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     consent_version: Mapped[str] = mapped_column(String(32), nullable=False)
     consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
