@@ -1,8 +1,8 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Category
+from app.models import Category, Prompt, Vote
 from app.ranking.confidence import assess_confidence
 from app.ranking.ranking import compute_ranking
 
@@ -32,14 +32,18 @@ def get_ranking_per_category(db: Session, category_code: str | None) -> dict:
     Returns:
         Diccionari amb el ranking demanat.
     """
-    if category_code is None:
-        ranking = compute_ranking(db, None)
-        ranking["confidence"] = _confidence_response(assess_confidence(db, None))
-        return ranking
+    participants_query = select(func.count(Vote.user_id.distinct()))
+    if category_code is not None:
+        category = db.scalar(select(Category).where(Category.code == category_code))
+        if category is None:
+            raise HTTPException(
+                status_code=404, detail=f"No existeix la categoria: {category_code}."
+            )
+        participants_query = participants_query.join(Prompt, Vote.prompt_id == Prompt.id).where(
+            Prompt.category_id == category.id
+        )
 
-    category = db.scalar(select(Category).where(Category.code == category_code))
-    if category is None:
-        raise HTTPException(status_code=404, detail=f"No existeix la categoria: {category_code}.")
     ranking = compute_ranking(db, category_code)
+    ranking["n_participants"] = db.scalar(participants_query)
     ranking["confidence"] = _confidence_response(assess_confidence(db, category_code))
     return ranking

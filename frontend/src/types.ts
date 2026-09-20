@@ -58,6 +58,7 @@ export interface RankingConfidence {
 /** Resposta de `GET /api/ranking`. */
 export interface Ranking {
   category_code: CategoryCode | null;
+  n_participants: number;
   n_votes_total: number;
   n_votes_decisive: number;
   n_ties: number;

@@ -146,7 +146,10 @@ export default function RankingView({
               </tbody>
             </table>
 
-            <div className="grid grid-cols-2 gap-4 border-t border-slate-200 px-5 py-4 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 border-t border-slate-200 px-5 py-4 sm:grid-cols-5">
+              <div title="Persones que han emès almenys un vot en aquest rànquing. Cada compte es compta una sola vegada.">
+                <Stat label="Participants" value={ranking.n_participants} />
+              </div>
               <Stat label="Vots" value={ranking.n_votes_total} />
               <Stat label="Decisius" value={ranking.n_votes_decisive} />
               <Stat label="Empats" value={ranking.n_ties} />

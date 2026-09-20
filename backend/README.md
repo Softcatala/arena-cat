@@ -112,6 +112,11 @@ Registra el vot d'un usuari sobre una tasca prèviament demanada.
 Retorna el rànquing actual de models. Pot filtrar per una categoria específica o
 agregar totes les categories.
 
+`n_participants` compta els usuaris diferents amb almenys un vot dins l'àmbit
+consultat, inclosos els empats i «cap de les dues». Cada usuari compta una sola
+vegada, també al global si ha votat en diverses categories. Els vots sense
+`user_id` es mantenen als recomptes de vots, però no al de participants.
+
 **Paràmetres de la URL:**
 - `category_code` (string, opcional): El codi de la categoria a consultar. Si s'omet,
   retorna el rànquing global agregant totes les categories.
@@ -120,6 +125,7 @@ agregar totes les categories.
 ```json
 {
   "category_code": "correccio",
+  "n_participants": 42,
   "n_votes_total": 390,
   "n_votes_decisive": 358,
   "n_ties": 23,

@@ -164,6 +164,7 @@ class RankedModel(BaseModel):
 
 class RankingResponse(BaseModel):
     category_code: str | None
+    n_participants: int
     n_votes_total: int
     n_votes_decisive: int
     n_ties: int
