@@ -268,7 +268,11 @@ Dos endpoints, tots dos públics: qui ha perdut la contrasenya no té sessió.
    només serveix un cop**, fins i tot si arriben dues peticions alhora, i sense cap taula
    de tokens.
 4. Es **revoquen totes les sessions** de l'usuari: qui tingués una sessió oberta amb la
-   contrasenya antiga en queda fora.
+   contrasenya antiga en queda fora. Això inclou una entrada que s'estigui fent alhora:
+   després de validar la contrasenya, l'entrada reserva la fila de l'usuari
+   (`SELECT … FOR UPDATE`) i comprova que el hash no hagi canviat abans d'inserir la sessió.
+   Així el restabliment o bé ja ha acabat (i l'entrada falla amb 401) o bé espera i, en
+   revocar, ja veu la sessió nova.
 5. No s'inicia sessió automàticament: la persona ha d'entrar amb la contrasenya nova.
 
 ```mermaid

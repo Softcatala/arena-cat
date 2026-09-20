@@ -311,7 +311,8 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     if user is None or user.deleted_at is not None:
         raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
-    if not verify_password(payload.password, user.password_hash):
+    verified_hash = user.password_hash
+    if not verify_password(payload.password, verified_hash):
         raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
     # Després de la contrasenya: així només el propietari del compte veu que li cal verificar.
@@ -320,6 +321,14 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
             status_code=403,
             detail="Email no verificat. Verifica el teu email primer.",
         )
+
+    # Un restabliment de contrasenya pot haver acabat des que s'ha validat: la sessió nova no
+    # ha de sobreviure a un canvi que revoca les altres. Es reserva la fila de l'usuari fins
+    # al commit de la sessió; així el restabliment o bé ha acabat abans (i el hash ja no
+    # coincideix) o bé espera i, en revocar, ja veu aquesta sessió.
+    current_hash = db.scalar(select(User.password_hash).where(User.id == user.id).with_for_update())
+    if current_hash != verified_hash:
+        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
 
     # Crea la sessió
     raw_token = new_session_token()
