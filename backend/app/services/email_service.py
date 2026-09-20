@@ -5,7 +5,11 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate, make_msgid
+from functools import lru_cache
+from pathlib import Path
 from urllib.parse import quote
+
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 from app.config import get_settings
 from app.security import EMAIL_VERIFICATION_TTL_HOURS, PASSWORD_RESET_TTL_MINUTES
@@ -19,6 +23,36 @@ AUTOMATIC_NOTICE = (
     "Aquest és un correu automàtic. Si us plau, no respongueu a aquest missatge: "
     "les respostes no es processen."
 )
+
+TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "email_templates"
+
+
+@lru_cache
+def _templates() -> Environment:
+    """Plantilles dels correus. Només s'escapa l'HTML: el text pla no és HTML.
+
+    `StrictUndefined` fa fallar un correu amb una variable que falta, en comptes de
+    enviar-lo amb un forat.
+    """
+    return Environment(
+        loader=FileSystemLoader(TEMPLATES_DIR),
+        autoescape=select_autoescape(["html"]),
+        undefined=StrictUndefined,
+        keep_trailing_newline=True,
+    )
+
+
+def _set_body(message: EmailMessage, template: str, **context: object) -> None:
+    """Omple el missatge amb la versió en text pla i, com a alternativa, la d'HTML.
+
+    El text pla va primer: els clients mostren l'última versió que entenen.
+    """
+    environment = _templates()
+    context = {"notice": AUTOMATIC_NOTICE, **context}
+    message.set_content(environment.get_template(f"{template}.txt").render(context))
+    message.add_alternative(
+        environment.get_template(f"{template}.html").render(context), subtype="html"
+    )
 
 
 def _build_link(path: str, token: str) -> str:
@@ -46,18 +80,8 @@ def build_verification_link(token: str) -> str:
 
 def build_verification_message(to_email: str, link: str) -> EmailMessage:
     """Compon el correu que convida a confirmar l'adreça amb l'enllaç donat."""
-    message = _new_message(to_email, "Verifica el teu correu d'Arena Cat")
-    message.set_content(
-        "Hola!\n\n"
-        "Gràcies per registrar-te a Arena Cat, la plataforma de Softcatalà per avaluar "
-        "models d'IA en català.\n\n"
-        "Per activar el compte, confirma l'adreça de correu amb aquest enllaç "
-        f"(caduca d'aquí a {EMAIL_VERIFICATION_TTL_HOURS} hores):\n\n"
-        f"{link}\n\n"
-        "Si no t'has registrat tu, pots ignorar aquest missatge.\n\n"
-        "Softcatalà\n\n"
-        f"{AUTOMATIC_NOTICE}\n"
-    )
+    message = _new_message(to_email, "Verifiqueu el vostre correu d'Arena Cat")
+    _set_body(message, "verification", link=link, hours=EMAIL_VERIFICATION_TTL_HOURS)
     return message
 
 
@@ -73,17 +97,8 @@ def build_password_reset_message(to_email: str, link: str) -> EmailMessage:
         validity = f"{hours} {'hora' if hours == 1 else 'hores'}"
     else:
         validity = f"{PASSWORD_RESET_TTL_MINUTES} minuts"
-    message = _new_message(to_email, "Restableix la contrasenya d'Arena Cat")
-    message.set_content(
-        "Hola!\n\n"
-        "Hem rebut una sol·licitud per restablir la contrasenya del teu compte d'Arena Cat.\n\n"
-        f"Per triar-ne una de nova, obre aquest enllaç (caduca d'aquí a {validity}):\n\n"
-        f"{link}\n\n"
-        "Si no ho has demanat tu, pots ignorar aquest missatge: la teva contrasenya "
-        "actual no canviarà.\n\n"
-        "Softcatalà\n\n"
-        f"{AUTOMATIC_NOTICE}\n"
-    )
+    message = _new_message(to_email, "Restabliment de la contrasenya d'Arena Cat")
+    _set_body(message, "password-reset", link=link, validity=validity)
     return message
 
 
@@ -98,7 +113,7 @@ def send_email(message: EmailMessage) -> None:
         logger.warning(
             "SMTP no configurat; no s'envia el correu per a %s:\n%s",
             message["To"],
-            message.get_content(),
+            message.get_body(preferencelist=("plain",)).get_content(),
         )
         return
 

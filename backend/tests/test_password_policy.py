@@ -38,7 +38,9 @@ def _reset(client, token: str, password: str):
 
 
 def _token_from(message) -> str:
-    match = re.search(r"/reset-password\?token=(\S+)", message.get_content())
+    match = re.search(
+        r"/reset-password\?token=(\S+)", message.get_body(preferencelist=("plain",)).get_content()
+    )
     assert match is not None
     return unquote(match.group(1))
 

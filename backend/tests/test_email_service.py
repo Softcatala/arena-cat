@@ -14,6 +14,15 @@ from app.security import (
 from app.services import email_service
 
 
+def plain(message) -> str:
+    """Cos en text pla d'un missatge amb versió de text i d'HTML."""
+    return message.get_body(preferencelist=("plain",)).get_content()
+
+
+def html(message) -> str:
+    return message.get_body(preferencelist=("html",)).get_content()
+
+
 class FakeSMTP:
     """Substitut de `smtplib.SMTP` que enregistra les crides que rep."""
 
@@ -121,8 +130,8 @@ def test_verification_message_headers_and_body(smtp_env):
 
     assert message["To"] == "usuari@example.com"
     assert message["From"] == "Arena Cat <arena@example.org>"
-    assert message["Subject"] == "Verifica el teu correu d'Arena Cat"
-    body = message.get_content()
+    assert message["Subject"] == "Verifiqueu el vostre correu d'Arena Cat"
+    body = plain(message)
     assert "https://arena.example.org/verify?token=xyz" in body
     assert "24 hores" in body
 
@@ -187,7 +196,7 @@ def test_send_verification_email_sends_a_message_with_a_valid_token(smtp_env, fa
     (connection,) = fake_smtp.instances
     (message,) = connection.sent
     assert message["To"] == "usuari@example.com"
-    assert f"/verify?token={token}" in message.get_content()
+    assert f"/verify?token={token}" in plain(message)
     assert verify_email_verification_token(token)["user_id"] == "7"
 
 
@@ -256,8 +265,8 @@ def test_password_reset_message_headers_and_body(smtp_env):
 
     assert message["To"] == "usuari@example.com"
     assert message["From"] == "Arena Cat <arena@example.org>"
-    assert message["Subject"] == "Restableix la contrasenya d'Arena Cat"
-    body = message.get_content()
+    assert message["Subject"] == "Restabliment de la contrasenya d'Arena Cat"
+    body = plain(message)
     assert "https://arena.example.org/reset-password?token=xyz" in body
     assert "1 hora" in body
 
@@ -271,7 +280,7 @@ def test_send_password_reset_email_sends_a_message_with_a_valid_token(smtp_env, 
     (connection,) = fake_smtp.instances
     (message,) = connection.sent
     assert message["To"] == "usuari@example.com"
-    assert f"/reset-password?token={token}" in message.get_content()
+    assert f"/reset-password?token={token}" in plain(message)
 
 
 def test_send_password_reset_email_never_raises(smtp_env, fake_smtp, caplog):
@@ -333,9 +342,85 @@ def test_emails_say_they_are_automatic_and_replies_are_not_read(smtp_env, kind):
         "password_reset": email_service.build_password_reset_message,
     }[kind]
 
-    body = build("usuari@example.com", "https://arena.example.org/x?token=t").get_content()
+    body = plain(build("usuari@example.com", "https://arena.example.org/x?token=t"))
 
     assert "Aquest és un correu automàtic" in body
     assert "les respostes no es processen" in body
     # L'avís va al final, per sota de la signatura, com els peus habituals.
     assert body.rstrip().endswith("les respostes no es processen.")
+
+
+@pytest.mark.parametrize("kind", ["verification", "password_reset"])
+def test_emails_have_a_plain_text_and_an_html_version(smtp_env, kind):
+    smtp_env()
+    build = {
+        "verification": email_service.build_verification_message,
+        "password_reset": email_service.build_password_reset_message,
+    }[kind]
+
+    message = build("usuari@example.com", "https://arena.example.org/x?token=t")
+
+    assert message.get_content_type() == "multipart/alternative"
+    # El text pla va primer: els clients mostren la darrera versió que entenen.
+    assert [part.get_content_type() for part in message.iter_parts()] == [
+        "text/plain",
+        "text/html",
+    ]
+
+
+@pytest.mark.parametrize("kind", ["verification", "password_reset"])
+def test_html_email_has_the_link_as_a_button_and_as_visible_text(smtp_env, kind):
+    smtp_env()
+    build = {
+        "verification": email_service.build_verification_message,
+        "password_reset": email_service.build_password_reset_message,
+    }[kind]
+    link = "https://arena.example.org/x?token=abc"
+
+    body = html(build("usuari@example.com", link))
+
+    # El botó porta a l'enllaç i, per als clients que amaguen botons, també es veu escrit.
+    assert f'href="{link}"' in body
+    assert body.count(link) >= 2
+    assert "#E64B3C" in body
+    assert "© Softcatalà" in body
+    assert "Aquest és un correu automàtic" in body
+
+
+def test_html_email_escapes_the_values_it_inserts(smtp_env):
+    smtp_env()
+    dangerous = 'https://arena.example.org/x?a=1&b="><script>alert(1)</script>'
+
+    body = html(email_service.build_verification_message("usuari@example.com", dangerous))
+
+    assert "<script>" not in body
+    assert "&lt;script&gt;" in body
+    # El text pla no s'escapa: no és HTML.
+    assert dangerous in plain(email_service.build_verification_message("u@example.com", dangerous))
+
+
+@pytest.mark.parametrize("kind", ["verification", "password_reset"])
+def test_emails_address_the_reader_formally(smtp_env, kind):
+    smtp_env()
+    build = {
+        "verification": email_service.build_verification_message,
+        "password_reset": email_service.build_password_reset_message,
+    }[kind]
+
+    body = plain(build("usuari@example.com", "https://arena.example.org/x?token=t"))
+
+    assert "vostre" in body
+    assert "podeu ignorar" in body
+    for informal in ("teu ", "pots ", "t'has ", "confirma "):
+        assert informal not in body
+
+
+def test_password_reset_email_warns_not_to_share_the_link(smtp_env):
+    smtp_env()
+
+    message = email_service.build_password_reset_message(
+        "usuari@example.com", "https://arena.example.org/reset-password?token=xyz"
+    )
+
+    assert "No compartiu aquest enllaç" in plain(message)
+    assert "No compartiu aquest enllaç" in html(message)

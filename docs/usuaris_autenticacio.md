@@ -376,7 +376,9 @@ La cookie de sessió que estableix el login té els atributs següents:
 
 - **Correu:** l'enviament és per SMTP i les credencials es configuren per entorn (mai al
   repositori). Perquè els correus no acabin a la carpeta de brossa, el domini del remitent
-  ha de tenir SPF, DKIM i DMARC. No hi ha plantilla HTML ni gestió de rebots.
+  ha de tenir SPF, DKIM i DMARC. Els correus es generen amb plantilles Jinja2
+  (`backend/app/email_templates/`, en text pla i en HTML, amb l'aspecte dels del servei de
+  transcripció de Softcatalà) i s'envien com a `multipart/alternative`. No hi ha gestió de rebots.
 - **Sense límit per IP:** només hi ha una espera per compte als reenviaments. Limitar les
   altes massives per adreça IP cal fer-ho al *reverse proxy*.
 - **Cookie no `Secure`:** vegeu la nota anterior.
