@@ -147,7 +147,7 @@ també és aleatori. Sense filtre de categoria, el servei recorre les categories
 en ordre alfabètic fins a trobar feina pendent.
 
 La justificació del mostreig es recull al
-[disseny de selecció de tasques](T7_ranking_design.md#4-selecció-de-tasques).
+[disseny de selecció de tasques](ranking_design.md#4-selecció-de-tasques).
 
 L'API no revela els noms dels models a la tasca i vincula cada vot a l'usuari
 i les respostes amb un token signat. Les tasques, els vots, les omissions i el
@@ -177,7 +177,7 @@ dels models, el nombre de vots i de participants i les mesures de confiança.
 La confiança s'estima amb bootstrap agrupat per prompt. La interfície fa
 servir el resultat d'estabilitat per indicar si el rànquing és provisional.
 Els algoritmes són a [`backend/app/ranking/`](../backend/app/ranking/); el
-[document de disseny estadístic](T7_ranking_design.md) recull la justificació
+[document de disseny estadístic](ranking_design.md) recull la justificació
 i les limitacions, i el [dimensionament](avaluadors.md) estima l'esforç humà.
 
 ## Execució i desplegament

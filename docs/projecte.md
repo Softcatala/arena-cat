@@ -132,7 +132,7 @@ Plataformes col·laboratives on els usuaris contribueixen activament amb vots o 
 
 ## Biblioteques rellevants
 
-Referències per estudiar altres implementacions; no són la llista de dependències d’Arena Cat. L’ajust actual es descriu als [criteris estadístics](T7_ranking_design.md#3-bradleyterry).
+Referències per estudiar altres implementacions; no són la llista de dependències d’Arena Cat. L’ajust actual es descriu als [criteris estadístics](ranking_design.md#3-bradleyterry).
 
 - **[FastChat](https://github.com/lm-sys/FastChat)** — codi obert de LMSYS que implementa Chatbot Arena (interfície de votació, recollida de preferències, càlcul de rànquing). Punt de partida natural per no reinventar la roda.
 - **[choix](https://github.com/lucasmaystre/choix)** — biblioteca Python per a inferència en models de comparacions per parelles (Bradley-Terry, Plackett-Luce). Útil per al càlcul del rànquing global.

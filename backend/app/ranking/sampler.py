@@ -16,7 +16,7 @@ Aquesta estratègia és preferible a la iid uniform (que genera variància
 Poisson entre cel·les) i no pateix crítica de "Leaderboard Illusion"
 (els pesos no depenen de cap rànquing acumulat).
 
-Vegeu `docs/T7_ranking_design.md` §4 per a la motivació completa.
+Vegeu `docs/ranking_design.md` §4 per a la motivació completa.
 """
 
 from __future__ import annotations
@@ -151,7 +151,7 @@ def select_next_task(
     Fita 1), iid genera variància Poisson que deixa cel·les amb el doble de
     vots que altres. La validació empírica a `analysis/phase1/04_samplers_comparison.py`
     mostra que quota-balanced arriba a un rànquing estable amb ~2.5× menys
-    vots. Vegeu `docs/T7_ranking_design.md` §4 per la motivació completa.
+    vots. Vegeu `docs/ranking_design.md` §4 per la motivació completa.
 
     Per què NO depèn del rànquing actual: això la fa robusta a la crítica
     "Leaderboard Illusion" (Singh et al. 2025) — no hi ha bucle entre vots

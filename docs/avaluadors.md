@@ -38,7 +38,7 @@ la congelació de puntuacions i el mostreig actiu no estan implementats.
 ### Com hi ajuda Bradley–Terry
 
 Bradley–Terry combina les comparacions en una puntuació per model. La
-[justificació estadística](T7_ranking_design.md#3-bradleyterry) explica què aporta
+[justificació estadística](ranking_design.md#3-bradleyterry) explica què aporta
 respecte de les taxes brutes per parella. El simulador ofereix una aproximació
 de l'estalvi amb el factor `log₂(M)/(M−1)`; és una hipòtesi de dimensionament,
 no una reducció de variància garantida pel sistema.
@@ -108,7 +108,7 @@ Per exemple, amb uns 13 vots per prompt i assumint $\rho$ entre 0,1 i 0,5,
 el factor anterior transforma un marge nominal del 8,5% en aproximadament
 un 13–23%. És una anàlisi de sensibilitat: aquests valors de $\rho$ no s’han
 estimat a partir dels vots d’Arena Cat. La confiança publicada pel sistema
-utilitza [bootstrap agrupat per prompt](T7_ranking_design.md#5-confiança-del-rànquing).
+utilitza [bootstrap agrupat per prompt](ranking_design.md#5-confiança-del-rànquing).
 
 Amb $P=10$ (prova de concepte):
 
