@@ -89,15 +89,8 @@ conservades es rebutgen; cal publicar una versió nova. El raonament intern,
 quan n'hi ha, es desa a les metadades i no es mostra com a resposta.
 
 Les inferències de referència es mantenen a la branca `dades_inferencia`.
-`make load_reference_inferences` crea o reutilitza el worktree
-`../arena-cat-dades-inferencia` i crida el carregador amb les dades d'aquella
-branca. Per generar dades locals es fan servir `make inferences` i
-`make load_inferences`. La generació pot requerir `HF_TOKEN` i memòria suficient;
-la configuració `config/inferencia/inferencia_local_config.yaml` permet provar
-la canonada amb un model petit.
-
-Les comandes, els filtres i les opcions es detallen a la
-[guia de la canonada](../scripts/README.md).
+Les comandes de generació, els filtres, les proves amb models petits i la
+càrrega de dades es detallen a la [guia de la canonada](../scripts/README.md).
 
 ### Versions actives
 
@@ -120,6 +113,9 @@ La consulta comuna és a [`prompt_versions.py`](../backend/app/prompt_versions.p
 Si una tasca oberta correspon a una versió que ja no és activa, votar-la o
 ometre-la retorna HTTP 410 i el frontend demana una altra tasca.
 
+Per publicar o recarregar revisions, vegeu la
+[guia de càrrega i versionatge](../scripts/README.md#8-carregar-prompts-i-inferències-a-la-base-de-dades).
+
 ## Recorregut de l'avaluador
 
 1. La persona es registra amb correu, contrasenya i consentiment explícit.
@@ -139,6 +135,9 @@ d'una recàrrega. En tancar la sessió es descarta. El frontend també ofereix
 verificació del correu, recuperació de contrasenya, un tutorial i una pàgina
 explicativa del projecte. La portada sense sessió mostra el rànquing públic.
 
+Els detalls de les pantalles i del comportament del client són al
+[README del frontend](../frontend/README.md).
+
 ### Selecció i registre de tasques
 
 El selector considera cada combinació de prompt actiu i parella de models com
@@ -147,51 +146,26 @@ vots i exclou les que l'usuari ja ha votat o omès. L'ordre de les respostes A/B
 també és aleatori. Sense filtre de categoria, el servei recorre les categories
 en ordre alfabètic fins a trobar feina pendent.
 
-L'API no revela els noms dels models a la tasca. Retorna un token signat amb
-HMAC que vincula l'usuari, el prompt i les respostes, i inclou la caducitat i
-l'instant a partir del qual es pot votar. El servidor comprova aquests valors
-quan rep el vot.
+La justificació del mostreig es recull al
+[disseny de selecció de tasques](T7_ranking_design.md#4-selecció-de-tasques-corregint-una-lectura-inicial-errònia).
 
-| Endpoint | Funció |
-|---|---|
-| `GET /api/categories` | Catàleg de categories i consells d'avaluació |
-| `GET /api/task` | Propera comparació disponible |
-| `POST /api/vote` | Registre de la preferència |
-| `POST /api/task/skip` | Registre d'una omissió |
-| `GET /api/task/progress` | Total de duels, votats, omesos i pendents de l'usuari |
-| `GET /api/ranking` | Rànquing global o per categoria i estadístiques associades |
-
-Les tasques, els vots, les omissions i el progrés exigeixen sessió i
-qualificació. El contracte de l'API es descriu al [README del backend](../backend/README.md).
+L'API no revela els noms dels models a la tasca i vincula cada vot a l'usuari
+i les respostes amb un token signat. Les tasques, els vots, les omissions i el
+progrés exigeixen sessió i qualificació. Els endpoints i els formats de les
+peticions es descriuen a la [referència de l'API](../backend/README.md#api).
 
 ## Persistència i comptes
 
-PostgreSQL conserva `categories`, `prompts`, `responses`, `users`, `sessions`,
-`votes` i `task_skips`. Les claus foranes garanteixen que les dues respostes
-d'un vot pertanyen al mateix prompt. Les restriccions d'unicitat impedeixen
-duplicar una resposta del mateix model i repetir un vot del mateix usuari per
-parella, independentment de l'ordre A/B. Les omissions tenen una restricció
-equivalent a la seva taula.
+PostgreSQL conserva les categories, els prompts, les respostes, els comptes,
+les sessions, els vots i les omissions. Les taules, les relacions, els índexs i
+les restriccions estan descrits a l'[esquema de dades](db_schema.md).
 
-Les contrasenyes es desen amb Argon2id. Les sessions utilitzen tokens opacs
-en cookies `HttpOnly`; a la base de dades se'n desa el hash. Els atributs
-`Secure`, `SameSite` i la durada es configuren a l'entorn.
-
-La baixa del compte exigeix la contrasenya, elimina el correu i les credencials
-i revoca les sessions. Es preserven l'identificador de l'usuari, els vots i
-l'`email_hash` utilitzat per impedir el re-registre. L'API permet exportar les
-dades personals i tots els vots del compte. La baixa i l'exportació estan
+El backend gestiona el registre, la verificació del correu, les sessions, la
+recuperació de contrasenya, l'exportació i la baixa del compte. Els vots es
+conserven quan un usuari es dona de baixa. La baixa i l'exportació estan
 disponibles a l'API; el frontend encara no ofereix pantalles per a aquestes
-operacions.
-
-Els correus de verificació i recuperació de contrasenya s'envien per SMTP amb
-plantilles de text i HTML. Sense `SMTP_HOST`, el missatge queda al log per
-facilitar les proves locals. `FRONTEND_BASE_URL` determina l'origen dels
-enllaços inclosos en aquests correus.
-
-Vegeu l'[esquema de dades](db_schema.md), la
-[documentació d'autenticació](usuaris_autenticacio.md) i la
-[guia de proves manuals](auth_flow_manual.md).
+operacions. Els fluxos, la criptografia, l'enviament de correu i la configuració
+de seguretat es detallen a [gestió i autenticació d'usuaris](usuaris_autenticacio.md).
 
 ## Rànquing
 
@@ -254,6 +228,9 @@ Els tests del backend utilitzen PostgreSQL amb transaccions aïllades per prova.
 Cobreixen el model de dades, l'API, la càrrega, la selecció, el versionatge i
 els càlculs del rànquing. Les proves de la canonada poden substituir els models
 i tokenitzadors per dobles de prova, sense descarregar models grans.
+
+Per provar el recorregut de registre, sessió, votació, exportació i baixa amb
+crides a l'API, vegeu la [guia de proves manuals](auth_flow_manual.md).
 
 [GitHub Actions](../.github/workflows/ci.yml) executa les migracions, els tests
 i Ruff al backend, i la comprovació de tipus, el format i la compilació del
