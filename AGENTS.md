@@ -11,7 +11,6 @@ Arena Cat is a platform for human evaluation of AI models in Catalan.
 
 - `backend/` — Python code: data model, migrations and tests. See `backend/README.md`.
 - `frontend/` — evaluation web interface (React + Vite). See `frontend/README.md`.
-- `html/` — minimal static client for testing the API by hand.
 - `infra/` — database initialization scripts.
 - `docker-compose.yml` — local PostgreSQL.
 - `simulador/` — sizing simulator (static web).

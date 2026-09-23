@@ -1,5 +1,5 @@
 # Entorn local d'Arena Cat.
-# Aixeca PostgreSQL 16, arrenca l'API i serveix el client HTML.
+# Aixeca PostgreSQL 16 i arrenca l'API.
 # PostgreSQL provisiona el rol d'aplicació i la base de dades de tests mitjançant infra/init-db.sh.
 #
 # Les variables provenen del fitxer .env (vegeu .env.example).
@@ -45,17 +45,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
-  client:
-    image: python:3.12-slim
-    working_dir: /srv/html
-    command: python3 -m http.server 5500 --bind 0.0.0.0
-    ports:
-      - "127.0.0.1:${HTML_PORT:-5500}:5500"
-    volumes:
-      - ./html:/srv/html:ro
-    depends_on:
-      - api
 
 volumes:
   arena-cat-pgdata:

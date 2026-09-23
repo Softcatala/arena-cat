@@ -24,20 +24,10 @@ make frontend-dev    # arrenca el servidor de desenvolupament
 Vegeu [`frontend/README.md`](frontend/README.md) per als requisits, la
 configuració i el desplegament.
 
-## Client HTML de proves
-
-El directori [`html/`](html/) conté un client estàtic mínim per provar el flux de
-votació contra l'API local. `make run` arrenca PostgreSQL, l'API i serveix el client a
-`http://127.0.0.1:5500/index.html`.
-Cal evitar obrir el fitxer amb `file://`, perquè el navegador no reenviarà la
-cookie de sessió al backend.
-
-Abans d'usar-lo, cal haver carregat prompts i inferències a la base de dades
-amb `make load_inferences`.
-
 ## Posada en marxa local
 
-Requisits: Docker i Docker Compose. [`uv`](https://docs.astral.sh/uv/) només cal
+Requisits: Docker i Docker Compose; per al frontend, Node.js 20.19+ o 22.12+.
+[`uv`](https://docs.astral.sh/uv/) només cal
 per executar scripts, tests i eines de desenvolupament fora dels contenidors.
 
 Si ja tens un `.env` antic, revisa'l contra `.env.example`: els targets `make`
@@ -52,11 +42,12 @@ Des de l'arrel del repositori:
 
 ```bash
 make setup  # crea la base de dades local i aplica les migracions
-make run    # arrenca PostgreSQL, l'API i serveix el client HTML
+make run    # arrenca PostgreSQL i l'API
 ```
 
-L'API queda disponible a `http://127.0.0.1:8000` i el client HTML a
-`http://127.0.0.1:5500/index.html`.
+L'API queda disponible a `http://127.0.0.1:8000`. En una altra terminal, arrenca
+la interfície amb `make frontend-setup` i `make frontend-dev`; queda disponible a
+`http://127.0.0.1:5173` i permet completar la qualificació abans de votar.
 
 `make run` deixa els serveis en primer pla. Per aturar-los, prem `Ctrl+C`; per
 eliminar els contenidors aturats, executa `docker compose down`.

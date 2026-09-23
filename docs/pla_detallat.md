@@ -44,7 +44,7 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
 - **Servei web FastAPI**:
     - Esquelet `backend/app/`: `main.py`, `models.py` (SQLAlchemy), `schemas.py` (Pydantic), `db.py`, `routers/`.
     - Dependències a `pyproject.toml` (gestió amb uv o poetry): `fastapi`, `uvicorn`, `sqlalchemy`, `psycopg`, `alembic`, `pydantic`, `pyyaml`.
-    - CORS permissiu en mode desenvolupament perquè l'HTML local pugui cridar l'API.
+    - En desenvolupament, el proxy de Vite reenvia `/api` al backend des del mateix origen del frontend.
     - Arrencada amb `uvicorn app.main:app --reload --port 8000`.
 - **Registre i baixa d'usuaris (compatible amb el RGPD)**:
     - **Alta**: `POST /api/auth/register` amb `email`, `contrasenya` i `consent_version`. Validació de format d'email, força mínima de la contrasenya i verificació explícita del consentiment (casella no premarcada) sobre el tractament de dades i la [política de privadesa](#politica-de-privadesa). Es desa `password_hash` (Argon2id) i `email_hash` (HMAC-SHA256 amb *pepper* de servidor) per poder bloquejar re-registres amb el mateix correu quan un usuari s'ha donat de baixa.
@@ -77,16 +77,17 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
     - Valida el cos amb Pydantic (`winner ∈ {a, b, tie, neither}`).
     - Insereix una fila a `votes` amb `user_id` i `response_time_s`. Els vots d'usuaris posteriorment donats de baixa **es conserven** referenciant l'`user_id` (ja anonimitzat), preservant la validesa del rànquing.
     - *Rate limit* per `user_id` i per IP.
-- **HTML local de proves** (`frontend/dev/index.html`):
-    - Una sola pàgina amb HTML + JS petit, sense *framework*.
-    - Formularis d'alta, verificació d'email, inici de sessió i baixa de compte contra `/api/auth/*`.
-    - Un cop autenticat, crida `GET /api/task` i renderitza el *prompt* amb les dues respostes.
+- **Interfície web i proves locals** (`frontend/`):
+    - Aplicació React + TypeScript + Vite compartida amb la interfície d'avaluació.
+    - Formularis d'alta, verificació d'email i inici de sessió contra `/api/auth/*`.
+    - Prova de qualificació obligatòria abans d'accedir a les tasques.
+    - Un cop autenticat i qualificat, crida `GET /api/task` i renderitza el *prompt* amb les dues respostes.
     - Quatre botons (A millor / B millor / empat / cap) que envien `POST /api/vote`.
-    - Servida amb `python -m http.server` o oberta directament. No per a usuaris finals.
+    - Servida en local amb `make frontend-dev`, amb el backend en marxa i les inferències carregades.
 - **Proves**:
     - Tests unitaris dels *endpoints* d'autenticació i votació amb `pytest` + `httpx.AsyncClient`.
     - Test específic del flux de baixa: dona d'alta un usuari, emet vots, executa la baixa, i verifica que (a) `email`, `email_hash` i `password_hash` són `NULL`, (b) `deleted_at` està establert, (c) el mateix email no permet re-registrar-se, i (d) les files de `votes` continuen presents amb l'`user_id` original.
-    - Prova manual end-to-end: aixecar Postgres + FastAPI + l'HTML local, registrar-se, verificar el correu, fer ~20 vots i tancar amb una baixa.
+    - Prova manual end-to-end: aixecar Postgres + FastAPI + el frontend, registrar-se, verificar el correu, superar la qualificació i fer ~20 vots.
     - `README.md` del *backend* amb instruccions d'arrencada en local i notes sobre el compliment del RGPD.
 
 - **Integració amb la web de Softcatalà**:
@@ -99,7 +100,7 @@ L'objectiu és tenir el bucle de votació funcionant tan aviat com sigui possibl
     - CORS, CSP i *cookie policy* d'acord amb les normes del lloc principal.
     - Pàgines auxiliars dins de WordPress: presentació del projecte, instruccions per als avaluadors, FAQ.
 
-> **Per què v1 amb usuaris i integració web des del principi**: el registre i la baixa afecten directament l'esquema de la BD i la mecànica dels vots (autenticació requerida, preservació de l'`user_id` en la baixa). Encaixar-ho ja des de v1 evita una migració complicada més endavant i valida el compliment del RGPD abans d'obrir la plataforma a voluntaris. La integració amb WordPress s'inclou també a v1 perquè és el camí crític per poder obrir la plataforma; l'HTML de proves cobreix el desenvolupament local mentre s'estabilitza.
+> **Per què v1 amb usuaris i integració web des del principi**: el registre i la baixa afecten directament l'esquema de la BD i la mecànica dels vots (autenticació requerida, preservació de l'`user_id` en la baixa). Encaixar-ho ja des de v1 evita una migració complicada més endavant i valida el compliment del RGPD abans d'obrir la plataforma a voluntaris. La integració amb WordPress s'inclou també a v1 perquè és el camí crític per poder obrir la plataforma; el frontend React també cobreix el desenvolupament local.
 
 ### v2 — *Plataforma completa*
 
