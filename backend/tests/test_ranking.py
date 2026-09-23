@@ -30,7 +30,7 @@ def _seed_prompts(session, category_code: str, n_prompts: int) -> list[tuple[Pro
     results = []
     for i in range(n_prompts):
         prompt = Prompt(
-            version="vtest",
+            version="v1",
             code=f"{category_code}-{i:02d}",
             category_id=cat.id,
             text=f"Prompt {i} a {category_code}",

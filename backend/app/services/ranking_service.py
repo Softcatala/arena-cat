@@ -3,6 +3,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import Category, Prompt, Vote
+from app.prompt_versions import active_prompt_ids
 from app.ranking.confidence import assess_confidence
 from app.ranking.ranking import compute_ranking
 
@@ -32,7 +33,9 @@ def get_ranking_per_category(db: Session, category_code: str | None) -> dict:
     Returns:
         Diccionari amb el ranking demanat.
     """
-    participants_query = select(func.count(Vote.user_id.distinct()))
+    participants_query = select(func.count(Vote.user_id.distinct())).where(
+        Vote.prompt_id.in_(active_prompt_ids())
+    )
     if category_code is not None:
         category = db.scalar(select(Category).where(Category.code == category_code))
         if category is None:

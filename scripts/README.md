@@ -122,6 +122,21 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 
 Les inferències de referència es conserven a la branca `dades_inferencia`, separades de les branques de codi. El target `make load_reference_inferences` crea o reutilitza un worktree paral·lel i apunta el carregador a les dades de referència.
 
+La versió s'aplica a cada prompt (`code`) independentment. Ha de tenir el format
+`v<N>`, amb un enter positiu sense zeros inicials i fins a 31 dígits. Per publicar
+una revisió, n'hi ha prou de carregar aquell prompt i les seves inferències en un
+directori de versió superior: no cal copiar ni regenerar els altres prompts.
+La revisió activa és la més alta numèricament que tingui almenys dues respostes
+de models diferents; fins llavors es continua utilitzant l'anterior. Recarregar
+una versió antiga no la reactiva.
+
+Tasques, progrés, rànquing, confiança i participants només compten les revisions
+actives. Els vots i les omissions antigues es conserven, però no compten en aquests
+càlculs; l'exportació personal manté tots els vots. Els tokens d'una versió
+substituïda retornen HTTP 410 en votar o ometre, i el frontend carrega una altra
+tasca. Les dades existents amb versions `v1`, `v2`, etc. continuen funcionant;
+etiquetes fora del format queden excloses i s'han de revisar abans de publicar.
+
 És **idempotent**: tornar-lo a executar no duplica files. Cada fila es classifica com a inserida o omesa (ja existeix amb el mateix contingut), i n'imprimeix un resum a la sortida estàndard. **No modifica files existents**: si un prompt o una resposta ja existeix amb la mateixa clau però amb un contingut diferent, ho registra com a error i exigeix publicar-ho amb una versió nova en comptes de sobreescriure-ho. Sobreescriure el text d'una resposta invalidaria semànticament els vots que hi apunten (mantenen el `response_id` però votaven un text que hauria canviat). Igualment, si un fitxer no compleix l'esquema (categoria o prompt desconegut, camps obligatoris absents, YAML d'inferència mal format, o prompt buit), registra un error clar. En tots els casos d'error acaba amb codi de sortida 1 sense aturar la resta de la càrrega.
 
 Necessita la base de dades en marxa i migrada, i les mateixes variables de connexió que el backend (vegeu `.env`). La manera més curta és el target del `Makefile`, des de l'arrel del repositori:

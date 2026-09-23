@@ -33,6 +33,7 @@ from sqlalchemy.orm import Session  # noqa: E402
 
 from app.db import get_sessionmaker  # noqa: E402
 from app.models import Category, Prompt, Response  # noqa: E402
+from app.prompt_versions import VERSION_PATTERN  # noqa: E402
 
 LOGGER = logging.getLogger("carrega_inferencies")
 
@@ -477,6 +478,10 @@ def run_load(
     prompts_dir = Path(prompts_dir)
     inferencies_dir = Path(inferencies_dir)
     version = version or prompts_dir.name
+    if not re.fullmatch(VERSION_PATTERN, version):
+        raise SchemaError(
+            "la versió ha de ser v<N>, amb N positiu, sense zeros inicials i fins a 31 dígits"
+        )
 
     categories = load_category_catalog(categories_file)
     category_ids = load_categories(session, categories)
@@ -555,7 +560,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.version,
                 categories_file=args.categories_file,
             )
-        except CategoryCatalogError as error:
+        except (CategoryCatalogError, SchemaError) as error:
             LOGGER.error("%s", error)
             return 1
         session.commit()

@@ -23,7 +23,7 @@ def _seed_prompts(session, category_code, n_prompts):
     out = []
     for i in range(n_prompts):
         prompt = Prompt(
-            version="vtest",
+            version="v1",
             code=f"{category_code}-conf-{i:02d}",
             category_id=cat.id,
             text=f"Prompt {i}",
