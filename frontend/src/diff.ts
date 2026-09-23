@@ -3,8 +3,7 @@
  * És el que fa avaluable la categoria "correcció": sense ressaltar què ha
  * canviat, comparar dos textos gairebé idèntics és molt costós per a l'avaluador.
  *
- * Portat de `html/app.js` (subseqüència comuna més llarga amb programació
- * dinàmica sobre paraules).
+ * Calcula la subseqüència comuna més llarga amb programació dinàmica sobre paraules.
  */
 
 export type ChangeType = "same" | "added" | "removed";
