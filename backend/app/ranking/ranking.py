@@ -26,6 +26,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
 
 from app.models import Category, Prompt, Response, Vote, Winner
+from app.prompt_versions import active_prompt_ids
 
 # ---------------------------------------------------------------------------
 # Ajustador BT — el mateix que vam validar a `analysis/phase1/02_bt_fitter.py`.
@@ -113,6 +114,7 @@ def _load_votes(session: Session, category_code: str | None) -> list[tuple[Winne
         .join(Category, Prompt.category_id == Category.id)
         .join(response_a, Vote.response_a_id == response_a.id)
         .join(response_b, Vote.response_b_id == response_b.id)
+        .where(Prompt.id.in_(active_prompt_ids()))
     )
     if category_code is not None:
         stmt = stmt.where(Category.code == category_code)

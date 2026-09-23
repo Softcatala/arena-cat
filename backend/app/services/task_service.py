@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.exceptions import TaskTokenError
 from app.models import Category, Response, TaskSkip, User, Vote
+from app.prompt_versions import active_prompt_ids, require_active_prompt
 from app.ranking.sampler import select_next_task
 from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskProgressResponse, TaskResponse
 from app.security import create_task_token, verify_task_token
@@ -67,6 +68,7 @@ def skip_task_for_user(skip_req: SkipTaskRequest, user: User, db: Session) -> Sk
     if int(payload.get("user_id", -1)) != user.id:
         raise HTTPException(status_code=403, detail="El token no correspon a l'usuari autenticat")
 
+    require_active_prompt(db, payload["prompt_id"])
     skip = TaskSkip(
         prompt_id=payload["prompt_id"],
         user_id=user.id,
@@ -97,7 +99,9 @@ def _cells(rows) -> set[tuple[int, int, int]]:
 def get_task_progress_for_user(user: User, db: Session) -> TaskProgressResponse:
     """Retorna el progrés global de tasques d'un usuari."""
     responses_by_prompt = defaultdict(list)
-    for prompt_id, response_id in db.execute(select(Response.prompt_id, Response.id)).all():
+    for prompt_id, response_id in db.execute(
+        select(Response.prompt_id, Response.id).where(Response.prompt_id.in_(active_prompt_ids()))
+    ).all():
         responses_by_prompt[prompt_id].append(response_id)
 
     total_cells = {
@@ -108,14 +112,14 @@ def get_task_progress_for_user(user: User, db: Session) -> TaskProgressResponse:
     voted_cells = _cells(
         db.execute(
             select(Vote.prompt_id, Vote.response_a_id, Vote.response_b_id).where(
-                Vote.user_id == user.id
+                Vote.user_id == user.id, Vote.prompt_id.in_(active_prompt_ids())
             )
         ).all()
     )
     skipped_cells = _cells(
         db.execute(
             select(TaskSkip.prompt_id, TaskSkip.response_a_id, TaskSkip.response_b_id).where(
-                TaskSkip.user_id == user.id
+                TaskSkip.user_id == user.id, TaskSkip.prompt_id.in_(active_prompt_ids())
             )
         ).all()
     )

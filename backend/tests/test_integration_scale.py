@@ -40,7 +40,7 @@ def _seed_prompts_with_responses(session, category_code, n_prompts):
     out = []
     for i in range(n_prompts):
         prompt = Prompt(
-            version="vtest",
+            version="v1",
             code=f"{category_code}-scale-{i:02d}",
             category_id=cat.id,
             text=f"Prompt {i} a {category_code}",
@@ -790,7 +790,7 @@ def test_ranking_adapts_when_new_prompts_added_mid_campaign(session):
     cat_traduccio = _category(session, "traduccio")
     for i in range(3, 5):
         prompt = Prompt(
-            version="vtest",
+            version="v1",
             code=f"traduccio-scale-{i:02d}",
             category_id=cat_traduccio.id,
             text=f"Prompt {i} a traducció (afegit a mig camí)",

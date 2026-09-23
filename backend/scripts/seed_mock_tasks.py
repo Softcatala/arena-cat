@@ -5,7 +5,7 @@ Insereix prompts i respostes sintètiques perquè el flux de `GET /api/task` i
 reals. Cada prompt rep almenys dues respostes de models diferents, de manera
 que el sampler pot formar parelles i servir tasques.
 
-Les dades es guarden sota una `version` pròpia (per defecte `mock`) per
+Les dades es guarden amb codis de prompt amb prefix `mock_` per
 mantenir-les aïllades de les dades reals i poder-les esborrar amb `--clear`.
 L'script és idempotent: si un prompt fictici ja existeix, no es duplica.
 
@@ -26,12 +26,13 @@ Opcions:
 
     --prompts-per-category N   Prompts ficticis per categoria (per defecte 5).
     --models MODEL [MODEL ...] Noms de model a generar (per defecte 3 models mock).
-    --version VERSIO           Etiqueta de versió de les dades (per defecte "mock").
+    --version VERSIO           Versió v<N> de les dades (per defecte "v1").
     --categories CODI [...]    Limita a aquestes categories (per defecte, totes).
     --clear                    Esborra les dades fictícies d'aquesta versió i surt.
 """
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -43,10 +44,11 @@ from sqlalchemy.orm import Session  # noqa: E402
 
 from app.db import get_sessionmaker  # noqa: E402
 from app.models import Category, Prompt, Response, Vote  # noqa: E402
+from app.prompt_versions import VERSION_PATTERN  # noqa: E402
 
 # Models ficticis per defecte. Cal com a mínim dos perquè el sampler formi parelles.
 DEFAULT_MODELS = ["mock-modela", "mock-modelb", "mock-modelc"]
-DEFAULT_VERSION = "mock"
+DEFAULT_VERSION = "v1"
 DEFAULT_PROMPTS_PER_CATEGORY = 5
 
 
@@ -75,6 +77,10 @@ def seed_mock_tasks(
     """Insereix prompts i respostes ficticis. Retorna (prompts_nous, respostes_noves)."""
     if len(models) < 2:
         raise SystemExit("Calen com a mínim dos models per poder formar parelles de vot.")
+    if not re.fullmatch(VERSION_PATTERN, version):
+        raise SystemExit(
+            "La versió ha de tenir el format v<N>, amb N positiu sense zeros inicials."
+        )
 
     stmt = select(Category)
     if category_codes:
@@ -124,8 +130,12 @@ def seed_mock_tasks(
 
 
 def clear_mock_tasks(db: Session, *, version: str) -> int:
-    """Esborra tots els prompts (i respostes/vots) d'una versió. Retorna prompts esborrats."""
-    prompts = db.scalars(select(Prompt).where(Prompt.version == version)).all()
+    """Esborra els prompts ficticis d'una versió. Retorna el nombre de prompts esborrats."""
+    prompts = db.scalars(
+        select(Prompt).where(
+            Prompt.version == version, Prompt.code.startswith("mock_", autoescape=True)
+        )
+    ).all()
     if not prompts:
         return 0
 
@@ -159,7 +169,7 @@ def main() -> None:
     parser.add_argument(
         "--version",
         default=DEFAULT_VERSION,
-        help='Etiqueta de versió de les dades fictícies (per defecte "mock").',
+        help='Versió v<N> de les dades fictícies (per defecte "v1").',
     )
     parser.add_argument(
         "--categories",

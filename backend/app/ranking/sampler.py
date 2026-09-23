@@ -29,6 +29,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
 
 from app.models import Category, Prompt, Response, TaskSkip, Vote
+from app.prompt_versions import active_prompt_ids
 
 
 def _load_prompts_and_responses(
@@ -42,6 +43,7 @@ def _load_prompts_and_responses(
         select(Prompt)
         .join(Category, Prompt.category_id == Category.id)
         .where(Category.code == category_code)
+        .where(Prompt.id.in_(active_prompt_ids()))
     )
     prompts = session.scalars(stmt).all()
     out = []

@@ -30,6 +30,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
 
 from app.models import Category, Prompt, Response, Vote, Winner
+from app.prompt_versions import active_prompt_ids
 from app.ranking.ranking import fit_bt
 
 
@@ -53,6 +54,7 @@ def _load_clustered_votes(
         .join(Category, Prompt.category_id == Category.id)
         .join(response_a, Vote.response_a_id == response_a.id)
         .join(response_b, Vote.response_b_id == response_b.id)
+        .where(Prompt.id.in_(active_prompt_ids()))
     )
     if category_code is not None:
         stmt = stmt.where(Category.code == category_code)

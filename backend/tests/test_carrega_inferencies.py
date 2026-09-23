@@ -8,6 +8,7 @@ import yaml
 from sqlalchemy import func, select
 
 from app.models import Category, Prompt, Response
+from app.prompt_versions import active_prompt_ids
 
 # L'script viu a scripts/ (projecte arrel), fora del paquet backend.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
@@ -134,6 +135,15 @@ def test_prompt_is_inserted_with_derived_category(session, dirs):
     assert prompt.category.code == "traduccio"
 
 
+@pytest.mark.parametrize("version", ["v0", "v01", "vtest", "1", "v-1", "v1.2", "v" + "1" * 32])
+def test_invalid_prompt_version_is_rejected_before_loading(session, dirs, version):
+    prompts_dir, inferencies_dir = dirs
+    write_prompt(prompts_dir, "traduccio_1")
+    with pytest.raises(loader.SchemaError):
+        loader.run_load(session, prompts_dir, inferencies_dir, version=version)
+    assert _count(session, Prompt) == 0
+
+
 def test_prompts_load_in_natural_order(session, dirs):
     # traduccio_10 s'ha d'inserir després de traduccio_2, no entre l'1 i el 2.
     prompts_dir, inferencies_dir = dirs
@@ -176,6 +186,19 @@ def test_load_is_idempotent(session, dirs):
     # Cap duplicat.
     assert _count(session, Prompt) == 1
     assert _count(session, Response) == 1
+
+
+def test_reloading_old_version_does_not_reactivate_it(session, dirs):
+    prompts_dir, inferencies_dir = dirs
+    write_prompt(prompts_dir, "correccio_1")
+    for model in ("model-a", "model-b"):
+        write_inference(inferencies_dir, model, "correccio_1")
+    for version in ("v1", "v2", "v1"):
+        loader.run_load(session, prompts_dir, inferencies_dir, version=version)
+    active = session.scalars(select(Prompt).where(Prompt.id.in_(active_prompt_ids()))).one()
+    assert active.version == "v2"
+    assert _count(session, Prompt) == 2
+    assert _count(session, Response) == 4
 
 
 def test_responses_link_to_prompt_by_version_and_code(session, dirs):

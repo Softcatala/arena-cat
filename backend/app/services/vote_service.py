@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.exceptions import TaskTokenError
 from app.models import User, Vote
+from app.prompt_versions import require_active_prompt
 from app.schemas import VoteRequest, VoteResponse
 from app.security import verify_task_token
 
@@ -37,6 +38,7 @@ def submit_vote(db: Session, vote_req: VoteRequest, user: User):
     response_a_id = payload["response_a_id"]
     response_b_id = payload["response_b_id"]
 
+    require_active_prompt(db, prompt_id)
     vote = Vote(
         prompt_id=prompt_id,
         user_id=user.id,

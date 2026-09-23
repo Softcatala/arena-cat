@@ -111,7 +111,7 @@ def _lookup_verification_token(email: str) -> str:
 
 # Codi del prompt efímer que insereix --seed-demo-data (fora del rang de dades reals).
 _DEMO_PROMPT_CODE = "demo_auth_flow"
-_DEMO_PROMPT_VERSION = "demo"
+_DEMO_PROMPT_VERSION = "v1"
 
 
 def seed_demo_data(category_code: str) -> int:
