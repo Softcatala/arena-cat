@@ -19,13 +19,9 @@ from metriques import load_answers, pairwise_metrics  # noqa: E402
 RECOMMENDED_THRESHOLD = 0.40
 TRANSLATION_CATEGORY = "traduccio"
 
-MODEL_DISPLAY = {
-    "qwen3.8-27b": "Qwen/Qwen3.8-27B",
-    "mistral-small-3.2-24b-instruct-2506": (
-        "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
-    ),
-    "gemma-3-27b-it": "google/gemma-3-27b-it",
-}
+config_path = REPO_ROOT / "config/inferencia/inferencia_config.yaml"
+config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+MODEL_DISPLAY = {m["id"]: m["model_name"] for m in config["models"]}
 MODEL_IDS = list(MODEL_DISPLAY)
 
 
