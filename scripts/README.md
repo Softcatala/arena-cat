@@ -51,6 +51,9 @@ Els tests fan servir dobles de prova (*mocks/stubs*) per al model i el tokenitza
 
 Abans d'executar-la, revisa `config/inferencia/inferencia_config.yaml` i comprova que els models, els paràmetres de generació i els prompts són els esperats.
 
+Si la resposta no arriba a `min_token_len`, es reintenta amb les mateixes
+instruccions i paràmetres, fins a tres intents en total; després es retorna un error.
+
 ```bash
 uv run --group inference python scripts/inferencia.py
 ```
