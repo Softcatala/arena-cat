@@ -32,43 +32,33 @@ El que succeeix és que l'obsessió actual dels laboratoris que creen els sistem
 
 - Les mètriques agregades poden amagar errors específics de la llengua (ortografia, registre, varietats dialectals, referències culturals).
 - L'experiència real dels usuaris catalanoparlants no està reflectida en els *benchmarks* globals.
-- No existeix un rànquing públic de models segons la preferència humana en català.
+- Cal un rànquing que reflecteixi específicament la preferència humana en català.
 
 ---
 
 # 2. Proposta
 
-Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre cas:
+Arena Cat adapta el concepte de **Chatbot Arena** a l’avaluació del català:
 
 - Chatbot Arena avalua els *prompts* que els usuaris volen; nosaltres volem focalitzar-nos només en la **competència dels models en llengua catalana**.
 - Aquests sistemes funcionen en temps real: l'usuari proposa una pregunta i dos LLMs responen al moment.
     - Això no ho podem fer perquè ens representa molt cost.
     - En comptes d'això, **generem prèviament les tasques i les respostes** dels models.
-    - **Limitació**: cada model genera una sola resposta per *prompt* (una passada d'inferència). No mostregem múltiples respostes per a una mateixa entrada, per la qual cosa no captem la variabilitat estocàstica del model.
+    - **Limitació**: per a cada model es conserva una sola resposta final per *prompt*. No mostregem múltiples respostes per a una mateixa entrada, per la qual cosa no captem la variabilitat estocàstica del model.
 
 ## 2.1. Categories de tasques
 
-Les tasques lingüístiques considerades en el projecte inclouen:
-
-| Categoria | Descripció |
-|---|---|
-| Correcció | Corregeix aquest text |
-| Traducció | Tradueix aquest text |
-| Resum | Resumeix aquest text |
-| Reformulació | Reformula aquest text |
-| Generació | Genera un text |
-
-> El catàleg actual inclou correcció, reformulació, traducció i generació. Vegeu les [categories i els models del sistema](sistema.md#categories-i-models).
+Les categories i les seves instruccions es mantenen al [catàleg de tasques](../data/prompts/categories.yaml). La [descripció del sistema](sistema.md#categories-i-models) recull les categories i els models que s’utilitzen actualment.
 
 ---
 
 # 3. Com funciona el procés d'avaluació
 
-Demanem a l'usuari que valori quina parella de models ho fa millor per a una tasca concreta.
+Demanem a l'usuari que valori quina de les dues respostes resol millor una tasca concreta.
 
 ## 3.1. Exemple
 
-![Exemple d'avaluació: prompt de traducció amb dues respostes (model A i model B) i les quatre opcions de vot](images/exemple-avaluacio.png)
+En una tasca de traducció, l’avaluador llegeix el text original i dues traduccions anònimes. Pot triar la resposta A, la B, un empat o «cap de les dues». El [recorregut de l’avaluador](sistema.md#recorregut-de-lavaluador) descriu com ho presenta la interfície.
 
 > **Avaluació cega**: els models s'avaluen de forma cega: l'usuari **no sap** quin model està avaluant en cada cas, per evitar biaixos.
 
@@ -88,7 +78,7 @@ Els càlculs concrets (nombre d'avaluadors, vots per parella × categoria, marge
 
 # 5. Qui fa l'avaluació
 
-La idea és muntar una **web participativa** dins del lloc de Softcatalà on els usuaris ens ajudin a fer aquest procés. Seria similar al que vam fer amb [Common Voice](https://commonvoice.mozilla.org/), on la gent contribuïa una estona a fer tasques.
+La **web participativa** permet contribuir comparant respostes durant petites sessions, seguint l’enfocament de [Common Voice](https://commonvoice.mozilla.org/).
 
 ## 5.1. Test de qualificació
 
@@ -96,7 +86,7 @@ Abans que un usuari pugui començar a contribuir, ha de superar una **prova de c
 
 ## 5.2. Registre d'usuaris
 
-Per evitar el vandalisme i garantir la qualitat, mantindrem un **registre d'usuaris** amb nom i contrasenya.
+Els avaluadors es registren amb **correu i contrasenya**. Els detalls del registre, la verificació i les sessions són a [gestió i autenticació d’usuaris](usuaris_autenticacio.md).
 
 > **Inspiració**: l'enfocament participatiu segueix la línia de [Common Voice](https://commonvoice.mozilla.org/) i [VoiceArena](https://voicearena.com/): contribucions petites i acumulables d'una comunitat àmplia.
 
@@ -104,15 +94,15 @@ Per evitar el vandalisme i garantir la qualitat, mantindrem un **registre d'usua
 
 # 6. Resultats del projecte
 
-El projecte generaria dos resultats principals:
+El projecte té dos resultats principals, amb estats diferents:
 
 ## 6.1. Rànquing públic de models
 
-Mantenir un **rànquing dels millors models per al català** segons preferència humana, actualitzat a mesura que arriben nous vots i nous models.
+La plataforma ja ofereix un **rànquing públic de models per al català** segons preferència humana, calculat sobre els vots de les versions actives dels prompts. Vegeu el [funcionament del rànquing](sistema.md#rànquing).
 
 ## 6.2. Conjunt de dades obertes de preferències
 
-Un cop acabat el procés, es publicarà en obert el **conjunt de dades de preferències** amb l'estructura:
+La publicació en obert d’un **conjunt de dades de preferències** és un objectiu pendent, amb l’estructura:
 
 ```
 Prompt + Resposta A + Resposta B + Guanyador
@@ -142,6 +132,8 @@ Plataformes col·laboratives on els usuaris contribueixen activament amb vots o 
 
 ## Biblioteques rellevants
 
+Referències per estudiar altres implementacions; no són la llista de dependències d’Arena Cat. L’ajust actual es descriu als [criteris estadístics](T7_ranking_design.md#3-bradleyterry).
+
 - **[FastChat](https://github.com/lm-sys/FastChat)** — codi obert de LMSYS que implementa Chatbot Arena (interfície de votació, recollida de preferències, càlcul de rànquing). Punt de partida natural per no reinventar la roda.
 - **[choix](https://github.com/lucasmaystre/choix)** — biblioteca Python per a inferència en models de comparacions per parelles (Bradley-Terry, Plackett-Luce). Útil per al càlcul del rànquing global.
-- **[OpenSkill](https://github.com/vivekjoshy/openskill.py)** — alternativa moderna a Elo/TrueSkill amb implementació Python neta; valida resultats del Bradley-Terry.
+- **[OpenSkill](https://github.com/vivekjoshy/openskill.py)** — alternativa moderna a Elo/TrueSkill amb implementació Python neta; permet explorar altres sistemes de puntuació.

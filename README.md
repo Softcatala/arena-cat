@@ -10,8 +10,8 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 | Document | Contingut |
 |---|---|
-| [El projecte](docs/projecte.md) | Motivació i metodologia d'avaluació |
-| [El sistema](docs/sistema.md) | Arquitectura, dades, models, versionatge, votació, rànquing i desplegament |
+| [Projecte](docs/projecte.md) | Motivació i metodologia d'avaluació |
+| [Sistema](docs/sistema.md) | Arquitectura, dades, models, versionatge, votació, rànquing i desplegament |
 | [Backend](backend/README.md) | Entorn de desenvolupament, API, proves i migracions |
 | [Frontend](frontend/README.md) | Execució i configuració de la interfície web |
 | [Canonada d'inferència](scripts/README.md) | Generació, anàlisi i càrrega de respostes |
