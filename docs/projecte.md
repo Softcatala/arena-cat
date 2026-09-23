@@ -1,6 +1,6 @@
 # Arena Cat: explicació del projecte
 
-> Aquest document recull la **motivació** i la **metodologia** del projecte. Per al pla concret de cada fita, consulta el [README](../README.md#full-de-ruta).
+> Aquest document recull la **motivació** i la **metodologia** del projecte. Per al funcionament de l'aplicació, consulta la [descripció del sistema](sistema.md); per a les properes fites, el [full de ruta](../README.md#full-de-ruta).
 
 ## Continguts
 
@@ -48,7 +48,7 @@ Proposem fer una **variació del concepte de Chatbot Arena** adaptada al nostre 
 
 ## 2.1. Categories de tasques
 
-Generem sintèticament 5 tasques representatives:
+Les tasques lingüístiques considerades en el projecte inclouen:
 
 | Categoria | Descripció |
 |---|---|
@@ -58,7 +58,7 @@ Generem sintèticament 5 tasques representatives:
 | Reformulació | Reformula aquest text |
 | Generació | Genera un text |
 
-> A la fita 1 només cobrim 3 d'aquestes categories (correcció, reformulació i traducció). Vegeu el [full de ruta](../README.md#full-de-ruta).
+> El catàleg actual inclou correcció, reformulació, traducció i generació. Vegeu les [categories i els models del sistema](sistema.md#categories-i-models).
 
 ---
 
@@ -92,7 +92,7 @@ La idea és muntar una **web participativa** dins del lloc de Softcatalà on els
 
 ## 5.1. Test de qualificació
 
-Abans que un usuari pugui començar a contribuir, la primera vegada haurà de fer un **petit test de 5 preguntes** per comprovar que té criteri per fer l'avaluació.
+Abans que un usuari pugui començar a contribuir, ha de superar una **prova de competència lingüística**. Les preguntes i el llindar es defineixen al [qüestionari](../data/qualification.yaml); el funcionament es descriu al [recorregut de l'avaluador](sistema.md#recorregut-de-lavaluador).
 
 ## 5.2. Registre d'usuaris
 

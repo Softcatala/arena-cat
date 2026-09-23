@@ -612,7 +612,7 @@ Abans que comenci la implementació, m'agradaria confirmar:
 - Un cop existeixi el servei FastAPI de la issue #6, exposem tres endpoints:
   - `GET /api/task` crida `pair_selector.select_next_task`.
   - `GET /api/ranking` crida `ranking.compute_rankings` i pot incorporar `confidence.assess_confidence`.
-  - El `POST /api/vote` ja existeix segons `pla_detallat.md`; només escriu a la BD.
+  - El `POST /api/vote` registra els vots a la BD; vegeu la [descripció del sistema](sistema.md).
 - Aquesta fase és **fora d'abast d'aquesta tasca** però l'API està dissenyada per encaixar-hi netament.
 
 ### Fase 4 — Documentació
@@ -630,7 +630,7 @@ Abans que comenci la implementació, m'agradaria confirmar:
 | Fase 4 (docs) | ~2 |
 | **Total (excloent-ne la dependència de #6)** | **~33 hores** |
 
-Cap dins el pressupost de ~120 hores de la Fita 1 marcat al [README.md](../README.md#fita-1-prova-de-concepte).
+Cap dins el pressupost inicial de ~120 hores de la Fita 1.
 
 ---
 
@@ -753,7 +753,7 @@ On és probable que s'estiri: semàntica d'empat/cap amb l'equip, gestió de sep
 
 ## Referències
 
-- Documents del projecte: [`README.md`](../README.md), [`projecte.md`](projecte.md), [`pla_detallat.md`](pla_detallat.md), [`AGENTS.md`](../AGENTS.md)
+- Documents del projecte: [`README.md`](../README.md), [`projecte.md`](projecte.md), [`sistema.md`](sistema.md), [`AGENTS.md`](../AGENTS.md)
 - Issue: [#7 Biblioteca de rànquing i selecció de parelles](https://github.com/Softcatala/arena-cat/issues/7)
 - Relacionats oberts: [#6 microservei (Isaac)](https://github.com/Softcatala/arena-cat/issues/6), [#14 càrrega idempotent](https://github.com/Softcatala/arena-cat/issues/14), [PR #18 diversitat de prompts](https://github.com/Softcatala/arena-cat/pull/18)
 - Esquema: [`backend/app/models.py`](../backend/app/models.py), [`docs/db_schema.md`](db_schema.md)
