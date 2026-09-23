@@ -32,6 +32,12 @@ cd backend && uv run pre-commit install   # lint/format git hook (catches issues
 
 ## Conventions
 
+- **Code clarity**: Always write clear and succinct code.
+- **Scope**: Keep changes focused on the task. Avoid unrelated refactoring and unnecessary
+  abstractions.
+- **Documentation**: For every change, review `README.md` and relevant files under `docs/`.
+  Update any affected documentation, keeping shared details in one place and linking to
+  them rather than duplicating content.
 - **Commits**: Conventional Commits, in English (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
 - **Language**: identifiers in English (tables, columns, functions, variables, test names).
   Docstrings and inline comments in Catalan.
