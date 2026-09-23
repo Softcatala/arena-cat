@@ -1,9 +1,16 @@
 # Flux d'autenticació — crides manuals a l'API
 
-Aquest document llista les crides HTTP per recórrer el flux d'autenticació a mà
-(amb `curl`), replicant el que fa `backend/scripts/auth_flow_demo.py`.
+Aquest document llista les crides HTTP per recórrer el flux d'autenticació,
+qualificació i votació a mà (amb `curl`).
 
 Assumeix el backend en marxa a `http://localhost:8000` (ajusta `BASE_URL` si cal).
+Per provar la verificació per correu dels passos 1–4, configura
+`REQUIRE_EMAIL_VERIFICATION=true` al `.env` i reinicia el backend. Per treballar
+en local amb HTTP, fes servir `COOKIE_SECURE=false`. Els exemples de cookies
+assumeixen `COOKIE_NAME=session_token`.
+
+Amb la configuració d'exemple (`REQUIRE_EMAIL_VERIFICATION=false`), el registre
+retorna `{"status":"verified"}` i pots passar directament al pas 5.
 
 ```bash
 BASE_URL=http://localhost:8000
@@ -28,7 +35,7 @@ curl -s -X POST "$BASE_URL/api/auth/register" \
 Resposta esperada (`200`):
 
 ```json
-{"status": "pending_verification"}
+{"status": "pending_verification", "resend_cooldown_seconds": 60}
 ```
 
 ---
@@ -130,18 +137,49 @@ curl -s -b "$COOKIES" "$BASE_URL/api/auth/session"
 Resposta esperada (`200`):
 
 ```json
-{"authenticated": true, "email": "prova@example.com", "email_verified": true}
+{"authenticated": true, "email": "demo@example.com", "email_verified": true, "qualified": false}
 ```
 
 Sense cookie, o amb una de caducada o revocada, respon igualment `200`:
 
 ```json
-{"authenticated": false, "email": null, "email_verified": false}
+{"authenticated": false, "email": null, "email_verified": false, "qualified": false}
 ```
 
 > No tenir sessió és un estat normal, no un error: per això aquest endpoint no
 > retorna mai `401`. Serveix perquè el client sàpiga si ha de demanar les
 > credencials abans de fer cap altra crida.
+
+---
+
+## 6b. Superar la qualificació
+
+Abans d'obtenir tasques o votar, cal superar la prova de competència:
+
+```bash
+curl -s -b "$COOKIES" "$BASE_URL/api/qualification"
+```
+
+La resposta conté `questions` i `min_correct`. Crea un fitxer `answers.json`
+amb un objecte `answers` que associï **tots** els identificadors de pregunta
+amb l'opció escollida (`"A"`, `"B"` o `"C"`), i envia'l:
+
+```bash
+curl -s -b "$COOKIES" -X POST "$BASE_URL/api/qualification" \
+  -H "Content-Type: application/json" \
+  --data-binary @answers.json
+```
+
+Exemple de resposta amb vuit encerts al qüestionari actual (`200`):
+
+```json
+{"score": 8, "total": 10, "min_correct": 8, "passed": true}
+```
+
+Si `passed` és `false`, cal repetir la prova. Un intent incomplet retorna `422`;
+si ja l'has superada, un altre enviament retorna `409`. L'acreditació es conserva
+entre sessions i `/api/auth/session` passa a indicar `qualified: true`.
+Sense acreditar-te, les tasques, el progrés, els vots i les omissions retornen `403`.
 
 ---
 
@@ -163,8 +201,9 @@ Resposta esperada (`200`):
 }
 ```
 
-> Requereix dades sembrades (un prompt amb dues respostes). Si no n'hi ha,
-> retorna `404`. Desa el token de la tasca per al vot:
+> Requereix un prompt actiu amb dues respostes de models diferents. Si no hi ha
+> tasques pendents a la categoria, retorna `404`. Només s'ofereixen les
+> [versions actives](sistema.md#versions-actives). Desa el token de la tasca per al vot:
 
 ```bash
 TASK_TOKEN='<enganxa-aquí-el-token-de-la-tasca>'
@@ -178,15 +217,18 @@ TASK_TOKEN='<enganxa-aquí-el-token-de-la-tasca>'
 curl -s -b "$COOKIES" "$BASE_URL/api/task/progress"
 ```
 
-Resposta esperada (`200`):
+Exemple de resposta (`200`); els totals depenen de les dades actives carregades:
 
 ```json
-{"total": 90, "voted": 0, "skipped": 0, "remaining": 90}
+{"total": 120, "voted": 0, "skipped": 0, "remaining": 120}
 ```
 
 ---
 
 ## 9. Emetre un vot
+
+Cal esperar almenys deu segons des de l'obtenció de la tasca; si votes abans,
+l'API retorna `425`. Les opcions són `a`, `b`, `tie` i `neither`.
 
 ```bash
 curl -s -b "$COOKIES" -X POST "$BASE_URL/api/vote" \
@@ -204,7 +246,8 @@ Resposta esperada (`200`):
 
 ## 10. Ometre una tasca
 
-Si no vols votar la tasca carregada:
+Si no vols votar la tasca carregada, pots ometre-la. Si ja has votat al pas 9,
+demana una altra tasca al pas 7 i actualitza `TASK_TOKEN` abans de provar-ho:
 
 ```bash
 curl -s -b "$COOKIES" -X POST "$BASE_URL/api/task/skip" \
@@ -219,6 +262,8 @@ Resposta esperada (`200`):
 ```
 
 La mateixa parella de respostes no es tornarà a oferir al mateix usuari.
+Si una nova versió del prompt ha substituït la de la tasca oberta, tant el vot
+com l'omissió retornen `410`: cal obtenir una tasca nova.
 
 ---
 

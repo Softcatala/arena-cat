@@ -1,7 +1,7 @@
 # Gestió i autenticació d'usuaris
 
 Documentació detallada del subsistema d'usuaris i autenticació del backend d'Arena Cat:
-model de dades, criptografia, fluxos d'autenticació, autorització, endpoints i RGPD.
+model de dades, criptografia, fluxos d'autenticació, autorització, endpoints, exportació i baixa.
 
 > Codi de referència: [`backend/app/models.py`](../backend/app/models.py),
 > [`backend/app/security.py`](../backend/app/security.py),
@@ -11,15 +11,17 @@ model de dades, criptografia, fluxos d'autenticació, autorització, endpoints i
 ## Visió general
 
 Arena Cat recull vots humans que comparen respostes de models d'IA. Per garantir la
-qualitat de les dades, només poden votar **usuaris registrats i amb el correu verificat**.
+qualitat de les dades, només poden votar **usuaris registrats i qualificats**.
+La verificació del correu s'exigeix si `require_email_verification` està activat;
+si està desactivat, els comptes nous es marquen com a verificats al registre.
 El sistema d'autenticació és responsable de:
 
 - Registrar avaluadors amb correu, contrasenya i **consentiment explícit**.
 - Verificar la propietat del correu mitjançant un token signat.
 - Recuperar l'accés quan s'oblida la contrasenya, per correu i amb un enllaç d'un sol ús.
 - Autenticar l'usuari i mantenir una **sessió** basada en cookie.
-- Autoritzar les operacions sensibles (obtenir tasques i votar) a usuaris verificats.
-- Complir el RGPD: exportació de dades i baixa amb anonimització.
+- Exigir la qualificació per obtenir tasques, consultar el progrés, ometre tasques i votar.
+- Permetre l'exportació de dades i la baixa del compte.
 
 El disseny minimitza les dades personals emmagatzemades i prioritza les garanties
 criptogràfiques i a nivell de base de dades per sobre de la validació a l'aplicació.
@@ -31,51 +33,35 @@ L'autenticació s'articula sobre dues taules: `users` i `sessions`. El diagrama 
 
 ### Taula `users`
 
-| Columna | Tipus | Descripció |
-| --- | --- | --- |
-| `id` | `bigint` PK | Identificador intern de l'usuari. |
-| `email` | `varchar(255)` únic, *nullable* | Correu en clar de l'usuari actiu. S'anul·la en donar-se de baixa. |
-| `email_hash` | `varchar(64)` únic, *nullable* | HMAC-SHA256 del correu normalitzat. Es conserva després de la baixa per detectar re-registres. |
-| `password_hash` | `text` *nullable* | Hash Argon2id de la contrasenya. |
-| `email_verified_at` | `timestamptz` *nullable* | Moment de verificació del correu. `NULL` mentre no s'ha verificat. |
-| `qualified_at` | `timestamptz` *nullable* | Moment de superació de la prova de competència lingüística. `NULL` mentre no s'ha superat. |
-| `verification_sent_at` | `timestamptz` *nullable* | Últim cop que s'ha enviat el correu de verificació. Limita els reenviaments. |
-| `password_reset_sent_at` | `timestamptz` *nullable* | Últim cop que s'ha enviat el correu de restabliment de contrasenya. Limita les sol·licituds. |
-| `consent_version` | `varchar(32)` | Versió del consentiment acceptada al registre. |
-| `consent_at` | `timestamptz` *nullable* | Moment en què es va donar el consentiment. |
-| `created_at` | `timestamptz` | Data d'alta (per defecte `now()`). |
-| `deleted_at` | `timestamptz` *nullable* | Marca de baixa. Si té valor, l'usuari està anonimitzat. |
+L’[esquema de dades](db_schema.md) descriu les columnes, els tipus i les
+restriccions. Els camps principals per al flux d’autenticació són:
 
-**Restricció d'integritat** (`ck_users_active_have_credentials`): un usuari actiu
-(`deleted_at IS NULL`) ha de tenir sempre `email`, `email_hash`, `password_hash` i
-`consent_at`. Això garanteix a nivell de base de dades que no existeixin comptes actius
-sense credencials ni consentiment; només els comptes donats de baixa poden tenir aquests
-camps a `NULL`.
+- `email` i `password_hash`: credencials del compte actiu; es buiden en donar-se de baixa.
+- `email_hash`: HMAC del correu normalitzat, conservat després de la baixa per detectar re-registres.
+- `email_verified_at` i `qualified_at`: acrediten la verificació del correu i la superació de la prova lingüística.
+- `verification_sent_at` i `password_reset_sent_at`: limiten la freqüència d’enviament de correus.
+- `consent_version` i `consent_at`: registren el consentiment acceptat.
+- `deleted_at`: marca la baixa; la fila es conserva.
 
-El correu es guarda **dues vegades**: en clar (`email`) per poder operar-hi i com a hash
-(`email_hash`) per poder comprovar la unicitat i detectar re-registres fins i tot després
-d'haver anonimitzat el compte, quan `email` ja no existeix.
+La restricció `ck_users_active_have_credentials` exigeix correu, hash del
+correu, hash de contrasenya i data de consentiment per als comptes actius.
 
 ### Taula `sessions`
 
-| Columna | Tipus | Descripció |
-| --- | --- | --- |
-| `id` | `bigint` PK | Identificador de la sessió. |
-| `user_id` | `bigint` FK → `users.id` | Usuari propietari de la sessió (indexat). |
-| `token_hash` | `varchar(64)` únic | HMAC-SHA256 del token de sessió. Mai es desa el token en clar. |
-| `created_at` | `timestamptz` | Data de creació de la sessió. |
-| `expires_at` | `timestamptz` | Caducitat de la sessió (TTL de 24 h). |
-| `revoked_at` | `timestamptz` *nullable* | Marca de revocació (logout o baixa). |
+Cada sessió referencia un usuari i desa el hash del token, la data de creació,
+la caducitat i una possible revocació. Es considera **activa** quan
+`revoked_at IS NULL` i `expires_at` és al futur. La durada es configura amb
+`session_ttl_hours`.
 
-Una sessió es considera **activa** quan `revoked_at IS NULL` i `expires_at` és al futur.
-El token real només existeix al navegador (cookie); a la base de dades només se'n guarda
-el hash, de manera que una filtració de la taula `sessions` no permet suplantar ningú.
+El client rep el token en una cookie; a la base de dades només se’n guarda el
+hash. Aquest hash no es pot utilitzar directament com a cookie per autenticar-se.
 
 ### Relació amb els vots
 
-La taula `votes` referencia `users.id` amb `ON DELETE SET NULL`. Quan un usuari es dona de
-baixa **no** s'esborren els seus vots: es desvinculen (o es preserven anonimitzats), de
-manera que les dades agregades del rànquing es mantenen íntegres.
+La taula `votes` referencia `users.id` amb `ON DELETE SET NULL`. La baixa buida
+les credencials però conserva la fila de l'usuari: **els vots mantenen `user_id`**
+i continuen comptant al rànquing si corresponen a versions actives dels prompts.
+`SET NULL` només s'aplicaria en esborrar físicament la fila de l'usuari.
 
 ## Criptografia i secrets
 
@@ -83,7 +69,7 @@ Tota la lògica criptogràfica viu a [`backend/app/security.py`](../backend/app/
 
 ### Contrasenyes — Argon2id
 
-Les contrasenyes es xifren amb **Argon2id** (via `argon2-cffi`):
+Les contrasenyes es desen com a hashes **Argon2id** (via `argon2-cffi`):
 
 - `hash_password(password)` genera el hash que es desa a `users.password_hash`.
 - `verify_password(password, password_hash)` el comprova; captura `VerifyMismatchError`
@@ -112,7 +98,7 @@ permet detectar re-registres després d'una baixa.
 
 ### Tokens signats — HMAC-SHA256 + expiració
 
-Els tokens de verificació de correu i els tokens de tasca són **payloads JSON signats**
+Els tokens de verificació de correu, restabliment de contrasenya i tasca són **payloads JSON signats**
 (no xifrats) amb el format `base64url(payload).base64url(signatura)`:
 
 - `_sign_payload(payload, secret)` serialitza el payload i hi afegeix una signatura
@@ -125,6 +111,8 @@ Tokens derivats:
 
 - `create_email_verification_token(user_id, email)` / `verify_email_verification_token(token)`
   — TTL de **24 h**, amb `purpose="email_verify"` que es valida explícitament.
+- `create_password_reset_token(user_id, password_hash)` / `verify_password_reset_token(token)`
+  — TTL d'**1 h**, amb `purpose="password_reset"` i una empremta de la contrasenya actual.
 - `create_task_token(...)` / `verify_task_token(token)` — TTL d'**1 h**, per lligar una
   tasca de votació a un usuari (fora de l'abast d'aquest document; vegeu el flux de vots).
 
@@ -141,9 +129,9 @@ Tokens derivats:
 Definits a [`backend/app/config.py`](../backend/app/config.py) i llegits de l'entorn o del
 fitxer `.env` (mai s'ha de versionar):
 
-| Secret | Ús |
+| Paràmetre | Ús |
 | --- | --- |
-| `hmac_secret_key` | Signatura dels tokens de verificació de correu i de tasca. |
+| `hmac_secret_key` | Signatura dels tokens de verificació de correu, restabliment de contrasenya i tasca. |
 | `session_secret` | Hash dels tokens de sessió. |
 | `email_hash_pepper` | Derivació de `email_hash`. |
 | `consent_version` | Versió de consentiment que es registra a l'alta (per defecte `v1`). |
@@ -168,7 +156,7 @@ fitxer `.env` (mai s'ha de versionar):
 3. Es busca un usuari existent amb el mateix `email_hash`:
    - Si existeix i està donat de baixa → HTTP 409 («Aquest correu ja s'havia registrat»).
    - Si existeix i està actiu → HTTP 409 («Aquest correu ja està registrat»).
-4. Es xifra la contrasenya amb Argon2id i es crea l'usuari amb `consent_version` i
+4. Es calcula el hash de la contrasenya amb Argon2id i es crea l'usuari amb `consent_version` i
    `consent_at`.
 5. Si cal verificar el correu, es genera un **token de verificació** (24 h) i s'envia a
    l'adreça en un correu amb l'enllaç `<frontend_base_url>/verify?token=…`. L'enviament
@@ -196,7 +184,7 @@ fitxer `.env` (mai s'ha de versionar):
    `verification_resend_cooldown_seconds`. Això evita que dues peticions simultànies
    saltin l'espera.
 2. Si es compleix, s'actualitza `verification_sent_at` i s'envia un correu nou (en segon pla).
-3. **La resposta és sempre la mateixa** (`200 { status: "requested" }`), tant si l'adreça
+3. **La resposta és sempre la mateixa** (`200 { status: "requested", resend_cooldown_seconds: … }`), tant si l'adreça
    existeix com si no, si ja està verificada o si l'espera encara no ha acabat. Així no
    serveix per esbrinar quins correus són al sistema. Els tokens anteriors segueixen
    sent vàlids fins que caduquen.
@@ -207,15 +195,16 @@ fitxer `.env` (mai s'ha de versionar):
    (missatge genèric «Email o contrasenya incorrectes» per no revelar l'existència del
    compte).
 2. Es verifica la contrasenya amb Argon2id; si falla → HTTP 401 (mateix missatge genèric).
-3. Si el correu no està verificat → HTTP 403. Es comprova **després** de la contrasenya:
+3. Si la verificació és obligatòria i el correu no està verificat → HTTP 403. Es comprova **després** de la contrasenya:
    així només el propietari del compte pot veure que li cal verificar-lo, i un desconegut
    no pot distingir un compte no verificat d'un que no existeix.
-4. Es crea una sessió: token opac, hash a `token_hash` i `expires_at` a 24 h.
-5. La ruta estableix la cookie `session_token` (vegeu [Seguretat de cookies](#seguretat-de-cookies)).
+4. Es crea una sessió: token opac, hash a `token_hash` i caducitat segons `session_ttl_hours`.
+5. La ruta estableix la cookie configurada a `cookie_name` (`session_token` a
+   `.env.example`; vegeu [Seguretat de cookies](#seguretat-de-cookies)).
 
 ### 5. Sessió i logout (`logout_user`)
 
-- Cada petició autenticada envia la cookie `session_token`; el backend en calcula el hash
+- Cada petició autenticada envia la cookie de sessió; el backend en calcula el hash
   i busca una sessió **activa**.
 - El logout calcula el hash del token i, si troba la sessió, hi estableix `revoked_at`.
   Sempre s'esborra la cookie del client, hi hagi sessió o no.
@@ -255,7 +244,7 @@ Dos endpoints, tots dos públics: qui ha perdut la contrasenya no té sessió.
    sortida.
 2. Si es compleix, s'envia en segon pla un correu amb l'enllaç
    `<frontend_base_url>/reset-password?token=…`, vàlid **1 hora**.
-3. **La resposta és sempre la mateixa** (`200 { status: "requested" }`), existeixi o no el
+3. **La resposta és sempre la mateixa** (`200 { status: "requested", resend_cooldown_seconds: … }`), existeixi o no el
    compte, com al reenviament de la verificació.
 
 **Triar la contrasenya nova — `POST /auth/reset-password`**
@@ -298,45 +287,48 @@ sequenceDiagram
 
 La funció [`resolve_session_user`](../backend/app/services/auth_service.py) resol l'usuari
 a partir de la cookie de sessió i protegeix els endpoints que requereixen un usuari
-autenticat i verificat (per exemple, obtenir tasques a
+autenticat i, segons la configuració, verificat (per exemple, obtenir tasques a
 [`routes/task.py`](../backend/app/routes/task.py) i votar a
 [`routes/vote.py`](../backend/app/routes/vote.py)). Amb `require_verified=True` comprova,
 en aquest ordre:
 
-1. Que hi hagi cookie `session_token` (si no → HTTP 401).
+1. Que hi hagi la cookie configurada a `cookie_name` (si no → HTTP 401).
 2. Que existeixi una sessió activa (`revoked_at IS NULL` i `expires_at` al futur) → HTTP 401.
 3. Que l'usuari existeixi i no estigui donat de baixa → HTTP 401.
-4. Que el correu estigui verificat (`email_verified_at` no nul) → HTTP 403.
+4. Si `require_email_verification` està activat, que el correu estigui verificat
+   (`email_verified_at` no nul) → HTTP 403.
 
 Si totes les comprovacions passen, retorna l'objecte `User` per injectar-lo a l'endpoint.
 Els endpoints d'exportació i baixa reutilitzen la mateixa funció sense exigir verificació.
 
-La prova de competència (`GET` i `POST /api/qualification`) exigeix un usuari
-verificat. Per obtenir tasques, consultar-ne el progrés, ometre-les o votar,
+La prova de competència (`GET` i `POST /api/qualification`) exigeix una sessió
+i la verificació segons la configuració anterior. Per obtenir tasques, consultar-ne el progrés, ometre-les o votar,
 `CurrentQualifiedUser` exigeix també `qualified_at` informat; si és nul, retorna
 HTTP 403. En superar la prova, es desa la data a `users`; no cal repetir-la en
 sessions posteriors. `GET /api/auth/session` exposa aquest estat amb `qualified`.
 
 ## Referència d'endpoints
 
-Tots els endpoints pengen del prefix d'autenticació definit a
-[`backend/app/routes/auth.py`](../backend/app/routes/auth.py).
+Les rutes de la taula són les definides a
+[`backend/app/routes/auth.py`](../backend/app/routes/auth.py); cal anteposar-hi
+`/api` (per exemple, `/api/auth/login`). Els diagrames també ometen aquest prefix.
 
 | Mètode | Ruta | Cos de petició | Resposta | Errors |
 | --- | --- | --- | --- | --- |
-| `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification" }` | 400 (sense consentiment), 409 (correu ja registrat), 422 (contrasenya que no compleix la política) |
+| `POST` | `/auth/register` | `{ email, password, consent }` | `{ status: "pending_verification", resend_cooldown_seconds }` o `{ status: "verified" }` | 400 (sense consentiment), 409 (correu ja registrat), 422 (dades invàlides) |
 | `POST` | `/auth/verify` | `{ token }` | `{ status: "verified" }` | 400 (token invàlid), 404 (usuari no trobat) |
-| `POST` | `/auth/resend-verification` | `{ email }` | `{ status: "requested" }` (sempre) | 422 (correu mal format) |
-| `POST` | `/auth/forgot-password` | `{ email }` | `{ status: "requested" }` (sempre) | 422 (correu mal format) |
+| `POST` | `/auth/resend-verification` | `{ email }` | `{ status: "requested", resend_cooldown_seconds }` (sempre) | 422 (correu mal format) |
+| `POST` | `/auth/forgot-password` | `{ email }` | `{ status: "requested", resend_cooldown_seconds }` (sempre) | 422 (correu mal format) |
 | `POST` | `/auth/reset-password` | `{ token, new_password }` | `{ status: "password_reset" }` | 400 (enllaç invàlid, caducat o ja utilitzat), 422 (contrasenya que no compleix la política) |
 | `POST` | `/auth/login` | `{ email, password }` | `{ status: "logged_in" }` + cookie | 401 (credencials), 403 (correu no verificat, amb contrasenya correcta) |
+| `GET` | `/auth/session` | *(cookie opcional)* | `{ authenticated, email, email_verified, qualified }` | — |
 | `POST` | `/auth/logout` | *(cookie)* | `{ status: "logged_out" }` | — |
 | `POST` | `/auth/delete-account` | `{ current_password }` + cookie | `{ status: "deleted" }` | 401 (sessió/contrasenya) |
 | `GET` | `/auth/export` | *(cookie)* | `{ user, votes }` | 401 (sessió) |
 
 Els esquemes de petició i resposta són a [`backend/app/schemas.py`](../backend/app/schemas.py).
 
-## Compliment del RGPD
+## Exportació i baixa
 
 ### Exportació de dades (`export_user_data`)
 
@@ -346,11 +338,11 @@ L'endpoint `GET /auth/export` requereix una sessió activa i retorna:
   `consent_version`, `consent_at`, `created_at`, `deleted_at`.
 - Tots els vots de l'usuari (`ExportVoteResponse`), ordenats cronològicament.
 
-Això dona resposta al **dret d'accés i portabilitat** de les dades personals.
+L'exportació inclou també els vots de versions antigues dels prompts.
 
 ### Baixa i anonimització (`delete_account`)
 
-L'endpoint `POST /auth/delete-account` implementa el **dret a l'oblit**:
+L'endpoint `POST /auth/delete-account` fa les operacions següents:
 
 1. Exigeix una sessió activa i la **contrasenya actual** (reautenticació) → HTTP 401 si
    falla qualsevol de les dues.
@@ -360,9 +352,8 @@ L'endpoint `POST /auth/delete-account` implementa el **dret a l'oblit**:
 3. Revoca **totes** les sessions actives de l'usuari.
 4. S'esborra la cookie del client.
 
-Com que `votes.user_id` és `ON DELETE SET NULL` i l'anonimització no esborra la fila de
-l'usuari, els vots emesos es mantenen per a l'anàlisi agregada sense quedar vinculats a
-una identitat.
+Els vots continuen vinculats al mateix identificador intern. La baixa elimina
+el correu en clar i la contrasenya; conserva `email_hash` i l'historial de vots.
 
 ## Configuració i seguretat
 
@@ -371,12 +362,13 @@ una identitat.
 La cookie de sessió que estableix el login té els atributs següents:
 
 - `HttpOnly` — inaccessible des de JavaScript, mitiga l'exfiltració via XSS.
-- `SameSite=Lax` — mitiga CSRF en navegacions entre llocs.
-- `max_age=86400` — 24 h, coherent amb el TTL de la sessió al servidor.
-- `Secure` — **actualment `False`** per permetre proves en local sense HTTPS.
+- `SameSite` — configurable amb `cookie_samesite` (`lax` per defecte).
+- `max_age` — `session_ttl_hours × 3600`; a `.env.example` són 24 h.
+- `Secure` — depèn de `cookie_secure`; a `.env.example` és `false` per a HTTP local.
 
 > ⚠️ **Producció:** cal establir `cookie_secure=true` perquè la cookie només viatgi per HTTPS.
-> El CORS es gestiona al *reverse proxy* (Traefik), no a l'aplicació.
+> El backend inclou un middleware CORS permissiu per a desenvolupament a
+> [`app/main.py`](../backend/app/main.py). Les polítiques del proxy són una configuració addicional.
 
 ### Limitacions de la v1 i notes de producció
 
@@ -385,9 +377,9 @@ La cookie de sessió que estableix el login té els atributs següents:
   ha de tenir SPF, DKIM i DMARC. Els correus es generen amb plantilles Jinja2
   (`backend/app/email_templates/`, en text pla i en HTML, amb l'aspecte dels del servei de
   transcripció de Softcatalà) i s'envien com a `multipart/alternative`. No hi ha gestió de rebots.
-- **Sense límit per IP:** només hi ha una espera per compte als reenviaments. Limitar les
+- **Sense límit per IP:** hi ha una espera per compte als reenviaments de verificació i a les sol·licituds de restabliment. Limitar les
   altes massives per adreça IP cal fer-ho al *reverse proxy*.
-- **Cookie no `Secure`:** vegeu la nota anterior.
+- **Cookie:** reviseu `cookie_secure` segons l'entorn; vegeu la nota anterior.
 - **Neteja de sessions:** les sessions caducades es filtren en consulta, però no hi ha una
   tasca que elimini físicament les files expirades o revocades.
 - **Secrets:** `hmac_secret_key`, `session_secret` i `email_hash_pepper` han de ser valors

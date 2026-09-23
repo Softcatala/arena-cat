@@ -17,7 +17,7 @@ Mètode: bootstrap clusteritzat amb etiquetes fixes.
 
 Regla d'aturada operativa: el rànquing és estable si `ci_lo > 0`.
 
-Limitacions documentades a `docs/T7_ranking_design.md` §5.3:
+Limitacions documentades a `docs/ranking_design.md` §5.3:
 - Bootstrap clusteritzat amb 10 prompts té problemes de mostra petita
   coneguts a la literatura.
 - No modelem la dependència a nivell de sessió (un votant que vota molt).
@@ -113,7 +113,7 @@ def assess_confidence(
     independents (comparteixen la dificultat i les peculiaritats del prompt).
     Re-mostrejar prompts sencers, no vots individuals, respecta aquesta
     dependència. Sense això, els CIs serien massa estrets ~2× (vegeu
-    `docs/T7_ranking_design.md` §5 i `analysis/dimensioning.py`).
+    `docs/ranking_design.md` §5 i `analysis/dimensioning.py`).
 
     Per què etiquetes fixes: ajustem BT una vegada sobre tot el dataset per
     identificar el "millor actual". Aquesta etiqueta queda CONGELADA. A cada
