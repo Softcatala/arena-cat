@@ -15,7 +15,8 @@ Mètode: bootstrap clusteritzat amb etiquetes fixes.
 4. Reportem `p_best_is_best` (fracció de deltas > 0) i el CI 95% (percentils
    2.5 i 97.5 dels deltas).
 
-Amb menys de dos prompts amb vots decisius, la confiança no està disponible.
+Calen almenys deu prompts amb vots decisius i comparacions decisives que
+connectin tots els models observats perquè la confiança estigui disponible.
 Quan es calcula, el rànquing és estable si `ci_lo > 0`.
 
 Limitacions documentades a `docs/ranking_design.md` §5.3:
@@ -33,6 +34,26 @@ from sqlalchemy.orm import Session, aliased
 from app.models import Category, Prompt, Response, Vote, Winner
 from app.prompt_versions import active_prompt_ids
 from app.ranking.ranking import fit_bt
+
+MIN_DECISIVE_PROMPTS = 10
+
+
+def _models_are_connected(votes: list[tuple[str, str]], models: list[str]) -> bool:
+    """Comprova la connexió entre models ignorant la direcció de les victòries."""
+    if len(models) < 2:
+        return False
+    neighbors = {model: set() for model in models}
+    for winner, loser in votes:
+        neighbors[winner].add(loser)
+        neighbors[loser].add(winner)
+
+    visited = {models[0]}
+    pending = [models[0]]
+    while pending:
+        for neighbor in neighbors[pending.pop()] - visited:
+            visited.add(neighbor)
+            pending.append(neighbor)
+    return len(visited) == len(models)
 
 
 def _load_clustered_votes(
@@ -163,21 +184,26 @@ def assess_confidence(
         }
         ```
 
-        Amb menys de dos models o de dos prompts amb vots decisius, retorna
+        Amb menys de dos models, menys de deu prompts amb vots decisius o
+        models desconnectats en les comparacions decisives, retorna
         `p_best_is_best`, `ci_lo` i `ci_hi` a None i `is_stable=False`.
         Conserva el millor model observat quan hi ha vots decisius.
     """
     by_prompt, models = _load_clustered_votes(session, category_code)
-    n_decisive = sum(len(v) for v in by_prompt.values())
+    all_decisive = [vote for votes in by_prompt.values() for vote in votes]
+    n_decisive = len(all_decisive)
 
     # Ajust complet → millor model amb etiqueta fixa.
     best_model = None
     if len(models) >= 2 and n_decisive > 0:
-        all_decisive = [v for vs in by_prompt.values() for v in vs]
         theta_hat = fit_bt(all_decisive, models, alpha=alpha)
         best_model = max(theta_hat, key=theta_hat.get)
 
-    if best_model is None or len(by_prompt) < 2:
+    if (
+        best_model is None
+        or len(by_prompt) < MIN_DECISIVE_PROMPTS
+        or not _models_are_connected(all_decisive, models)
+    ):
         return {
             "category_code": category_code,
             "best_model": best_model,

@@ -1,6 +1,9 @@
 from datetime import UTC, datetime, timedelta
 
-from app.models import Prompt, Response
+import pytest
+from sqlalchemy import select
+
+from app.models import Prompt, Response, Vote, Winner
 from app.security import create_task_token
 
 
@@ -70,6 +73,55 @@ def test_post_vote_rejects_duplicate_token(client, session, logged_in_user):
 
     second = client.post("/api/vote", json={"winner": "b", "token": token})
     assert second.status_code == 409
+
+
+@pytest.mark.parametrize("winner", list(Winner))
+@pytest.mark.parametrize("reverse_order", [False, True])
+@pytest.mark.parametrize("change_winner", [False, True])
+def test_post_vote_retry_preserves_original_vote(
+    client, session, logged_in_user, winner, reverse_order, change_winner
+):
+    """Un reintent recupera el vot acceptat, però no permet modificar-ne el resultat."""
+    prompt = Prompt(version="v1", code="retry-vote", category_id=1, text="Bon dia")
+    response_a = Response(prompt=prompt, model="model-a", text="Hola")
+    response_b = Response(prompt=prompt, model="model-b", text="Bon dia")
+    session.add_all([prompt, response_a, response_b])
+    session.commit()
+    user = logged_in_user("retry-vote@example.com")
+    token = ready_task_token(prompt.id, response_a.id, response_b.id, user.id)
+
+    assert (
+        client.post("/api/vote", json={"winner": winner.value, "token": token}).status_code == 200
+    )
+    original_vote = session.scalars(select(Vote).where(Vote.user_id == user.id)).one()
+    original_id, original_created_at = original_vote.id, original_vote.created_at
+    session.expire_all()
+
+    retry_winner = winner
+    if change_winner:
+        retry_winner = Winner.b if winner == Winner.a else Winner.a
+    if reverse_order:
+        token = ready_task_token(prompt.id, response_b.id, response_a.id, user.id)
+        retry_winner = {Winner.a: Winner.b, Winner.b: Winner.a}.get(retry_winner, retry_winner)
+
+    retry = client.post("/api/vote", json={"winner": retry_winner.value, "token": token})
+
+    assert retry.status_code == (409 if change_winner else 200)
+    if not change_winner:
+        assert retry.json() == {"status": "ok"}
+    stored_vote = session.scalars(select(Vote).where(Vote.user_id == user.id)).one()
+    assert stored_vote.id == original_id
+    assert stored_vote.created_at == original_created_at
+    assert stored_vote.winner == winner
+    assert stored_vote.response_a_id == response_a.id
+    assert stored_vote.response_b_id == response_b.id
+    assert client.get("/api/task/progress").json() == {
+        "total": 1,
+        "voted": 1,
+        "skipped": 0,
+        "remaining": 0,
+    }
+    assert client.get("/api/task").status_code == 404
 
 
 def test_post_vote_rejects_token_from_other_user(client, session, logged_in_user):

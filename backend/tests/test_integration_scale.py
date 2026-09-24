@@ -160,16 +160,14 @@ def test_60pct_winner_is_correctly_identified(session):
     Comprovacions:
         - `compute_ranking` reporta gemma com a `best_model`.
         - El skill BT de gemma és estrictament superior als dels altres.
-        - `assess_confidence` reporta `is_stable=True` (el rànquing és sòlid).
-        - `p_best_is_best` és alt (≥ 0.95).
+        - `assess_confidence` no declara estabilitat amb només cinc prompts.
+        - `p_best_is_best` no està disponible per manca de prompts.
     """
     _assert_running_against_test_database(session)
     _seed_prompts_with_responses(session, "correccio", n_prompts=5)
     favored_model = "gemma-3-4b-it"
     win_prob = 0.60
-    # 5 prompts × 3 parelles = 15 cel·les. Amb 1800 vots són ~120 per cel·la:
-    # més que suficient perquè la CI de rank1-vs-rank2 quedi clarament positiva
-    # amb un avantatge plantat del 60% i només 5 clusters de prompt.
+    # 1800 vots sobre cinc prompts permeten estimar skills, però no la confiança.
     n_votes = 1800
 
     # Ni el RNG ens atura. Som i serem
@@ -218,18 +216,11 @@ def test_60pct_winner_is_correctly_identified(session):
             f"el de {other} ({skills[other]})"
         )
 
-    # El rànquing ha de ser estable amb 600 vots i un avantatge plantat del 60%.
-    assert confidence["is_stable"] is True, (
-        f"Rànquing inestable amb un guanyador clar plantat. "
-        f"CI=[{confidence['ci_lo']}, {confidence['ci_hi']}], "
-        f"p_best_is_best={confidence['p_best_is_best']}"
-    )
-
-    # La confiança que el millor actual sigui realment el millor ha de ser alta.
-    assert confidence["p_best_is_best"] >= 0.95, (
-        f"p_best_is_best={confidence['p_best_is_best']} massa baix per a un escenari "
-        f"amb un guanyador plantat al 60%"
-    )
+    # Cinc prompts són insuficients, encara que acumulin molts vots.
+    assert confidence["is_stable"] is False
+    assert confidence["p_best_is_best"] is None
+    assert confidence["ci_lo"] is None
+    assert confidence["ci_hi"] is None
 
     # No hi ha d'haver cap cicle: gemma guanya tothom, no es pot tancar A>B>C>A.
     assert ranking["cycle_detected"] is False
@@ -260,7 +251,7 @@ def test_high_tie_and_neither_rates_dont_distort_bt(session):
     Comprovacions:
         - `best_model == gemma` malgrat el soroll.
         - Els recomptes `n_ties` i `n_neither` cauen a la franja esperada.
-        - El rànquing és estable (`is_stable=True`).
+        - La confiança no està disponible amb només cinc prompts.
         - El skill BT de gemma és estrictament superior al dels altres.
     """
     _assert_running_against_test_database(session)
@@ -336,18 +327,11 @@ def test_high_tie_and_neither_rates_dont_distort_bt(session):
             f"el de {other} ({skills[other]}) sota soroll"
         )
 
-    # 5) El rànquing és estable: BT confia en el guanyador encara que el 45% dels
-    #    vots no aporta direcció.
-    assert confidence["is_stable"] is True, (
-        f"Rànquing inestable sota soroll d'empats/'neithers'. "
-        f"CI=[{confidence['ci_lo']}, {confidence['ci_hi']}], "
-        f"p_best_is_best={confidence['p_best_is_best']}"
-    )
-
-    # 6) p_best_is_best alt: la confiança no es desploma per la presència de soroll.
-    assert confidence["p_best_is_best"] >= 0.90, (
-        f"p_best_is_best={confidence['p_best_is_best']} massa baix sota soroll"
-    )
+    # 5) Cinc prompts són insuficients per estimar confiança.
+    assert confidence["is_stable"] is False
+    assert confidence["p_best_is_best"] is None
+    assert confidence["ci_lo"] is None
+    assert confidence["ci_hi"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -483,7 +467,7 @@ def test_categories_are_independent_at_scale(session):
     Comprovacions:
         - `best_model` de correcció és gemma; de traducció és qwen.
         - Els skills BT ho confirmen a cada categoria.
-        - Els dos rànquings són estables.
+        - Els dos rànquings tenen confiança insuficient per manca de prompts.
         - Els recomptes de vots són els que hem plantat a cada categoria.
         - Reformulació retorna una estructura buida coherent.
     """
@@ -496,9 +480,7 @@ def test_categories_are_independent_at_scale(session):
         "traduccio": "qwen-3.5-9b",
     }
     win_prob = 0.60
-    # 5 prompts × 3 parelles per categoria = 15 cel·les. 800 vots/categoria →
-    # ~53 vots/cel·la; suficient perquè la CI del gap del guanyador a
-    # cada categoria quedi clarament positiva amb només 5 clusters.
+    # 800 vots per categoria, concentrats en només cinc prompts.
     n_votes_per_category = 800
     n_votes_total = n_votes_per_category * len(plan)
 
@@ -570,13 +552,13 @@ def test_categories_are_independent_at_scale(session):
                 f"el de {other} ({skills[other]})"
             )
 
-    # 4) Els dos rànquings són estables.
+    # 4) Els dos rànquings tenen confiança insuficient per manca de prompts.
     for category_code in plan:
         confidence = assess_confidence(session, category_code, n_bootstrap=200, seed=1714)
-        assert confidence["is_stable"] is True, (
-            f"[{category_code}] rànquing inestable amb 400 vots i un guanyador plantat. "
-            f"CI=[{confidence['ci_lo']}, {confidence['ci_hi']}]"
-        )
+        assert confidence["is_stable"] is False
+        assert confidence["p_best_is_best"] is None
+        assert confidence["ci_lo"] is None
+        assert confidence["ci_hi"] is None
 
     # 5) Reformulació no ha rebut cap vot: retorna una estructura buida coherent
     #    i cap dels vots d'altres categories la contamina.
@@ -620,7 +602,7 @@ def test_ranking_adapts_when_new_model_added_mid_campaign(session):
         - Post-Fase 2: 4 models al rànquing, `another-model-4b` és la millor,
           gemma queda com a segona.
         - El total de vots és 800 exactes.
-        - El rànquing final és estable.
+        - La confiança final és insuficient per manca de prompts.
     """
     _assert_running_against_test_database(session)
     seeded = _seed_prompts_with_responses(session, "correccio", n_prompts=5)
@@ -713,11 +695,11 @@ def test_ranking_adapts_when_new_model_added_mid_campaign(session):
     # 4) Total de vots exacte: no s'han duplicat ni perdut.
     assert final["n_votes_total"] == n_votes_phase1 + n_votes_phase2
 
-    # 5) El rànquing amb 4 models és estable — assess_confidence no falla amb n>3.
-    assert confidence["is_stable"] is True, (
-        f"Rànquing inestable després d'introduir el nou model. "
-        f"CI=[{confidence['ci_lo']}, {confidence['ci_hi']}]"
-    )
+    # 5) Amb quatre models, cinc prompts continuen sent insuficients.
+    assert confidence["is_stable"] is False
+    assert confidence["p_best_is_best"] is None
+    assert confidence["ci_lo"] is None
+    assert confidence["ci_hi"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -748,7 +730,7 @@ def test_ranking_adapts_when_new_prompts_added_mid_campaign(session):
         - Snapshot Fase 1: 3 prompts amb vots, gemma és la millor.
         - Post-Fase 2: 5 prompts amb vots, gemma continua sent la millor,
           els 2 nous prompts han rebut vots reals gràcies al quota-balanced,
-          el rànquing final és estable.
+          la confiança final continua sent insuficient per manca de prompts.
     """
     _assert_running_against_test_database(session)
     _seed_prompts_with_responses(session, "traduccio", n_prompts=3)
@@ -852,11 +834,11 @@ def test_ranking_adapts_when_new_prompts_added_mid_campaign(session):
     # 4) Total exacte de vots.
     assert final_ranking["n_votes_total"] == n_votes_phase1 + n_votes_phase2
 
-    # 5) El rànquing final és estable.
-    assert final_confidence["is_stable"] is True, (
-        f"Rànquing inestable després d'afegir prompts. "
-        f"CI=[{final_confidence['ci_lo']}, {final_confidence['ci_hi']}]"
-    )
+    # 5) La confiança final és insuficient per manca de prompts.
+    assert final_confidence["is_stable"] is False
+    assert final_confidence["p_best_is_best"] is None
+    assert final_confidence["ci_lo"] is None
+    assert final_confidence["ci_hi"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -878,7 +860,7 @@ def test_new_category_added_mid_campaign_is_independent(session):
 
     Configuració:
         - Fase 1: 5 prompts × 3 models a `correccio`. 1800 vots amb gemma
-          al 60% (~120 vots/cel·la per obtenir un rànquing clarament estable).
+          al 60% (~120 vots/cel·la).
         - Comprovem: sampling de `cultura` retorna None (encara no té prompts).
         - Creem la categoria `cultura` (no és al catàleg YAML) i
           afegim 3 prompts × 3 respostes.
@@ -889,14 +871,12 @@ def test_new_category_added_mid_campaign_is_independent(session):
         - `correccio` conserva els seus 1800 vots i gemma com a millor model.
         - `cultura` té 800 vots i salamandra com a millor model.
         - Els guanyadors són diferents (no hi ha fuga entre categories).
-        - Ambdós rànquings són estables.
+        - Ambdós rànquings tenen confiança insuficient per manca de prompts.
         - `reformulacio` continua buida.
     """
     _assert_running_against_test_database(session)
     _seed_prompts_with_responses(session, "correccio", n_prompts=5)
-    # Fase 1 (correcció, 5 prompts × 3 parelles = 15 cel·les): 1800 vots per
-    # tenir ~120 vots/cel·la i que la CI clusteritzada del gap sigui clarament
-    # positiva amb només 5 clusters — mateixa lliçó que Test 1 i Test 4.
+    # Molts vots en pocs prompts no permeten declarar estabilitat.
     n_votes_phase1 = 1800
     n_votes_phase2 = 800
     win_prob = 0.60
@@ -990,16 +970,17 @@ def test_new_category_added_mid_campaign_is_independent(session):
     # 3) Els guanyadors de les dues categories són diferents (sense fuga).
     assert final_correccio["best_model"] != final_cultura["best_model"]
 
-    # 4) Ambdós rànquings són estables.
+    # 4) Ambdós rànquings tenen confiança insuficient per manca de prompts.
     conf_correccio = assess_confidence(session, "correccio", n_bootstrap=200, seed=1714)
     conf_cultura = assess_confidence(session, "cultura", n_bootstrap=200, seed=1714)
-    assert conf_correccio["is_stable"] is True, (
-        f"correcció inestable després d'introduir cultura. "
-        f"CI=[{conf_correccio['ci_lo']}, {conf_correccio['ci_hi']}]"
-    )
-    assert conf_cultura["is_stable"] is True, (
-        f"cultura inestable. CI=[{conf_cultura['ci_lo']}, {conf_cultura['ci_hi']}]"
-    )
+    assert conf_correccio["is_stable"] is False
+    assert conf_correccio["p_best_is_best"] is None
+    assert conf_correccio["ci_lo"] is None
+    assert conf_correccio["ci_hi"] is None
+    assert conf_cultura["is_stable"] is False
+    assert conf_cultura["p_best_is_best"] is None
+    assert conf_cultura["ci_lo"] is None
+    assert conf_cultura["ci_hi"] is None
 
     # 5) reformulacio continua buida — les altres categories no la contaminen.
     assert final_reformulacio["n_votes_total"] == 0

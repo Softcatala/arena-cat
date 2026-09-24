@@ -119,6 +119,12 @@ L'usuari s'identifica amb la cookie de sessió per evitar repetir tasques.
 
 Registra el vot d'un usuari sobre una tasca prèviament demanada.
 
+Un reintent amb un token vàlid i el mateix resultat retorna 200 sense duplicar
+el vot ni alterar-ne la data. Es compara la resposta guanyadora encara que
+l'ordre A/B sigui invers. Canviar un resultat ja desat retorna 409.
+La [descripció del sistema](../docs/sistema.md#recorregut-de-lavaluador)
+explica la recuperació del client quan es perd la resposta del servidor.
+
 **Body (JSON):**
 - `winner` (string): Quin model ha guanyat. Valors possibles: `"a"`, `"b"`, `"tie"` o `"neither"`.
 - `token` (string): El JWT generat per l'endpoint `/api/task` (conté els IDs del prompt i les respostes).
@@ -195,8 +201,9 @@ són `null` i `is_stable` és `false`. Vegeu el
 El camp `status` indica l'estat del rànquing: `insufficient_data` si
 `confidence.confidence_interval` és `null`, `stable` si `confidence.is_stable`
 és cert, o `provisional` si l'interval està disponible però el rànquing no és
-estable. La manca de vots, només empats o «cap de les dues», i els vots decisius
-concentrats en un únic prompt donen `insufficient_data`.
+estable. La manca de vots, una cobertura insuficient de prompts amb vots
+decisius o models desconnectats en les comparacions decisives donen
+`insufficient_data`, segons el criteri mínim enllaçat més amunt.
 
 Sense vots decisius, `best_model` i `confidence.best_model` són `null` i
 `ranked_models` és buit. Es conserven els recomptes de participants i vots;
@@ -211,6 +218,11 @@ uv run pytest -v
 The tests need the PostgreSQL container running and run against `arena_cat_test`.
 
 ## Migrations
+
+Les contrasenyes es configuren amb el seu valor original a `POSTGRES_PASSWORD`,
+també si contenen `@`, `%` o altres caràcters especials. SQLAlchemy construeix
+la URL i l'entorn d'Alembic escapa els `%` només per a la interpolació de la
+configuració, sense alterar la contrasenya que rep el motor de PostgreSQL.
 
 To evolve the schema:
 

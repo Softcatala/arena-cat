@@ -1,12 +1,13 @@
 """Reversibilitat de la migració inicial contra una base de dades efímera."""
 
 import uuid
+from io import StringIO
 from pathlib import Path
 
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, engine_from_config, inspect, text
 from sqlalchemy.engine import make_url
 
 from app.config import get_settings
@@ -43,7 +44,9 @@ def ephemeral_db_url():
 def _alembic_config(url):
     config = Config(str(_BACKEND / "alembic.ini"))
     config.set_main_option("script_location", str(_BACKEND / "migrations"))
-    config.set_main_option("sqlalchemy.url", url.render_as_string(hide_password=False))
+    config.set_main_option(
+        "sqlalchemy.url", url.render_as_string(hide_password=False).replace("%", "%%")
+    )
     return config
 
 
@@ -51,6 +54,25 @@ def _enums(engine) -> set[str]:
     with engine.connect() as conn:
         rows = conn.execute(text("SELECT typname FROM pg_type WHERE typtype = 'e'"))
         return {row[0] for row in rows}
+
+
+@pytest.mark.parametrize("password", ["p@ssword", "p%ssword", "p:/?#[]@% word"])
+@pytest.mark.parametrize("explicit_url", [False, True])
+def test_migration_url_preserves_special_password(monkeypatch, password, explicit_url):
+    """Alembic conserva la contrasenya tant des de l'entorn com amb una URL explícita."""
+    monkeypatch.setenv("POSTGRES_PASSWORD", password)
+    url = make_url(get_settings().database_admin_url)
+    config = _alembic_config(url) if explicit_url else Config(str(_BACKEND / "alembic.ini"))
+    config.output_buffer = StringIO()
+
+    command.upgrade(config, "base", sql=True)
+
+    assert make_url(config.get_main_option("sqlalchemy.url")).password == password
+    engine = engine_from_config(config.get_section(config.config_ini_section), prefix="sqlalchemy.")
+    try:
+        assert engine.url.password == password
+    finally:
+        engine.dispose()
 
 
 def test_initial_migration_is_reversible(ephemeral_db_url):
