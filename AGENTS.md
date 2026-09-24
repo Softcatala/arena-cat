@@ -58,4 +58,5 @@ cd backend && uv run pre-commit install   # Hook de Git de lint i format (detect
 
 - Quan se't demani crear una PR, escriu-ne el títol en català.
 - A la descripció de la PR, inclou un punt de llista en català per a cada canvi important.
+- La descripció ha de contenir només els canvis en punts de llista, sense apartats ni text addicional.
 - Si dos canvis són molt similars, agrupa'ls en un únic punt de la descripció de la PR.
