@@ -105,9 +105,9 @@ export default function RankingView({
                   {" · "}actualitzat amb els vots de la comunitat
                 </p>
               </div>
-              {!ranking.confidence.is_stable && (
+              {ranking.status !== "stable" && (
                 <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                  Provisional
+                  {ranking.status === "insufficient_data" ? "No hi ha prou dades" : "Provisional"}
                 </span>
               )}
             </header>

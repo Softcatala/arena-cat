@@ -78,6 +78,7 @@ export interface RankingConfidence {
 /** Resposta de `GET /api/ranking`. */
 export interface Ranking {
   category_code: CategoryCode | null;
+  status: "insufficient_data" | "provisional" | "stable";
   n_participants: number;
   n_votes_total: number;
   n_votes_decisive: number;

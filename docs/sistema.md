@@ -174,8 +174,9 @@ decisius de les versions actives. Els empats i els vots «cap de les dues» es
 compten separadament. La resposta pública inclou les puntuacions i posicions
 dels models, el nombre de vots i de participants i les mesures de confiança.
 
-La confiança s'estima amb bootstrap agrupat per prompt. La interfície fa
-servir el resultat d'estabilitat per indicar si el rànquing és provisional.
+La confiança s'estima amb bootstrap agrupat per prompt. El backend determina
+l'[estat del rànquing](../backend/README.md#get-apiranking) i la interfície el
+presenta com a «No hi ha prou dades» o «Provisional» quan correspon.
 Quan la confiança no està disponible, mostra «Dades insuficients».
 Els algoritmes són a [`backend/app/ranking/`](../backend/app/ranking/); el
 [document de disseny estadístic](ranking_design.md) recull la justificació

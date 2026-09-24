@@ -250,6 +250,7 @@ class RankedModel(BaseModel):
 
 class RankingResponse(BaseModel):
     category_code: str | None
+    status: Literal["insufficient_data", "provisional", "stable"]
     n_participants: int
     n_votes_total: int
     n_votes_decisive: int

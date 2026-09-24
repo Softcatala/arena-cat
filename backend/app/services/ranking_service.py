@@ -50,4 +50,10 @@ def get_ranking_per_category(db: Session, category_code: str | None) -> dict:
     ranking = compute_ranking(db, category_code)
     ranking["n_participants"] = db.scalar(participants_query)
     ranking["confidence"] = _confidence_response(assess_confidence(db, category_code))
+    if ranking["confidence"]["confidence_interval"] is None:
+        ranking["status"] = "insufficient_data"
+    elif ranking["confidence"]["is_stable"]:
+        ranking["status"] = "stable"
+    else:
+        ranking["status"] = "provisional"
     return ranking

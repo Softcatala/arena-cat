@@ -100,8 +100,9 @@ reemplaçament, i conserva tots els seus vots decisius.
 Calen almenys dos prompts amb vots decisius i dos models observats per calcular
 la confiança. Si no es compleix aquest mínim, `p_best_is_best` i l'interval de
 confiança són `null` a l'API i `is_stable` és fals. La interfície mostra
-«Dades insuficients» i manté el rànquing provisional, conservant les
-puntuacions observades. Els prompts amb només empats o «cap de les dues» no
+«Dades insuficients» per a la confiança i presenta l'estat que retorna
+l'[API](../backend/README.md#get-apiranking), conservant les puntuacions
+observades. Els prompts amb només empats o «cap de les dues» no
 compten per a aquest mínim.
 
 Primer s'ajusta BT sobre totes les dades i s'identifica el model amb la
@@ -117,8 +118,8 @@ segon amagaria aquests canvis de lideratge.
 
 Per defecte es fan 1.000 rèpliques. `p_best_is_best` és la fracció amb
 `delta > 0`; l'interval utilitza els percentils 2,5 i 97,5. `is_stable` indica
-si el límit inferior és positiu. El frontend utilitza aquest indicador per
-presentar el rànquing com a provisional; el selector continua oferint tasques.
+si el límit inferior és positiu. El backend utilitza aquest indicador per
+determinar l'estat del rànquing; el selector continua oferint tasques.
 No hi ha una regla automàtica d'aturada per pressupost o per confiança.
 
 ### 5.3. Limitacions
