@@ -62,6 +62,16 @@ def _gradient(
     return grad
 
 
+def top_model_by_skill(skills: dict[str, float]) -> str:
+    """Model amb skill més alt; desempata alfabèticament quan són idèntics.
+
+    Compartit per `compute_ranking` i `assess_confidence` per garantir que el
+    líder del rànquing i el `best_model` de la confiança coincideixin sempre,
+    també quan les skills empaten.
+    """
+    return min(skills, key=lambda model: (-skills[model], model))
+
+
 def fit_bt(
     decisive_votes: list[tuple[str, str]],
     models: list[str],
@@ -287,10 +297,10 @@ def compute_ranking(session: Session, category_code: str | None) -> dict:
 
     bt_skills = fit_bt(decisive, models, alpha=0.01)
     rounded_skills = {m: round(s, 4) for m, s in bt_skills.items()}
-    # Empat de skills → desempata alfabèticament perquè `best_model` i
-    # `ranked_models[0]` coincideixin sempre.
-    ordered_models = sorted(models, key=lambda model: (-rounded_skills[model], model))
-    best_model = ordered_models[0] if decisive else None
+    # Ordenem per skill sense arrodonir per no perdre precisió; desempat
+    # alfabètic quan són idèntics, alineat amb `assess_confidence`.
+    ordered_models = sorted(models, key=lambda model: (-bt_skills[model], model))
+    best_model = top_model_by_skill(bt_skills) if decisive else None
     ranked_models = (
         [
             {"rank": rank, "model": model, "bt_skill": rounded_skills[model]}

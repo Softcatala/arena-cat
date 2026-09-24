@@ -33,7 +33,7 @@ from sqlalchemy.orm import Session, aliased
 
 from app.models import Category, Prompt, Response, Vote, Winner
 from app.prompt_versions import active_prompt_ids
-from app.ranking.ranking import fit_bt
+from app.ranking.ranking import fit_bt, top_model_by_skill
 
 MIN_DECISIVE_PROMPTS = 10
 
@@ -197,7 +197,7 @@ def assess_confidence(
     best_model = None
     if len(models) >= 2 and n_decisive > 0:
         theta_hat = fit_bt(all_decisive, models, alpha=alpha)
-        best_model = max(theta_hat, key=theta_hat.get)
+        best_model = top_model_by_skill(theta_hat)
 
     if (
         best_model is None
