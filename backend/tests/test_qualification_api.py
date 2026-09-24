@@ -62,6 +62,30 @@ def test_questionnaire_has_ten_questions_without_solutions(client, unqualified_u
     assert client.get("/api/auth/session").json()["qualified"] is False
 
 
+@pytest.mark.parametrize("score", [None, 0])
+@pytest.mark.parametrize("query", ["?debug", "?debug=true"])
+def test_debug_qualification_skips_answers(
+    client, session, unqualified_user, questionnaire, score, query
+):
+    answers = {} if score is None else answers_for(questionnaire, score)
+    response = client.post(f"/api/qualification{query}", json={"answers": answers})
+    assert response.status_code == 200
+    assert response.json()["passed"] is True
+    session.refresh(unqualified_user)
+    assert unqualified_user.qualified_at is not None
+    assert client.get("/api/auth/session").json()["qualified"] is True
+    assert session.scalar(select(func.count()).select_from(Vote)) == 0
+    assert client.post("/api/qualification?debug=true", json={"answers": {}}).status_code == 409
+
+
+def test_submission_without_debug_still_requires_answers(client, unqualified_user):
+    assert client.post("/api/qualification", json={"answers": {}}).status_code == 422
+
+
+def test_debug_qualification_requires_session(client):
+    assert client.post("/api/qualification?debug=true", json={"answers": {}}).status_code == 401
+
+
 @pytest.mark.parametrize("score,passed", [(7, False), (8, True), (10, True)])
 def test_qualification_returns_only_total_without_solutions(
     client, session, unqualified_user, questionnaire, score, passed

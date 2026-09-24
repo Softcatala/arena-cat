@@ -107,8 +107,8 @@ export const api = {
 
   qualification: () => request<Questionnaire>("/qualification"),
 
-  submitQualification: (answers: Record<string, QualificationChoice>) =>
-    request<QualificationResult>("/qualification", {
+  submitQualification: (answers: Record<string, QualificationChoice>, debug = false) =>
+    request<QualificationResult>(debug ? "/qualification?debug" : "/qualification", {
       method: "POST",
       body: JSON.stringify({ answers }),
     }),

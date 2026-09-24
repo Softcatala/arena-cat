@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.deps import CurrentVerifiedUser, DbSession
 from app.schemas import QualificationRequest, QualificationResponse, QualificationResult
@@ -15,7 +15,12 @@ def get_qualification(current_user: CurrentVerifiedUser) -> QualificationRespons
 
 @router.post("/qualification")
 def submit_qualification(
-    payload: QualificationRequest, current_user: CurrentVerifiedUser, db: DbSession
+    payload: QualificationRequest,
+    request: Request,
+    current_user: CurrentVerifiedUser,
+    db: DbSession,
 ) -> QualificationResult:
     """Corregeix la prova i acredita l'usuari si assoleix el llindar del YAML."""
-    return qualification_service.submit_qualification(db, current_user, payload)
+    return qualification_service.submit_qualification(
+        db, current_user, payload, debug="debug" in request.query_params
+    )
