@@ -370,11 +370,7 @@ class TestInferencia(unittest.TestCase):
         self.assertEqual(log_warning.call_args.args[-1], "Resposta final")
         self.assertNotIn("min_new_tokens", model.generate_calls[0])
         self.assertNotIn("min_new_tokens", model.generate_calls[1])
-        self.assertIn("mínim configurat és 4", tokenizer.messages[0]["content"])
-        self.assertIn(
-            "resposta anterior tenia 1 tokens",
-            tokenizer.messages[0]["content"],
-        )
+        self.assertEqual(tokenizer.messages[0]["content"], "Sistema")
 
     def test_generate_text_passes_sampling_parameters_when_temperature_is_positive(
         self,

@@ -361,13 +361,8 @@ def build_messages(prompt_text: str, generation_params: ConfigDict) -> list[Conf
         Missatges en format compatible amb plantilles de xat.
     """
     messages = []
-    system_parts = []
     if generation_params.get("system_prompt"):
-        system_parts.append(generation_params["system_prompt"])
-    if generation_params.get("_retry_instruction"):
-        system_parts.append(generation_params["_retry_instruction"])
-    if system_parts:
-        messages.append({"role": "system", "content": "\n".join(system_parts)})
+        messages.append({"role": "system", "content": generation_params["system_prompt"]})
     messages.append({"role": "user", "content": prompt_text})
     return messages
 
@@ -502,24 +497,18 @@ def generate_text(
     prompt_text: str,
     generation_params: ConfigDict,
 ) -> str:
-    """Genera text i reintenta si la continuació és massa curta."""
+    """Genera text i reintenta amb les mateixes instruccions si és massa curt."""
     min_token_len = generation_params.get("min_token_len", 0) or 0
-    active_params = dict(generation_params)
     last_text = ""
     last_token_len = 0
     attempts = MIN_TOKEN_LEN_RETRY_ATTEMPTS if min_token_len else 1
     for attempt in range(attempts):
         last_text, last_token_len = generate_text_once(
-            tokenizer, model, prompt_text, active_params
+            tokenizer, model, prompt_text, generation_params
         )
         if last_token_len >= min_token_len:
             return last_text
 
-        active_params["_retry_instruction"] = (
-            f"La resposta anterior tenia {last_token_len} tokens generats i "
-            f"el mínim configurat és {min_token_len}. Escriu una resposta més "
-            "completa abans d'acabar."
-        )
         LOGGER.warning(
             "Resposta massa curta (%s/%s tokens); intent %s/%s; resultat: %r",
             last_token_len,
