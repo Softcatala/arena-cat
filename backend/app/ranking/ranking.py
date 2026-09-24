@@ -251,7 +251,8 @@ def compute_ranking(session: Session, category_code: str | None) -> dict:
         ```
 
         Si no hi ha vots a l'abast demanat, `best_model` és None i `bt_skills`
-        és buit.
+        és buit. Sense vots decisius, `best_model` és None i `ranked_models`
+        és buit, conservant els recomptes de vots.
     """
     raw = _load_votes(session, category_code)
     if not raw:
@@ -285,14 +286,18 @@ def compute_ranking(session: Session, category_code: str | None) -> dict:
             decisive.append((model_b, model_a))
 
     bt_skills = fit_bt(decisive, models, alpha=0.01)
-    best_model = max(bt_skills, key=bt_skills.get) if bt_skills else None
+    best_model = max(bt_skills, key=bt_skills.get) if decisive else None
     rounded_skills = {m: round(s, 4) for m, s in bt_skills.items()}
-    ranked_models = [
-        {"rank": rank, "model": model, "bt_skill": rounded_skills[model]}
-        for rank, model in enumerate(
-            sorted(models, key=lambda model: (-rounded_skills[model], model)), start=1
-        )
-    ]
+    ranked_models = (
+        [
+            {"rank": rank, "model": model, "bt_skill": rounded_skills[model]}
+            for rank, model in enumerate(
+                sorted(models, key=lambda model: (-rounded_skills[model], model)), start=1
+            )
+        ]
+        if decisive
+        else []
+    )
 
     raw_pairwise = _pairwise_stats(raw, models)
     cycle, cycle_path = _detect_cycle_3way(raw_pairwise)

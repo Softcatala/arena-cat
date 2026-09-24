@@ -481,8 +481,11 @@ def test_get_ranking_full_category(client, session):
 
 
 @pytest.mark.parametrize("winner", [Winner.tie, Winner.neither])
-def test_get_ranking_only_non_decisive_votes_is_insufficient(client, session, winner):
-    """Els vots no decisius no permeten estimar confiança."""
+@pytest.mark.parametrize("category_code", [None, "correccio"])
+def test_get_ranking_only_non_decisive_votes_is_insufficient(
+    client, session, winner, category_code
+):
+    """Sense vots decisius, no hi ha líder, classificació ni confiança disponible."""
     category = session.scalar(select(Category).where(Category.code == "correccio"))
     prompt = Prompt(version="v1", code="no-decisive", category_id=category.id, text="Text")
     response_a = Response(prompt=prompt, model="model_1", text="Resposta A")
@@ -499,12 +502,18 @@ def test_get_ranking_only_non_decisive_votes_is_insufficient(client, session, wi
     )
     session.commit()
 
-    response = client.get("/api/ranking")
+    params = {"category_code": category_code} if category_code else {}
+    response = client.get("/api/ranking", params=params)
     assert response.status_code == 200
     assert response.json()["n_votes_total"] == 1
     assert response.json()["n_votes_decisive"] == 0
+    assert response.json()["n_ties"] == int(winner == Winner.tie)
+    assert response.json()["n_neither"] == int(winner == Winner.neither)
     assert response.json()["status"] == "insufficient_data"
     assert response.json()["confidence"]["confidence_interval"] is None
+    assert response.json()["best_model"] is None
+    assert response.json()["confidence"]["best_model"] is None
+    assert response.json()["ranked_models"] == []
 
 
 def test_get_ranking_opposing_prompts_is_provisional(client, session):

@@ -196,6 +196,10 @@ El camp `status` indica l'estat del rànquing: `insufficient_data` si
 estable. La manca de vots, només empats o «cap de les dues», i els vots decisius
 concentrats en un únic prompt donen `insufficient_data`.
 
+Sense vots decisius, `best_model` i `confidence.best_model` són `null` i
+`ranked_models` és buit. Es conserven els recomptes de participants i vots;
+la interfície mostra que encara no hi ha prou vots per calcular el rànquing.
+
 ## Tests
 
 ```bash
