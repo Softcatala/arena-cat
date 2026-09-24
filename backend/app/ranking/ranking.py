@@ -286,14 +286,15 @@ def compute_ranking(session: Session, category_code: str | None) -> dict:
             decisive.append((model_b, model_a))
 
     bt_skills = fit_bt(decisive, models, alpha=0.01)
-    best_model = max(bt_skills, key=bt_skills.get) if decisive else None
     rounded_skills = {m: round(s, 4) for m, s in bt_skills.items()}
+    # Empat de skills → desempata alfabèticament perquè `best_model` i
+    # `ranked_models[0]` coincideixin sempre.
+    ordered_models = sorted(models, key=lambda model: (-rounded_skills[model], model))
+    best_model = ordered_models[0] if decisive else None
     ranked_models = (
         [
             {"rank": rank, "model": model, "bt_skill": rounded_skills[model]}
-            for rank, model in enumerate(
-                sorted(models, key=lambda model: (-rounded_skills[model], model)), start=1
-            )
+            for rank, model in enumerate(ordered_models, start=1)
         ]
         if decisive
         else []
