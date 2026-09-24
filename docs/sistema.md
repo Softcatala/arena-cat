@@ -183,7 +183,9 @@ i les limitacions, i el [dimensionament](avaluadors.md) estima l'esforç humà.
 
 ## Execució i desplegament
 
-En local, [Docker Compose](../docker-compose.yml) aixeca PostgreSQL 16 i l'API.
+En local, [Docker Compose](../docker-compose.yml) aixeca PostgreSQL 16, l'API i
+la interfície amb Vite. El codi es munta des de l'amfitrió i els dos servidors
+es recarreguen automàticament. Vegeu la [posada en marxa local](../README.md#posada-en-marxa-local).
 El volum de PostgreSQL conserva les dades entre arrencades. La inicialització
 crea un rol d'aplicació amb permisos limitats i una base de dades separada per
 a les proves. Les migracions Alembic utilitzen el rol administrador.

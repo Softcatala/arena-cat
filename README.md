@@ -18,28 +18,30 @@ Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/
 
 ## Posada en marxa local
 
-Requisits: Docker, Docker Compose, [`uv`](https://docs.astral.sh/uv/) i
-Node.js 20.19+ o 22.12+. Revisa la configuració de [`.env.example`](.env.example);
-`make setup` la copia a `.env` si encara no existeix.
+Requisits: Docker i Docker Compose. Revisa la configuració de
+[`.env.example`](.env.example); `make run` la copia a `.env` si encara no existeix.
 
 Des de l'arrel del repositori:
 
 ```bash
-make setup  # crea la base de dades local i aplica les migracions
-make run    # arrenca PostgreSQL i l'API
+make run  # arrenca PostgreSQL, aplica les migracions i inicia l'API i la interfície
 ```
 
-L'API queda disponible a `http://127.0.0.1:8000`. En una altra terminal, carrega
-les dades de referència i arrenca la interfície:
+L'API queda disponible a `http://127.0.0.1:8000` i la interfície a
+`http://127.0.0.1:5173`. Els canvis al codi de l'API i de la interfície es
+recarreguen automàticament. Les dependències del frontend s'instal·len en un
+volum de Docker.
+
+En una altra terminal, carrega les dades de referència (requereix
+[`uv`](https://docs.astral.sh/uv/)):
 
 ```bash
 make load_reference_inferences  # carrega les dades de la branca dades_inferencia
-make frontend-setup             # instal·la les dependències del frontend
-make frontend-dev               # arrenca el servidor de desenvolupament del frontend
 ```
 
-La interfície queda disponible a `http://127.0.0.1:5173` i permet completar la
-qualificació abans de votar.
+La interfície permet completar la qualificació abans de votar. Per executar
+proves del backend a l'amfitrió, prepara l'entorn amb `make setup`. Per executar
+la interfície fora de Docker, consulta la [guia del frontend](frontend/README.md).
 
 `make run` deixa els serveis en primer pla. Per aturar-los, prem `Ctrl+C`; per
 eliminar els contenidors aturats, executa `docker compose down`.
