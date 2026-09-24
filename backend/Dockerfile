@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 # Instal·lem `uv` copiant-lo directament de la seva imatge oficial (és la manera recomanada per Astral)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/

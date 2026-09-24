@@ -206,6 +206,10 @@ si falten variables; per exemple, si encara no hi ha `HMAC_SECRET_KEY`:
 printf 'HMAC_SECRET_KEY=%s\n' "$(openssl rand -hex 32)" >> .env
 ```
 
+Els contenidors Python de l'API i del carregador utilitzen `python:3.13-slim`.
+La versió de pedaç no està fixada. El fitxer `.python-version` també selecciona
+Python 3.13 per al desenvolupament local i les proves amb `uv`.
+
 El repositori defineix tres imatges:
 
 - [`backend/Dockerfile`](../backend/Dockerfile): aplica les migracions i arrenca
