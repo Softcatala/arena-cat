@@ -213,6 +213,11 @@ The tests need the PostgreSQL container running and run against `arena_cat_test`
 
 ## Migrations
 
+Les contrasenyes es configuren amb el seu valor original a `POSTGRES_PASSWORD`,
+també si contenen `@`, `%` o altres caràcters especials. SQLAlchemy construeix
+la URL i l'entorn d'Alembic escapa els `%` només per a la interpolació de la
+configuració, sense alterar la contrasenya que rep el motor de PostgreSQL.
+
 To evolve the schema:
 
 1. Edit the models in `app/models.py`.

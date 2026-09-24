@@ -17,7 +17,10 @@ if config.config_file_name is not None:
 # Les migracions usen el superusuari, tret que ja s'hagi fixat una URL explícita.
 if not config.get_main_option("sqlalchemy.url"):
     try:
-        config.set_main_option("sqlalchemy.url", get_settings().database_admin_url)
+        # ConfigParser interpreta els %, inclosos els caràcters codificats de la URL.
+        config.set_main_option(
+            "sqlalchemy.url", get_settings().database_admin_url.replace("%", "%%")
+        )
     except ValidationError as error:
         missing_hmac_key = any(
             detail["type"] == "missing" and detail["loc"] == ("hmac_secret_key",)
