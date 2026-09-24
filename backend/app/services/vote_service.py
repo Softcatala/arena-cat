@@ -1,11 +1,12 @@
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.exceptions import TaskTokenError
-from app.models import User, Vote
+from app.models import User, Vote, Winner
 from app.prompt_versions import require_active_prompt
 from app.schemas import VoteRequest, VoteResponse
 from app.security import verify_task_token
@@ -52,9 +53,26 @@ def submit_vote(db: Session, vote_req: VoteRequest, user: User):
         db.commit()
     except IntegrityError as err:
         db.rollback()
-        # L'índex únic uq_votes_user_prompt_pair garanteix que un usuari no pot
-        # votar dues vegades la mateixa parella de respostes (idempotència).
+        # L'índex únic evita duplicats, també si dos reintents arriben alhora.
         if "uq_votes_user_prompt_pair" in str(err.orig):
+            existing = db.scalar(
+                select(Vote).where(
+                    Vote.user_id == user.id,
+                    Vote.prompt_id == prompt_id,
+                    func.least(Vote.response_a_id, Vote.response_b_id)
+                    == min(response_a_id, response_b_id),
+                    func.greatest(Vote.response_a_id, Vote.response_b_id)
+                    == max(response_a_id, response_b_id),
+                )
+            )
+            if existing is not None:
+                expected_winner = vote_req.winner
+                if existing.response_a_id != response_a_id:
+                    expected_winner = {Winner.a: Winner.b, Winner.b: Winner.a}.get(
+                        expected_winner, expected_winner
+                    )
+                if existing.winner == expected_winner:
+                    return VoteResponse(status="ok")
             raise HTTPException(
                 status_code=409, detail="Ja has votat aquesta parella de respostes"
             ) from err

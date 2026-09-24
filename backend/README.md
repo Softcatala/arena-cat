@@ -119,6 +119,12 @@ L'usuari s'identifica amb la cookie de sessió per evitar repetir tasques.
 
 Registra el vot d'un usuari sobre una tasca prèviament demanada.
 
+Un reintent amb un token vàlid i el mateix resultat retorna 200 sense duplicar
+el vot ni alterar-ne la data. Es compara la resposta guanyadora encara que
+l'ordre A/B sigui invers. Canviar un resultat ja desat retorna 409.
+La [descripció del sistema](../docs/sistema.md#recorregut-de-lavaluador)
+explica la recuperació del client quan es perd la resposta del servidor.
+
 **Body (JSON):**
 - `winner` (string): Quin model ha guanyat. Valors possibles: `"a"`, `"b"`, `"tie"` o `"neither"`.
 - `token` (string): El JWT generat per l'endpoint `/api/task` (conté els IDs del prompt i les respostes).

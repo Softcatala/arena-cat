@@ -131,7 +131,12 @@ Per publicar o recarregar revisions, vegeu la
    una altra.
 
 La tasca en curs es conserva a `sessionStorage` per poder recuperar-la després
-d'una recàrrega. En tancar la sessió es descarta. El frontend també ofereix
+d'una recàrrega. Si el servidor desa un vot però se'n perd la resposta de xarxa,
+reenviar el mateix vot amb un token vàlid retorna èxit sense duplicar-lo. Així,
+el client descarta la tasca desada, actualitza el progrés i continua amb la
+següent, també després d'una recàrrega. Canviar el guanyador d'un vot ja desat
+continua retornant un conflicte i conserva el vot original.
+En tancar la sessió es descarta la tasca. El frontend també ofereix
 verificació del correu, recuperació de contrasenya, un tutorial i una pàgina
 explicativa del projecte. La portada sense sessió mostra el rànquing públic.
 
