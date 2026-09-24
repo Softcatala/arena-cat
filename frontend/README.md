@@ -16,18 +16,22 @@ fallits i començar a avaluar quan se supera.
 Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
-## Requisits
+## Execució amb Docker
+
+`make run` des de l'arrel arrenca tot el sistema, inclòs Vite amb recàrrega
+automàtica. No cal instal·lar Node.js a l'amfitrió. Vegeu la
+[posada en marxa local](../README.md#posada-en-marxa-local).
+
+## Execució fora de Docker
 
 - **Node.js 20.19+ o 22.12+** (ho exigeix Vite 7). Comproveu-ho amb `node --version`.
 - El backend en marxa i amb dades carregades. Des de l'arrel del repositori:
 
 ```bash
 make setup
-make run                        # o: docker compose up -d
+docker compose up -d --build api
 make load_reference_inferences  # en una altra terminal
 ```
-
-## Execució
 
 ```bash
 cd frontend

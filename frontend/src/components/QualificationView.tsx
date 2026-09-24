@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { api, ApiError } from "../api";
 import type { Category, QualificationChoice, QualificationResult, Questionnaire } from "../types";
@@ -10,6 +11,8 @@ export default function QualificationView({
   categories: Category[];
   onContinue: () => Promise<void>;
 }) {
+  const [searchParams] = useSearchParams();
+  const debug = searchParams.has("debug");
   const [questionnaire, setQuestionnaire] = useState<Questionnaire | null>(null);
   const [answers, setAnswers] = useState<Record<string, QualificationChoice>>({});
   const [result, setResult] = useState<QualificationResult | null>(null);
@@ -44,7 +47,12 @@ export default function QualificationView({
     setBusy(true);
     setError(null);
     try {
-      setResult(await api.submitQualification(answers));
+      const submission = await api.submitQualification(answers, debug);
+      if (debug && submission.passed) {
+        await onContinue();
+      } else {
+        setResult(submission);
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No s'han pogut comprovar les respostes.");
     } finally {
@@ -122,7 +130,7 @@ export default function QualificationView({
                       type="radio"
                       name={question.id}
                       value={choice}
-                      required
+                      required={!debug}
                       checked={answers[question.id] === choice}
                       onChange={() =>
                         setAnswers((previous) => ({ ...previous, [question.id]: choice }))

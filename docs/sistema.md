@@ -143,8 +143,9 @@ Els detalls de les pantalles i del comportament del client són al
 El selector considera cada combinació de prompt actiu i parella de models com
 una cel·la. Dins de la categoria, tria aleatòriament entre les cel·les amb menys
 vots i exclou les que l'usuari ja ha votat o omès. L'ordre de les respostes A/B
-també és aleatori. Sense filtre de categoria, el servei recorre les categories
-en ordre alfabètic fins a trobar feina pendent.
+també és aleatori. Sense filtre de categoria, el servei tria amb la mateixa
+probabilitat entre les categories amb feina pendent per a l'usuari, recorrent-les
+en un ordre aleatori fins a trobar una tasca disponible.
 
 La justificació del mostreig es recull al
 [disseny de selecció de tasques](ranking_design.md#4-selecció-de-tasques).
@@ -174,15 +175,19 @@ decisius de les versions actives. Els empats i els vots «cap de les dues» es
 compten separadament. La resposta pública inclou les puntuacions i posicions
 dels models, el nombre de vots i de participants i les mesures de confiança.
 
-La confiança s'estima amb bootstrap agrupat per prompt. La interfície fa
-servir el resultat d'estabilitat per indicar si el rànquing és provisional.
+La confiança s'estima amb bootstrap agrupat per prompt. El backend determina
+l'[estat del rànquing](../backend/README.md#get-apiranking) i la interfície el
+presenta com a «No hi ha prou dades» o «Provisional» quan correspon.
+Quan la confiança no està disponible, mostra «Dades insuficients».
 Els algoritmes són a [`backend/app/ranking/`](../backend/app/ranking/); el
 [document de disseny estadístic](ranking_design.md) recull la justificació
 i les limitacions, i el [dimensionament](avaluadors.md) estima l'esforç humà.
 
 ## Execució i desplegament
 
-En local, [Docker Compose](../docker-compose.yml) aixeca PostgreSQL 16 i l'API.
+En local, [Docker Compose](../docker-compose.yml) aixeca PostgreSQL 16, l'API i
+la interfície amb Vite. El codi es munta des de l'amfitrió i els dos servidors
+es recarreguen automàticament. Vegeu la [posada en marxa local](../README.md#posada-en-marxa-local).
 El volum de PostgreSQL conserva les dades entre arrencades. La inicialització
 crea un rol d'aplicació amb permisos limitats i una base de dades separada per
 a les proves. Les migracions Alembic utilitzen el rol administrador.

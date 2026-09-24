@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import logotip from "./assets/softcatala-logotip.png";
@@ -28,6 +28,8 @@ export default function App() {
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [categoriesError, setCategoriesError] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const debugQuery = searchParams.has("debug") ? "?debug" : "";
 
   const refresh = useCallback(async () => {
     try {
@@ -116,7 +118,11 @@ export default function App() {
             <Route
               path="/login"
               element={
-                session.authenticated ? <Navigate to="/" replace /> : <Login onLoggedIn={refresh} />
+                session.authenticated ? (
+                  <Navigate to={`/${debugQuery}`} replace />
+                ) : (
+                  <Login onLoggedIn={refresh} />
+                )
               }
             />
             {/* Obert a tothom: qui rep el correu encara no té sessió, i qui en té una
@@ -132,7 +138,7 @@ export default function App() {
               path="/qualification"
               element={
                 !session.authenticated ? (
-                  <Navigate to="/login" replace />
+                  <Navigate to={`/login${debugQuery}`} replace />
                 ) : session.qualified ? (
                   <Navigate to="/" replace />
                 ) : categories ? (
@@ -147,14 +153,17 @@ export default function App() {
               element={
                 session.authenticated ? (
                   !session.qualified ? (
-                    <Navigate to="/qualification" replace />
+                    <Navigate to={`/qualification${debugQuery}`} replace />
                   ) : categories ? (
                     <TaskView categories={categories} />
                   ) : (
                     <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />
                   )
                 ) : categories ? (
-                  <RankingView categories={categories} onLogin={() => navigate("/login")} />
+                  <RankingView
+                    categories={categories}
+                    onLogin={() => navigate(`/login${debugQuery}`)}
+                  />
                 ) : (
                   <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />
                 )

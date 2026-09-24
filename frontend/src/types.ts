@@ -70,14 +70,15 @@ export interface RankingConfidence {
   best_model: string | null;
   n_prompts: number;
   n_decisive_votes: number;
-  p_best_is_best: number;
-  confidence_interval: { lo: number; hi: number };
+  p_best_is_best: number | null;
+  confidence_interval: { lo: number; hi: number } | null;
   is_stable: boolean;
 }
 
 /** Resposta de `GET /api/ranking`. */
 export interface Ranking {
   category_code: CategoryCode | null;
+  status: "insufficient_data" | "provisional" | "stable";
   n_participants: number;
   n_votes_total: number;
   n_votes_decisive: number;

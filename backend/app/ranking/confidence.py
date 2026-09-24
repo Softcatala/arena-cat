@@ -15,7 +15,8 @@ Mètode: bootstrap clusteritzat amb etiquetes fixes.
 4. Reportem `p_best_is_best` (fracció de deltas > 0) i el CI 95% (percentils
    2.5 i 97.5 dels deltas).
 
-Regla d'aturada operativa: el rànquing és estable si `ci_lo > 0`.
+Amb menys de dos prompts amb vots decisius, la confiança no està disponible.
+Quan es calcula, el rànquing és estable si `ci_lo > 0`.
 
 Limitacions documentades a `docs/ranking_design.md` §5.3:
 - Bootstrap clusteritzat amb 10 prompts té problemes de mostra petita
@@ -128,7 +129,7 @@ def assess_confidence(
           del temps quan re-mostregem").
         - `ci_lo`, `ci_hi`: percentils 2.5 i 97.5 del gap entre el best fix
           i el millor competidor. Pot ser negatiu si el rànquing és inestable.
-        - `is_stable`: True si `ci_lo > 0`. Regla d'aturada operativa.
+        - `is_stable`: True si es pot calcular la confiança i `ci_lo > 0`.
 
     Limitacions (cal documentar-les públicament):
         - Amb només ~10 prompts per categoria, el cluster bootstrap té
@@ -162,30 +163,33 @@ def assess_confidence(
         }
         ```
 
-        Si no hi ha prou vots o models per fer el bootstrap, retorna valors
-        per defecte amb `is_stable=False`.
+        Amb menys de dos models o de dos prompts amb vots decisius, retorna
+        `p_best_is_best`, `ci_lo` i `ci_hi` a None i `is_stable=False`.
+        Conserva el millor model observat quan hi ha vots decisius.
     """
     by_prompt, models = _load_clustered_votes(session, category_code)
     n_decisive = sum(len(v) for v in by_prompt.values())
 
-    if len(models) < 2 or n_decisive == 0:
+    # Ajust complet → millor model amb etiqueta fixa.
+    best_model = None
+    if len(models) >= 2 and n_decisive > 0:
+        all_decisive = [v for vs in by_prompt.values() for v in vs]
+        theta_hat = fit_bt(all_decisive, models, alpha=alpha)
+        best_model = max(theta_hat, key=theta_hat.get)
+
+    if best_model is None or len(by_prompt) < 2:
         return {
             "category_code": category_code,
-            "best_model": None,
+            "best_model": best_model,
             "n_prompts": len(by_prompt),
             "n_decisive_votes": n_decisive,
-            "p_best_is_best": 0.0,
-            "ci_lo": 0.0,
-            "ci_hi": 0.0,
+            "p_best_is_best": None,
+            "ci_lo": None,
+            "ci_hi": None,
             "is_stable": False,
         }
 
-    # Pas 1: ajust complet → millor model amb etiqueta fixa.
-    all_decisive = [v for vs in by_prompt.values() for v in vs]
-    theta_hat = fit_bt(all_decisive, models, alpha=alpha)
-    best_model = max(theta_hat, key=theta_hat.get)
-
-    # Pas 2: bootstrap clusteritzat.
+    # Bootstrap clusteritzat.
     deltas = _bootstrap_deltas(
         by_prompt=by_prompt,
         models=models,

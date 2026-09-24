@@ -1,11 +1,16 @@
+import random
+
+import pytest
+
 from app.models import Category, Prompt, Response, TaskSkip, Vote, Winner
 
 
-def test_get_task_empty_db(client, logged_in_user):
+@pytest.mark.parametrize("params", [{}, {"category_code": "correccio"}])
+def test_get_task_empty_db(client, logged_in_user, params):
     """Prova què passa si demanem una tasca quan la db està buida."""
     logged_in_user("task_empty@example.com")
 
-    response = client.get("/api/task", params={"category_code": "correccio"})
+    response = client.get("/api/task", params=params)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "No hi ha tasques disponibles o bé les has realitzat totes."
@@ -60,6 +65,72 @@ def test_get_task_without_category_picks_available_task(client, session, logged_
     assert data["category_code"] == "available_cat"
     assert data["prompt"] == "El gat es blau"
     assert "token" in data
+
+
+@pytest.fixture
+def category_tasks(session):
+    tasks = {}
+    for code in ("a_category", "z_category"):
+        category = Category(code=code, name=code)
+        session.add(category)
+        session.flush()
+        prompt = Prompt(version="v1", code=code, category_id=category.id, text="Text")
+        session.add(prompt)
+        session.flush()
+        responses = [Response(prompt_id=prompt.id, model=model, text=model) for model in ("a", "b")]
+        session.add_all(responses)
+        session.flush()
+        tasks[code] = (prompt, *responses)
+    session.commit()
+    return tasks
+
+
+def test_unfiltered_tasks_can_select_each_available_category(
+    client, logged_in_user, category_tasks, monkeypatch
+):
+    """Les peticions sense filtre no es concentren en la primera categoria."""
+    monkeypatch.setattr(random, "shuffle", random.Random(0).shuffle)
+    logged_in_user("random_category@example.com")
+    selected = set()
+    for _ in range(12):
+        response = client.get("/api/task")
+        assert response.status_code == 200
+        selected.add(response.json()["category_code"])
+    assert selected == set(category_tasks)
+
+
+@pytest.mark.parametrize("completed", [Vote, TaskSkip])
+def test_unfiltered_tasks_exclude_categories_completed_by_user(
+    client, session, logged_in_user, category_tasks, completed
+):
+    """Les categories votades o omeses no impedeixen accedir a les altres."""
+    user = logged_in_user("completed_category@example.com")
+    for code, (prompt, response_a, response_b) in category_tasks.items():
+        session.add(
+            completed(
+                prompt_id=prompt.id,
+                user_id=user.id,
+                response_a_id=response_a.id,
+                response_b_id=response_b.id,
+                **({"winner": Winner.a} if completed is Vote else {}),
+            )
+        )
+        session.commit()
+        response = client.get("/api/task")
+        if code == "a_category":
+            assert response.status_code == 200
+            assert response.json()["category_code"] == "z_category"
+        else:
+            assert response.status_code == 404
+
+
+def test_filtered_tasks_keep_requested_category(client, logged_in_user, category_tasks):
+    """El filtre explícit continua seleccionant només la categoria demanada."""
+    logged_in_user("filtered_category@example.com")
+    for code in category_tasks:
+        response = client.get("/api/task", params={"category_code": code})
+        assert response.status_code == 200
+        assert response.json()["category_code"] == code
 
 
 def test_skip_task_prevents_showing_it_again(client, session, logged_in_user):

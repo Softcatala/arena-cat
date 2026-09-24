@@ -99,8 +99,10 @@ Obtenir tasques, consultar-ne el progrés, ometre-les i votar requereix haver
 superat la prova de competència lingüística; altrament, es retorna 403.
 
 **Paràmetres de la URL:**
-- `category_code` (string, obligatori): La categoria de la tasca sol·licitada (p. ex., `correccio`).
-- `session_id` (string, obligatori): L'identificador de sessió de l'usuari per evitar repetir tasques.
+- `category_code` (string, opcional): La categoria de la tasca sol·licitada (p. ex., `correccio`).
+  Sense filtre, s'aplica la [selecció aleatòria entre categories disponibles](../docs/sistema.md#selecció-i-registre-de-tasques).
+
+L'usuari s'identifica amb la cookie de sessió per evitar repetir tasques.
 
 **Resposta (200 OK):**
 ```json
@@ -147,6 +149,7 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
 ```json
 {
   "category_code": "correccio",
+  "status": "stable",
   "n_participants": 42,
   "n_votes_total": 390,
   "n_votes_decisive": 358,
@@ -184,6 +187,20 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
   }
 }
 ```
+
+Quan no es pot estimar la confiança, `p_best_is_best` i `confidence_interval`
+són `null` i `is_stable` és `false`. Vegeu el
+[criteri mínim i les limitacions](../docs/ranking_design.md#52-seguiment-del-mateix-model).
+
+El camp `status` indica l'estat del rànquing: `insufficient_data` si
+`confidence.confidence_interval` és `null`, `stable` si `confidence.is_stable`
+és cert, o `provisional` si l'interval està disponible però el rànquing no és
+estable. La manca de vots, només empats o «cap de les dues», i els vots decisius
+concentrats en un únic prompt donen `insufficient_data`.
+
+Sense vots decisius, `best_model` i `confidence.best_model` són `null` i
+`ranked_models` és buit. Es conserven els recomptes de participants i vots;
+la interfície mostra que encara no hi ha prou vots per calcular el rànquing.
 
 ## Tests
 

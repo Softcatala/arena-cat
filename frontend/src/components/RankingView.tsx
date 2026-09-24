@@ -105,9 +105,9 @@ export default function RankingView({
                   {" · "}actualitzat amb els vots de la comunitat
                 </p>
               </div>
-              {!ranking.confidence.is_stable && (
+              {ranking.status !== "stable" && (
                 <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
-                  Provisional
+                  {ranking.status === "insufficient_data" ? "No hi ha prou dades" : "Provisional"}
                 </span>
               )}
             </header>
@@ -171,7 +171,9 @@ export default function RankingView({
             <div className="flex items-center justify-between border-t border-slate-200 px-5 py-3 text-sm">
               <span className="text-slate-500">Confiança del líder</span>
               <span className="font-semibold text-slate-700">
-                {Math.round(ranking.confidence.p_best_is_best * 100)}%
+                {ranking.confidence.p_best_is_best === null
+                  ? "Dades insuficients"
+                  : `${Math.round(ranking.confidence.p_best_is_best * 100)}%`}
               </span>
             </div>
           </section>
