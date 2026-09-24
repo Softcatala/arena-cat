@@ -19,7 +19,7 @@ def _category(session, code="correccio"):
     return session.scalar(select(Category).where(Category.code == code))
 
 
-def _seed_prompts(session, category_code, n_prompts):
+def _seed_prompts(session, category_code, n_prompts, models=MODELS):
     cat = _category(session, category_code)
     out = []
     for i in range(n_prompts):
@@ -32,7 +32,7 @@ def _seed_prompts(session, category_code, n_prompts):
         session.add(prompt)
         session.flush()
         responses = {}
-        for m in MODELS:
+        for m in models:
             r = Response(prompt=prompt, model=m, text=f"Resposta de {m}")
             session.add(r)
             responses[m] = r
@@ -86,9 +86,80 @@ def test_assess_confidence_single_decisive_prompt_is_insufficient(session, n_vot
     assert result["ci_hi"] is None
 
 
+@pytest.mark.parametrize("n_prompts", [2, 9])
+def test_assess_confidence_few_decisive_prompts_are_insufficient(session, n_prompts):
+    """Ni dos vots en dos prompts ni nou prompts permeten declarar estabilitat."""
+    prompts = _seed_prompts(session, "correccio", n_prompts=n_prompts)
+    gemma, qwen, _ = MODELS
+    for prompt, responses in prompts:
+        _vote(session, prompt, responses[gemma], responses[qwen], Winner.a)
+
+    result = assess_confidence(session, "correccio")
+
+    assert result["best_model"] == gemma
+    assert result["n_prompts"] == n_prompts
+    assert result["n_decisive_votes"] == n_prompts
+    assert result["is_stable"] is False
+    assert result["p_best_is_best"] is None
+    assert result["ci_lo"] is None
+    assert result["ci_hi"] is None
+
+
+@pytest.mark.parametrize("bridge", [None, Winner.tie, Winner.neither])
+def test_assess_confidence_disconnected_models_are_insufficient(session, bridge):
+    """Dos grups amb vots decisius no es connecten amb empats ni omissions de preferència."""
+    models = ["model-a", "model-b", "model-c", "model-d"]
+    prompts = _seed_prompts(session, "correccio", n_prompts=10, models=models)
+    for prompt, responses in prompts:
+        _vote(session, prompt, responses[models[0]], responses[models[1]], Winner.a)
+        _vote(session, prompt, responses[models[2]], responses[models[3]], Winner.a)
+        if bridge is not None:
+            _vote(session, prompt, responses[models[1]], responses[models[2]], bridge)
+
+    result = assess_confidence(session, "correccio")
+
+    assert result["n_prompts"] == 10
+    assert result["n_decisive_votes"] == 20
+    assert result["is_stable"] is False
+    assert result["p_best_is_best"] is None
+    assert result["ci_lo"] is None
+    assert result["ci_hi"] is None
+
+
+def test_assess_confidence_model_with_only_ties_is_disconnected(session):
+    """Un model observat només en empats també ha de tenir comparacions decisives."""
+    prompts = _seed_prompts(session, "correccio", n_prompts=10)
+    gemma, qwen, salamandra = MODELS
+    for prompt, responses in prompts:
+        _vote(session, prompt, responses[gemma], responses[qwen], Winner.a)
+        _vote(session, prompt, responses[gemma], responses[salamandra], Winner.tie)
+
+    result = assess_confidence(session, "correccio")
+
+    assert result["is_stable"] is False
+    assert result["p_best_is_best"] is None
+    assert result["ci_lo"] is None
+    assert result["ci_hi"] is None
+
+
+def test_assess_confidence_indirectly_connected_models_have_confidence(session):
+    """La connexió A–B–C és suficient sense exigir totes les parelles directes."""
+    prompts = _seed_prompts(session, "correccio", n_prompts=10)
+    gemma, qwen, salamandra = MODELS
+    for prompt, responses in prompts:
+        _vote(session, prompt, responses[gemma], responses[qwen], Winner.a)
+        _vote(session, prompt, responses[qwen], responses[salamandra], Winner.a)
+
+    result = assess_confidence(session, "correccio", n_bootstrap=200)
+
+    assert result["best_model"] == gemma
+    assert result["is_stable"] is True
+    assert result["ci_lo"] > 0
+
+
 def test_assess_confidence_clear_winner_is_stable(session):
     """Si gemma guanya sempre, el rànquing és estable amb alta confiança."""
-    prompts = _seed_prompts(session, "correccio", n_prompts=5)
+    prompts = _seed_prompts(session, "correccio", n_prompts=10)
     gemma, qwen, salamandra = MODELS
     for prompt, r in prompts:
         # gemma guanya 8 vegades cada parella que l'inclou.
@@ -111,7 +182,7 @@ def test_assess_confidence_clear_winner_is_stable(session):
 def test_assess_confidence_without_category_returns_global_confidence(session):
     """Sense categoria, la confiança agrega els vots de totes les categories."""
     for category_code in ("correccio", "traduccio"):
-        prompts = _seed_prompts(session, category_code, n_prompts=2)
+        prompts = _seed_prompts(session, category_code, n_prompts=5)
         gemma, qwen, salamandra = MODELS
         for prompt, r in prompts:
             for _ in range(4):
@@ -123,14 +194,14 @@ def test_assess_confidence_without_category_returns_global_confidence(session):
 
     assert result["category_code"] is None
     assert result["best_model"] == "gemma-3-4b-it"
-    assert result["n_prompts"] == 4
-    assert result["n_decisive_votes"] == 48
+    assert result["n_prompts"] == 10
+    assert result["n_decisive_votes"] == 120
     assert result["is_stable"] is True
 
 
 def test_assess_confidence_coin_flip_is_unstable(session):
     """Si totes les parelles són 50/50, el rànquing no és estable."""
-    prompts = _seed_prompts(session, "traduccio", n_prompts=5)
+    prompts = _seed_prompts(session, "traduccio", n_prompts=10)
     gemma, qwen, salamandra = MODELS
     for prompt, r in prompts:
         # 6-6 per a cada parella → veredicte real és tie.
@@ -151,7 +222,7 @@ def test_assess_confidence_coin_flip_is_unstable(session):
 
 def test_assess_confidence_ignores_ties_and_neither(session):
     """Empats i neithers no contribueixen al bootstrap BT."""
-    prompts = _seed_prompts(session, "reformulacio", n_prompts=2)
+    prompts = _seed_prompts(session, "reformulacio", n_prompts=10)
     gemma, qwen, salamandra = MODELS
     for prompt, r in prompts:
         # 4 decisius (gemma guanya), més 5 empats i 3 neithers que han d'ignorar-se.
@@ -165,9 +236,9 @@ def test_assess_confidence_ignores_ties_and_neither(session):
             _vote(session, prompt, r[gemma], r[qwen], Winner.neither)
 
     result = assess_confidence(session, "reformulacio", n_bootstrap=200, seed=42)
-    # 3 parelles × 4 decisius × 2 prompts = 24 vots decisius.
-    assert result["n_decisive_votes"] == 24
-    assert result["n_prompts"] == 2
+    # 3 parelles × 4 decisius × 10 prompts = 120 vots decisius.
+    assert result["n_decisive_votes"] == 120
+    assert result["n_prompts"] == 10
     assert result["p_best_is_best"] is not None
     assert result["ci_lo"] is not None
     assert result["ci_hi"] is not None

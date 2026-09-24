@@ -97,8 +97,12 @@ reemplaçament, i conserva tots els seus vots decisius.
 
 ### 5.2. Seguiment del mateix model
 
-Calen almenys dos prompts amb vots decisius i dos models observats per calcular
-la confiança. Si no es compleix aquest mínim, `p_best_is_best` i l'interval de
+Calen almenys **deu prompts amb vots decisius**, dos models observats i
+comparacions decisives que connectin tots els models del rànquing per calcular
+la confiança. La connexió pot ser indirecta (A–B–C); no s'exigeix comparar
+totes les parelles ni que cada model tingui victòries. Els models observats
+només en empats o «cap de les dues» també han de quedar connectats mitjançant
+vots decisius. Si no es compleixen aquests criteris, `p_best_is_best` i l'interval de
 confiança són `null` a l'API i `is_stable` és fals. La interfície mostra
 «Dades insuficients» per a la confiança i presenta l'estat que retorna
 l'[API](../backend/README.md#get-apiranking), conservant les puntuacions
@@ -124,8 +128,10 @@ No hi ha una regla automàtica d'aturada per pressupost o per confiança.
 
 ### 5.3. Limitacions
 
-- El mínim de dos prompts evita remostrejar sempre un únic grup; no garanteix
-  una estimació fiable amb mostres petites ni comprova la connexió entre models.
+- El mínim de deu prompts és una barrera conservadora, no un llindar validat
+  estadísticament ni una garantia d'estimació fiable. No imposa un mínim de
+  vots per parella ni d'avaluadors diferents. La connexió es comprova sobre
+  el conjunt de vots decisius, no sobre cada rèplica del bootstrap.
 - Amb pocs prompts, la diversitat de mostres del bootstrap és limitada;
   molts vots sobre els mateixos prompts no equivalen a molts prompts diferents.
 - L'agrupació actual és per prompt, sense modelar addicionalment la dependència

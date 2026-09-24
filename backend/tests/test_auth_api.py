@@ -516,10 +516,21 @@ def test_get_ranking_only_non_decisive_votes_is_insufficient(
     assert response.json()["ranked_models"] == []
 
 
-def test_get_ranking_opposing_prompts_is_provisional(client, session):
-    """Dos prompts amb preferències oposades permeten estimar un interval no estable."""
+@pytest.mark.parametrize(
+    ("winners", "status"),
+    [
+        ([Winner.a] * 2, "insufficient_data"),
+        ([Winner.a] * 9, "insufficient_data"),
+        ([Winner.a] * 10, "stable"),
+        ([Winner.a, Winner.b] * 5, "provisional"),
+    ],
+)
+def test_get_ranking_status_depends_on_prompt_coverage_and_confidence(
+    client, session, winners, status
+):
+    """L'API distingeix manca de cobertura, estabilitat i preferències oposades."""
     category = session.scalar(select(Category).where(Category.code == "correccio"))
-    for index, winner in enumerate([Winner.a, Winner.b]):
+    for index, winner in enumerate(winners):
         prompt = Prompt(
             version="v1", code=f"opposing-{index}", category_id=category.id, text="Text"
         )
@@ -540,10 +551,15 @@ def test_get_ranking_opposing_prompts_is_provisional(client, session):
     for params in ({}, {"category_code": category.code}):
         response = client.get("/api/ranking", params=params)
         assert response.status_code == 200
-        assert response.json()["status"] == "provisional"
+        assert response.json()["status"] == status
         interval = response.json()["confidence"]["confidence_interval"]
-        assert interval["lo"] < 0 < interval["hi"]
-        assert response.json()["confidence"]["is_stable"] is False
+        if status == "insufficient_data":
+            assert interval is None
+        elif status == "provisional":
+            assert interval["lo"] < 0 < interval["hi"]
+        else:
+            assert interval["lo"] > 0
+        assert response.json()["confidence"]["is_stable"] is (status == "stable")
 
 
 def test_get_ranking_without_category_returns_global(client, session, create_user):
@@ -593,29 +609,21 @@ def test_get_ranking_without_category_returns_global(client, session, create_use
     assert response.status_code == 200
     assert response.json()["category_code"] is None
     assert response.json()["n_votes_total"] == 6
-    assert response.json()["status"] == "stable"
+    assert response.json()["status"] == "insufficient_data"
     assert response.json()["n_participants"] == 3
     assert response.json()["best_model"] == "model_1"
     assert response.json()["ranked_models"][0]["model"] == "model_1"
     assert response.json()["confidence"]["category_code"] is None
     assert response.json()["confidence"]["best_model"] == "model_1"
     assert response.json()["confidence"]["n_decisive_votes"] == 4
-    interval = response.json()["confidence"]["confidence_interval"]
-    assert set(interval) == {"lo", "hi"}
-    assert interval["lo"] <= interval["hi"]
+    assert response.json()["confidence"]["confidence_interval"] is None
+    assert response.json()["confidence"]["is_stable"] is False
 
     for category_code, expected in [("correccio", 2), ("traduccio", 2), ("reformulacio", 0)]:
         response = client.get("/api/ranking", params={"category_code": category_code})
         assert response.status_code == 200
         assert response.json()["n_participants"] == expected
-        assert (
-            response.json()["status"]
-            == {
-                "correccio": "stable",
-                "traduccio": "insufficient_data",
-                "reformulacio": "insufficient_data",
-            }[category_code]
-        )
+        assert response.json()["status"] == "insufficient_data"
 
 
 # --- Enviament del correu de verificació -------------------------------------------------

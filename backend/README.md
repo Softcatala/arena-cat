@@ -195,8 +195,9 @@ són `null` i `is_stable` és `false`. Vegeu el
 El camp `status` indica l'estat del rànquing: `insufficient_data` si
 `confidence.confidence_interval` és `null`, `stable` si `confidence.is_stable`
 és cert, o `provisional` si l'interval està disponible però el rànquing no és
-estable. La manca de vots, només empats o «cap de les dues», i els vots decisius
-concentrats en un únic prompt donen `insufficient_data`.
+estable. La manca de vots, una cobertura insuficient de prompts amb vots
+decisius o models desconnectats en les comparacions decisives donen
+`insufficient_data`, segons el criteri mínim enllaçat més amunt.
 
 Sense vots decisius, `best_model` i `confidence.best_model` són `null` i
 `ranked_models` és buit. Es conserven els recomptes de participants i vots;
