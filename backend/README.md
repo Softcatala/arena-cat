@@ -99,8 +99,10 @@ Obtenir tasques, consultar-ne el progrés, ometre-les i votar requereix haver
 superat la prova de competència lingüística; altrament, es retorna 403.
 
 **Paràmetres de la URL:**
-- `category_code` (string, obligatori): La categoria de la tasca sol·licitada (p. ex., `correccio`).
-- `session_id` (string, obligatori): L'identificador de sessió de l'usuari per evitar repetir tasques.
+- `category_code` (string, opcional): La categoria de la tasca sol·licitada (p. ex., `correccio`).
+  Sense filtre, s'aplica la [selecció aleatòria entre categories disponibles](../docs/sistema.md#selecció-i-registre-de-tasques).
+
+L'usuari s'identifica amb la cookie de sessió per evitar repetir tasques.
 
 **Resposta (200 OK):**
 ```json

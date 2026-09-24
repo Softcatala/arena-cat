@@ -1,3 +1,4 @@
+import random
 from collections import defaultdict
 from itertools import combinations
 
@@ -30,7 +31,9 @@ def get_next_task_for_user(category_code: str | None, user: User, db: Session) -
         task = select_next_task(db, category_code, user.id)
     else:
         task = None
-        for code in db.scalars(select(Category.code).order_by(Category.code)):
+        category_codes = list(db.scalars(select(Category.code)))
+        random.shuffle(category_codes)
+        for code in category_codes:
             task = select_next_task(db, code, user.id)
             if task is not None:
                 break
