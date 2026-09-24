@@ -70,8 +70,8 @@ export interface RankingConfidence {
   best_model: string | null;
   n_prompts: number;
   n_decisive_votes: number;
-  p_best_is_best: number;
-  confidence_interval: { lo: number; hi: number };
+  p_best_is_best: number | null;
+  confidence_interval: { lo: number; hi: number } | null;
   is_stable: boolean;
 }
 

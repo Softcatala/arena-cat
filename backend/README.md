@@ -185,6 +185,10 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
 }
 ```
 
+Quan no es pot estimar la confiança, `p_best_is_best` i `confidence_interval`
+són `null` i `is_stable` és `false`. Vegeu el
+[criteri mínim i les limitacions](../docs/ranking_design.md#52-seguiment-del-mateix-model).
+
 ## Tests
 
 ```bash

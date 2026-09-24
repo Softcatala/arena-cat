@@ -237,8 +237,8 @@ class RankingConfidence(BaseModel):
     best_model: str | None
     n_prompts: int
     n_decisive_votes: int
-    p_best_is_best: float
-    confidence_interval: ConfidenceInterval
+    p_best_is_best: float | None
+    confidence_interval: ConfidenceInterval | None
     is_stable: bool
 
 

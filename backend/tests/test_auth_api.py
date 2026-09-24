@@ -411,6 +411,9 @@ def test_get_ranking_empty_category(client, session, create_user):
     assert response.status_code == 200
     assert response.json()["best_model"] is None
     assert response.json()["ranked_models"] == []
+    assert response.json()["confidence"]["p_best_is_best"] is None
+    assert response.json()["confidence"]["confidence_interval"] is None
+    assert response.json()["confidence"]["is_stable"] is False
     assert response.json()["n_participants"] == 0
     assert client.get("/api/ranking").json()["n_participants"] == 0
     assert "models" not in response.json()
@@ -467,10 +470,9 @@ def test_get_ranking_full_category(client, session):
     assert "cycle_path" not in response.json()
     assert response.json()["confidence"]["best_model"] == "model_1"
     assert response.json()["confidence"]["n_decisive_votes"] == 1
-    assert response.json()["confidence"]["p_best_is_best"] == 1.0
-    interval = response.json()["confidence"]["confidence_interval"]
-    assert set(interval) == {"lo", "hi"}
-    assert interval["lo"] <= interval["hi"]
+    assert response.json()["confidence"]["p_best_is_best"] is None
+    assert response.json()["confidence"]["confidence_interval"] is None
+    assert response.json()["confidence"]["is_stable"] is False
     assert "ci_lo" not in response.json()["confidence"]
     assert "ci_hi" not in response.json()["confidence"]
 

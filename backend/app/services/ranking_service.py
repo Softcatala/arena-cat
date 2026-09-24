@@ -16,10 +16,11 @@ def _confidence_response(confidence: dict) -> dict:
         "n_prompts": confidence["n_prompts"],
         "n_decisive_votes": confidence["n_decisive_votes"],
         "p_best_is_best": confidence["p_best_is_best"],
-        "confidence_interval": {
-            "lo": confidence["ci_lo"],
-            "hi": confidence["ci_hi"],
-        },
+        "confidence_interval": (
+            {"lo": confidence["ci_lo"], "hi": confidence["ci_hi"]}
+            if confidence["ci_lo"] is not None
+            else None
+        ),
         "is_stable": confidence["is_stable"],
     }
 

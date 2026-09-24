@@ -176,6 +176,7 @@ dels models, el nombre de vots i de participants i les mesures de confiança.
 
 La confiança s'estima amb bootstrap agrupat per prompt. La interfície fa
 servir el resultat d'estabilitat per indicar si el rànquing és provisional.
+Quan la confiança no està disponible, mostra «Dades insuficients».
 Els algoritmes són a [`backend/app/ranking/`](../backend/app/ranking/); el
 [document de disseny estadístic](ranking_design.md) recull la justificació
 i les limitacions, i el [dimensionament](avaluadors.md) estima l'esforç humà.

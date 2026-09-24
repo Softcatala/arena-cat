@@ -6,6 +6,7 @@ declara estable un rànquing realment estable i rebutja un cas de coin-flip.
 
 from __future__ import annotations
 
+import pytest
 from sqlalchemy import select
 
 from app.models import Category, Prompt, Response, Vote, Winner
@@ -57,6 +58,32 @@ def test_assess_confidence_empty_category(session):
     assert result["best_model"] is None
     assert result["n_decisive_votes"] == 0
     assert result["is_stable"] is False
+    assert result["p_best_is_best"] is None
+    assert result["ci_lo"] is None
+    assert result["ci_hi"] is None
+
+
+@pytest.mark.parametrize("n_votes", [1, 30])
+def test_assess_confidence_single_decisive_prompt_is_insufficient(session, n_votes):
+    """Un sol prompt decisiu no permet estimar confiança, encara que tingui molts vots."""
+    prompts = _seed_prompts(session, "correccio", n_prompts=2)
+    gemma, qwen, _ = MODELS
+    prompt, responses = prompts[0]
+    for _ in range(n_votes):
+        _vote(session, prompt, responses[gemma], responses[qwen], Winner.a)
+    other_prompt, other_responses = prompts[1]
+    for winner in (Winner.tie, Winner.neither):
+        _vote(session, other_prompt, other_responses[gemma], other_responses[qwen], winner)
+
+    result = assess_confidence(session, "correccio")
+
+    assert result["best_model"] == gemma
+    assert result["n_prompts"] == 1
+    assert result["n_decisive_votes"] == n_votes
+    assert result["is_stable"] is False
+    assert result["p_best_is_best"] is None
+    assert result["ci_lo"] is None
+    assert result["ci_hi"] is None
 
 
 def test_assess_confidence_clear_winner_is_stable(session):
@@ -140,3 +167,7 @@ def test_assess_confidence_ignores_ties_and_neither(session):
     result = assess_confidence(session, "reformulacio", n_bootstrap=200, seed=42)
     # 3 parelles × 4 decisius × 2 prompts = 24 vots decisius.
     assert result["n_decisive_votes"] == 24
+    assert result["n_prompts"] == 2
+    assert result["p_best_is_best"] is not None
+    assert result["ci_lo"] is not None
+    assert result["ci_hi"] is not None
