@@ -1,11 +1,44 @@
+import functools
+from collections.abc import Callable
+
 from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Category, Prompt, Vote
+from app.models import Category, Prompt, Response, Vote
 from app.prompt_versions import active_prompt_ids
 from app.ranking.confidence import assess_confidence
 from app.ranking.ranking import compute_ranking
+
+
+def _cache_by_max_ids(
+    fn: Callable[[Session, str | None], dict],
+) -> Callable[[Session, str | None], dict]:
+    """Cacheja la resposta per `category_code` mentre no canviïn les dades base.
+
+    `assess_confidence` fa ~1000 ajustos BT per crida (~5 s) i l'endpoint és
+    públic. La clau d'invalidació és el màxim `id` de vots, prompts i respostes:
+    les seqüències de Postgres no retrocedeixen, així que qualsevol inserció
+    a qualsevol d'aquestes taules força el recàlcul. Cal incloure prompts i
+    respostes perquè `active_prompt_ids` en depèn.
+    """
+    cache: dict[str | None, tuple[tuple[int, int, int], dict]] = {}
+
+    @functools.wraps(fn)
+    def wrapper(db: Session, category_code: str | None) -> dict:
+        invalidator = (
+            db.scalar(select(func.max(Vote.id))) or 0,
+            db.scalar(select(func.max(Prompt.id))) or 0,
+            db.scalar(select(func.max(Response.id))) or 0,
+        )
+        entry = cache.get(category_code)
+        if entry is not None and entry[0] == invalidator:
+            return entry[1]
+        result = fn(db, category_code)
+        cache[category_code] = (invalidator, result)
+        return result
+
+    return wrapper
 
 
 def _confidence_response(confidence: dict) -> dict:
@@ -25,6 +58,7 @@ def _confidence_response(confidence: dict) -> dict:
     }
 
 
+@_cache_by_max_ids
 def get_ranking_per_category(db: Session, category_code: str | None) -> dict:
     """
     Obté el ranking per a una categoria o el global.
