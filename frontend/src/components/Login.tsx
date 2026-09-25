@@ -171,9 +171,12 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
             <p className="text-sm text-slate-600">
               Softcatalà és responsable del tractament de les vostres dades, amb el vostre
               consentiment, per gestionar el compte i les avaluacions i elaborar el rànquing de
-              models. En donar-vos de baixa, s'eliminaran el correu i la contrasenya, però es
-              conservaran els vots i les omissions de forma anònima. Consulteu els vostres drets a
-              l'
+              models.
+            </p>
+
+            <p className="text-sm text-slate-600">
+              En donar-vos de baixa, s'eliminaran el correu i la contrasenya, però es conservaran
+              els vots i les omissions de forma anònima. Consulteu els vostres drets a l'
               <a
                 href="https://www.softcatala.org/avis-legal/"
                 target="_blank"
