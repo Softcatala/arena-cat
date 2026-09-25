@@ -11,6 +11,7 @@ from app.models import Category, Prompt, Response, Session, User, Vote, Winner
 from app.security import (
     compute_email_hash,
     create_email_verification_token,
+    hash_password,
     hash_session_token,
     verify_email_verification_token,
 )
@@ -108,6 +109,34 @@ def test_register_rejects_short_password(client):
     )
 
     assert response.status_code == 422
+
+
+def test_register_detects_reregistration_after_deletion(client, session):
+    old_user = User(
+        email="antic@example.com",
+        email_hash=compute_email_hash("antic@example.com"),
+        password_hash=hash_password("ContrasenyaVella123!"),
+        consent_version="v1",
+        consent_at=datetime.now(UTC),
+    )
+    session.add(old_user)
+    session.flush()
+    # Marquem la baixa mantenint l'email_hash per detectar re-registres.
+    old_user.deleted_at = datetime.now(UTC)
+    old_user.consent_at = datetime.now(UTC)
+    session.add(old_user)
+    session.commit()
+
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "email": "antic@example.com",
+            "password": "ContrasenyaNova123!",
+            "consent": True,
+        },
+    )
+
+    assert response.status_code == 409
 
 
 def test_verify_email_success(client, session, create_user):

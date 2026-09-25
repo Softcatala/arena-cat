@@ -128,6 +128,8 @@ def register_user(
 
     existing = db.scalar(select(User).where(User.email_hash == email_hash))
     if existing is not None:
+        if existing.deleted_at is not None:
+            raise HTTPException(status_code=409, detail="Aquest correu ja s'havia registrat")
         raise HTTPException(status_code=409, detail="Aquest correu ja està registrat")
 
     password_hash = hash_password(payload.password)
@@ -363,7 +365,7 @@ def logout_user(db: OrmSession, payload: LogoutRequest) -> LogoutResponse:
 
 
 def anonymize_user_rgpd(user: User, now: datetime) -> None:
-    """Buida les credencials i les dades de verificació mantenint l'identificador."""
+    """Anonimitza les dades personals de l'usuari mantenint claus tècniques."""
     user.email = None
     user.email_hash = None
     user.password_hash = None
@@ -378,7 +380,7 @@ def delete_account(
     user: User,
     current_password: str,
 ) -> DeleteAccountResponse:
-    """Dona de baixa el compte buidant les credencials i revocant sessions."""
+    """Dona de baixa el compte anonimitzant dades personals i revocant sessions."""
     now = datetime.now(UTC)
 
     if not verify_password(current_password, user.password_hash):
