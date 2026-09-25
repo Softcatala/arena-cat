@@ -109,22 +109,6 @@ uv run python scripts/metriques.py
 uv run python scripts/metriques.py --inferencies data/inferencies/hypotheses
 ```
 
-Per generar l'informe `results.txt` amb el resum per categoria:
-
-```bash
-make analyze_inferences
-make analyze_inferences INFERENCIES_DIR=data/inferencies/hypotheses
-```
-
-L'analitzador considera discriminant un prompt de reformulació quan la distància
-combinada de la parella més semblant (`combinat_worst`) és almenys 0,40. Si es
-busca un marge superior a 0,50, cal superar-lo en totes les parelles, no només
-en la mitjana. Aquesta distància no avalua la correcció lingüística ni la
-fidelitat de les respostes: també cal revisar-les. En comparar variants, mantén
-els models i els paràmetres de generació i comprova que les inferències
-corresponen al text provat. Un resultat d'una sola execució no garanteix el
-mateix llindar amb altres llavors.
-
 ### 7. Prova local amb un model molt petit
 
 Per comprovar el flux complet sense carregar cap model gran, pots usar la configuració local:
