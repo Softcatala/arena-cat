@@ -84,6 +84,10 @@ uv run --group inference python scripts/inferencia.py --log-level WARNING
 ```
 
 Els resultats es desen a `data/inferencies/v1/<model_id>/`.
+Els YAML conserven la seed i els paràmetres de generació, però no el commit
+del codi ni la data d’execució, per evitar canvis sense diferències de contingut.
+El carregador ignora `run.git_commit` i `run.timestamp` dels fitxers antics
+i de les metadades ja desades quan comprova si una resposta és idèntica.
 
 ### 6. Mètriques de distància entre sortides
 

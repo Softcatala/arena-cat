@@ -190,6 +190,22 @@ def _require(value: Any, message: str, source: Path) -> Any:
     return value
 
 
+def normalize_inference_metadata(
+    metadata: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Exclou les metadades volàtils d'execucions antigues sense modificar l'original."""
+    if metadata is None:
+        return None
+    result = metadata.copy()
+    if isinstance(result.get("run"), dict):
+        result["run"] = {
+            key: value
+            for key, value in result["run"].items()
+            if key not in {"git_commit", "timestamp"}
+        }
+    return result
+
+
 def _nested(data: Any, *keys: str) -> Any:
     """Accedeix a una clau imbricada sense petar si falta un nivell.
 
@@ -276,7 +292,7 @@ def parse_inference_file(path: Path, version: str) -> ResponseRecord:
         prompt_code=str(prompt_code),
         model=str(model),
         text=str(answer).strip(),
-        metadata=metadata,
+        metadata=normalize_inference_metadata(metadata),
         source=path,
     )
 
@@ -372,7 +388,9 @@ def upsert_response(session: Session, record: ResponseRecord, stats: Stats) -> N
         )
         session.flush()
         stats.inserted += 1
-    elif existing.text == record.text and existing.inference_metadata == record.metadata:
+    elif existing.text == record.text and normalize_inference_metadata(
+        existing.inference_metadata
+    ) == normalize_inference_metadata(record.metadata):
         stats.skipped += 1
     else:
         LOGGER.error(

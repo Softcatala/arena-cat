@@ -2,12 +2,10 @@
 
 import argparse
 from collections.abc import Callable, Iterable
-from datetime import UTC, datetime
 import hashlib
 import logging
 import os
 from pathlib import Path
-import subprocess
 import time
 from typing import Any
 
@@ -30,36 +28,6 @@ ENV_HF_TOKEN = "HF_TOKEN"
 DEFAULT_INFERENCIA_CONFIG = "config/inferencia/inferencia_config.yaml"
 MIN_TOKEN_LEN_RETRY_ATTEMPTS = 3
 LOGGER = logging.getLogger(__name__)
-
-
-# Utilitats generals
-def get_git_commit() -> str:
-    """Retorna el commit Git actual.
-
-    Returns:
-        Hash del commit actual o un marcador estable si el directori no és un
-        repositori Git.
-    """
-    try:
-        return (
-            subprocess.check_output(
-                ["git", "rev-parse", "HEAD"],
-                cwd=REPO_ROOT,
-            )
-            .decode("ascii")
-            .strip()
-        )
-    except Exception:
-        return "not_a_git_repository"
-
-
-def timestamp_utc() -> str:
-    """Genera el timestamp UTC actual.
-
-    Returns:
-        Timestamp en format ISO-8601 amb sufix ``Z``.
-    """
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 # Configuració
@@ -362,7 +330,9 @@ def build_messages(prompt_text: str, generation_params: ConfigDict) -> list[Conf
     """
     messages = []
     if generation_params.get("system_prompt"):
-        messages.append({"role": "system", "content": generation_params["system_prompt"]})
+        messages.append(
+            {"role": "system", "content": generation_params["system_prompt"]}
+        )
     messages.append({"role": "user", "content": prompt_text})
     return messages
 
@@ -594,8 +564,6 @@ def build_result(
     generation_params: ConfigDict,
     global_config: ConfigDict,
     generated_text: str,
-    current_timestamp: str,
-    git_commit: str,
 ) -> ConfigDict:
     """Construeix el document de sortida d'una inferència.
 
@@ -605,8 +573,6 @@ def build_result(
         generation_params: Paràmetres de generació.
         global_config: Configuració global.
         generated_text: Text generat pel model.
-        current_timestamp: Timestamp de l'execució.
-        git_commit: Commit Git de l'execució.
 
     Returns:
         Diccionari serialitzable a YAML.
@@ -616,8 +582,6 @@ def build_result(
 
     return {
         "run": {
-            "timestamp": current_timestamp,
-            "git_commit": git_commit,
             "seed": global_config["seed"],
         },
         "prompt": {
@@ -721,7 +685,6 @@ def run_prompt(
     model: object,
     generation_params: ConfigDict,
     global_config: ConfigDict,
-    run_context: ConfigDict,
 ) -> ConfigDict:
     """Executa un prompt amb un model carregat.
 
@@ -732,7 +695,6 @@ def run_prompt(
         model: Model carregat.
         generation_params: Paràmetres de generació.
         global_config: Configuració global.
-        run_context: Metadades de l'execució.
 
     Returns:
         Resultat serialitzable del prompt.
@@ -744,8 +706,6 @@ def run_prompt(
         generation_params,
         global_config,
         generated_text,
-        run_context["timestamp"],
-        run_context["git_commit"],
     )
 
 
@@ -754,7 +714,6 @@ def run_model(
     prompt_list: list[Prompt],
     generation_params: ConfigDict,
     global_config: ConfigDict,
-    run_context: ConfigDict,
     root: Path = REPO_ROOT,
     hf_token: str | None = None,
     tokenizer_loader: Loader = AutoTokenizer.from_pretrained,
@@ -768,7 +727,6 @@ def run_model(
         prompt_list: Prompts a executar.
         generation_params: Paràmetres de generació.
         global_config: Configuració global.
-        run_context: Metadades de l'execució.
         root: Arrel del repositori.
         hf_token: Token de Hugging Face, si n'hi ha.
         tokenizer_loader: Funció injectable per carregar tokenitzadors.
@@ -822,7 +780,6 @@ def run_model(
                 model,
                 generation_params,
                 global_config,
-                run_context,
             )
             inference_times.append(time.perf_counter() - start_time)
             save_result(result_yaml, output_dir, prompt_id)
@@ -891,10 +848,6 @@ class InferencePipeline:
         global_config = config["configuracio_global"]
         generation_params = config["parametres_generacio"]
         hf_token = os.getenv(ENV_HF_TOKEN, None)
-        run_context = {
-            "git_commit": get_git_commit(),
-            "timestamp": timestamp_utc(),
-        }
 
         torch.manual_seed(global_config["seed"])
 
@@ -917,14 +870,15 @@ class InferencePipeline:
         avg_times: dict[str, float] = {}
         for model_entry in config["models"]:
             if self.model_ids and model_entry["id"] not in self.model_ids:
-                LOGGER.info("S'omet el model %s pel filtre de models", model_entry["id"])
+                LOGGER.info(
+                    "S'omet el model %s pel filtre de models", model_entry["id"]
+                )
                 continue
             avg_time = run_model(
                 model_entry,
                 prompt_list,
                 generation_params,
                 global_config,
-                run_context,
                 root=self.root,
                 hf_token=hf_token,
                 tokenizer_loader=self.tokenizer_loader,

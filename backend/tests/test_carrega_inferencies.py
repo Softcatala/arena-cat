@@ -188,6 +188,43 @@ def test_load_is_idempotent(session, dirs):
     assert _count(session, Response) == 1
 
 
+@pytest.mark.parametrize("legacy_file", [False, True])
+def test_reload_ignores_legacy_run_provenance(session, dirs, legacy_file):
+    prompts_dir, inferencies_dir = dirs
+    write_prompt(prompts_dir, "correccio_1")
+    write_inference(inferencies_dir, "model-a", "correccio_1")
+    loader.run_load(session, prompts_dir, inferencies_dir)
+    response = session.scalar(select(Response))
+    assert response.inference_metadata["run"] == {"seed": 42}
+    response.inference_metadata = response.inference_metadata | {
+        "run": {"seed": 42, "timestamp": "old", "git_commit": "old"}
+    }
+    session.flush()
+    path = inferencies_dir / "model-a" / "correccio_1.yaml"
+    document = yaml.safe_load(path.read_text())
+    if not legacy_file:
+        document["run"] = {"seed": 42}
+    path.write_text(yaml.safe_dump(document))
+    result = loader.run_load(session, prompts_dir, inferencies_dir)
+    assert result.responses.skipped == 1
+    assert result.responses.errors == 0
+    assert response.inference_metadata["run"]["git_commit"] == "old"
+
+
+def test_changed_run_seed_remains_a_conflict(session, dirs):
+    prompts_dir, inferencies_dir = dirs
+    write_prompt(prompts_dir, "correccio_1")
+    write_inference(inferencies_dir, "model-a", "correccio_1")
+    loader.run_load(session, prompts_dir, inferencies_dir)
+    path = inferencies_dir / "model-a" / "correccio_1.yaml"
+    document = yaml.safe_load(path.read_text())
+    document["run"]["seed"] = 99
+    path.write_text(yaml.safe_dump(document))
+    result = loader.run_load(session, prompts_dir, inferencies_dir)
+    assert result.responses.errors == 1
+    assert session.scalar(select(Response)).inference_metadata["run"]["seed"] == 42
+
+
 def test_reloading_old_version_does_not_reactivate_it(session, dirs):
     prompts_dir, inferencies_dir = dirs
     write_prompt(prompts_dir, "correccio_1")
