@@ -323,7 +323,7 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     if get_settings().require_email_verification and user.email_verified_at is None:
         raise HTTPException(
             status_code=403,
-            detail="Email no verificat. Verifica el teu email primer.",
+            detail="Email no verificat. Verifiqueu el vostre email primer.",
         )
 
     # Un restabliment de contrasenya pot haver acabat des que s'ha validat: la sessió nova no

@@ -101,7 +101,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
   return (
     <div className="mx-auto max-w-sm px-4 py-10">
       <h2 className="mb-1 text-xl font-semibold text-slate-900">
-        {isRegister ? "Crea un compte" : "Inicia la sessió"}
+        {isRegister ? "Creeu un compte" : "Inicieu la sessió"}
       </h2>
       <p className="mb-6 text-sm text-slate-500">
         Cal un compte per avaluar: així evitem vots duplicats i garantim la validesa del rànquing.
@@ -144,14 +144,14 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
         {!isRegister && (
           <p className="-mt-2 text-right text-sm">
             <Link to="/forgot-password" className="text-brand-600 underline hover:text-brand-700">
-              Has oblidat la contrasenya?
+              Heu oblidat la contrasenya?
             </Link>
           </p>
         )}
 
         {isRegister && (
           <>
-            <Field label="Repeteix la contrasenya">
+            <Field label="Repetiu la contrasenya">
               <input
                 type="password"
                 required
@@ -210,7 +210,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-500">
-        {isRegister ? "Ja tens compte? " : "Encara no tens compte? "}
+        {isRegister ? "Ja teniu compte? " : "Encara no teniu compte? "}
         <button
           type="button"
           onClick={() => switchTo(isRegister ? "login" : "register")}

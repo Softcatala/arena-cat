@@ -39,8 +39,6 @@ cd backend && uv run pre-commit install   # Hook de Git de lint i format (detect
   Actualitza la documentació afectada, mantén els detalls compartits en un sol lloc i
   enllaça'ls en comptes de duplicar el contingut.
 - **Commits**: Segueix Conventional Commits, en anglès (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
-- **Llengua**: Escriu els identificadors en anglès (taules, columnes, funcions, variables i
-  noms de proves). Escriu les docstrings i els comentaris dins del codi en català.
 - **TDD**: Escriu les proves abans de la implementació sempre que sigui possible. Les proves
   del model s'executen contra una base de dades PostgreSQL real.
 - **Comentaris**: Descriu el codi, no la metodologia. No hi afegeixis notes sobre el procés
@@ -54,9 +52,18 @@ cd backend && uv run pre-commit install   # Hook de Git de lint i format (detect
 - **Integritat**: Prioritza les garanties de la base de dades (claus foranes, unicitat i CHECK)
   per sobre de la validació a l'aplicació.
 
-## Sol·licituds d'integració (PR)
+## Convencions de llengua
 
+- **Llengua**: Escriu els identificadors en anglès (taules, columnes, funcions, variables i
+  noms de proves). Escriu les docstrings i els comentaris dins del codi en català.
+- **Tractament dels usuaris**: Segueix la [guia d'estil de Softcatalà](https://www.softcatala.org/guia-estil-de-softcatala/aspectes-linguistics/).
+  Utilitza vós (segona persona del plural: «heu», «podeu», «trieu») als textos
+  adreçats a l'usuari. Les ordres de l'usuari al programa, com els botons i menús
+  d'acció, van en segona persona del singular («Envia», «Desa», «Omet»).
 - Quan se't demani crear una PR, escriu-ne el títol en català.
 - A la descripció de la PR, inclou un punt de llista en català per a cada canvi important.
+
+## Sol·licituds d'integració (PR)
+
 - La descripció ha de contenir només els canvis en punts de llista, sense apartats ni text addicional.
 - Si dos canvis són molt similars, agrupa'ls en un únic punt de la descripció de la PR.

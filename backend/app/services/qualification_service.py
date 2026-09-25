@@ -49,7 +49,7 @@ def submit_qualification(
 ) -> QualificationResult:
     """Corregeix un intent complet i desa només la primera acreditació."""
     if user.qualified_at is not None:
-        raise HTTPException(status_code=409, detail="Ja has superat la prova")
+        raise HTTPException(status_code=409, detail="Ja heu superat la prova")
 
     questionnaire = load_qualification()
     score = 0

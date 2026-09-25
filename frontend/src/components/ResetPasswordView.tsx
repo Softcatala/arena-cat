@@ -51,7 +51,7 @@ export default function ResetPasswordView() {
       <div className="mx-auto max-w-sm px-4 py-10 text-center">
         <h2 className="mb-2 text-xl font-semibold text-slate-900">Contrasenya canviada</h2>
         <p className="mb-6 text-sm text-slate-600">
-          Ja pots entrar amb la contrasenya nova. Les sessions obertes s'han tancat.
+          Ja podeu entrar amb la contrasenya nova. Les sessions obertes s'han tancat.
         </p>
         <Link to="/login" className={BUTTON}>
           Inicia la sessió
@@ -65,7 +65,7 @@ export default function ResetPasswordView() {
       <div className="mx-auto max-w-sm px-4 py-10 text-center">
         <h2 className="mb-2 text-xl font-semibold text-slate-900">L'enllaç no és vàlid</h2>
         <p className="mb-6 text-sm text-slate-600">
-          Pot haver caducat (duren una hora), ja s'ha fet servir o estar incomplet. Demana'n un de
+          Pot haver caducat (duren una hora), ja s'ha fet servir o estar incomplet. Demaneu-ne un de
           nou.
         </p>
         <Link to="/forgot-password" className={BUTTON}>
@@ -77,9 +77,9 @@ export default function ResetPasswordView() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-10">
-      <h2 className="mb-1 text-xl font-semibold text-slate-900">Tria una contrasenya nova</h2>
+      <h2 className="mb-1 text-xl font-semibold text-slate-900">Trieu una contrasenya nova</h2>
       <p className="mb-6 text-sm text-slate-500">
-        Escriu-la dues vegades perquè no hi hagi cap errada.
+        Escriviu-la dues vegades perquè no hi hagi cap errada.
       </p>
 
       <form
@@ -105,7 +105,7 @@ export default function ResetPasswordView() {
 
         <PasswordRules id="password-rules" password={password} />
 
-        <Field label="Repeteix la contrasenya">
+        <Field label="Repetiu la contrasenya">
           <input
             type="password"
             required

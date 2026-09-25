@@ -6,7 +6,7 @@ Per activar el vostre compte, confirmeu l'adreça de correu amb aquest enllaç (
 
 {{ link }}
 
-Si no us heu registrat vosaltres, podeu ignorar aquest missatge.
+Si no us heu registrat, podeu ignorar aquest missatge.
 
 Softcatalà
 
