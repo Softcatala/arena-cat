@@ -1,11 +1,12 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
-.PHONY: setup run test check format inferences publish_inferences load_inferences load_reference_inferences \
-	frontend-setup frontend-dev frontend-check
+.PHONY: setup run test check format inferences analyze_inferences publish_inferences load_inferences load_reference_inferences \
+	copy_reference_inferences frontend-setup frontend-dev frontend-check
 
 REFERENCE_INFERENCES_WORKTREE ?= ../arena-cat-dades-inferencia
 REFERENCE_INFERENCES_BRANCH ?= dades_inferencia
 REFERENCE_INFERENCES_DIR ?= $(REFERENCE_INFERENCES_WORKTREE)/data/inferencies/v1
+LOCAL_INFERENCES_DIR ?= data/inferencies/v1
 PUBLISH_INFERENCES_DIR ?= data/inferencies/v1
 PUBLISH_INFERENCES_COMMIT_MESSAGE ?= data: publish new inferences
 
@@ -33,6 +34,19 @@ format:
 # Exemple: make inferences CATEGORY=traduccio
 inferences:
 	uv run --group inference python scripts/inferencia.py $(if $(CONFIG),--config $(CONFIG)) $(if $(DEVICE_MAP),--device-map $(DEVICE_MAP)) $(if $(CATEGORY),--prompt-prefix $(CATEGORY)_) $(if $(FORCE),--force)
+
+# Genera results.txt; INFERENCIES_DIR permet seleccionar un altre directori.
+analyze_inferences:
+	uv run --group scripts python scripts/analitza_inferencies.py $(if $(INFERENCIES_DIR),--inferencies "$(INFERENCIES_DIR)")
+
+# Copia les inferències de referència al directori local, sobreescrivint coincidències.
+copy_reference_inferences:
+	@if [ ! -e "$(REFERENCE_INFERENCES_WORKTREE)/.git" ]; then \
+		git worktree add "$(REFERENCE_INFERENCES_WORKTREE)" "$(REFERENCE_INFERENCES_BRANCH)"; \
+	fi
+	test -d "$(REFERENCE_INFERENCES_DIR)"
+	mkdir -p "$(LOCAL_INFERENCES_DIR)"
+	cp -R "$(REFERENCE_INFERENCES_DIR)/." "$(LOCAL_INFERENCES_DIR)/"
 
 # Publica les inferències generades a la branca de dades.
 publish_inferences:
