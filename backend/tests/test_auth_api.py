@@ -11,7 +11,6 @@ from app.models import Category, Prompt, Response, Session, User, Vote, Winner
 from app.security import (
     compute_email_hash,
     create_email_verification_token,
-    hash_password,
     hash_session_token,
     verify_email_verification_token,
 )
@@ -111,34 +110,6 @@ def test_register_rejects_short_password(client):
     assert response.status_code == 422
 
 
-def test_register_detects_reregistration_after_deletion(client, session):
-    old_user = User(
-        email="antic@example.com",
-        email_hash=compute_email_hash("antic@example.com"),
-        password_hash=hash_password("ContrasenyaVella123!"),
-        consent_version="v1",
-        consent_at=datetime.now(UTC),
-    )
-    session.add(old_user)
-    session.flush()
-    # Marquem la baixa mantenint l'email_hash per detectar re-registres.
-    old_user.deleted_at = datetime.now(UTC)
-    old_user.consent_at = datetime.now(UTC)
-    session.add(old_user)
-    session.commit()
-
-    response = client.post(
-        "/api/auth/register",
-        json={
-            "email": "antic@example.com",
-            "password": "ContrasenyaNova123!",
-            "consent": True,
-        },
-    )
-
-    assert response.status_code == 409
-
-
 def test_verify_email_success(client, session, create_user):
     user = create_user("verificar@example.com", verified=False)
 
@@ -209,7 +180,6 @@ def test_logout_without_cookie_returns_logged_out(client, session):
 
 def test_delete_account_success_anonymizes_and_revokes_sessions(client, session, logged_in_user):
     user = logged_in_user("delete_ok@example.com")
-    original_email_hash = user.email_hash
 
     response = client.post(
         "/api/auth/delete-account",
@@ -226,7 +196,7 @@ def test_delete_account_success_anonymizes_and_revokes_sessions(client, session,
     assert user.qualified_at is None
     assert user.consent_at is None
     assert user.deleted_at is not None
-    assert user.email_hash == original_email_hash
+    assert user.email_hash is None
 
     user_sessions = session.scalars(select(Session).where(Session.user_id == user.id)).all()
     assert len(user_sessions) > 0
@@ -240,7 +210,7 @@ def test_delete_account_success_anonymizes_and_revokes_sessions(client, session,
             "consent": True,
         },
     )
-    assert reregister_response.status_code == 409
+    assert reregister_response.status_code == 200
 
 
 def test_delete_account_requires_session(client):
