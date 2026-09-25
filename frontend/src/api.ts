@@ -39,7 +39,7 @@ export class ApiError extends Error {
 /** S'emet quan el backend rebutja la sessió, perquè la interfície hi reaccioni. */
 export const UNAUTHENTICATED_EVENT = "arena-cat:unauthenticated";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, notifyUnauthorized = true): Promise<T> {
   const response = await fetch(`${BASE}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
@@ -54,7 +54,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     // /vote i /task/skip també responen 401 quan el token de tasca (no la
     // sessió) ha caducat; el backend ho marca amb `error_code` perquè no ho
     // confonguem amb una sessió tancada i fem fora algú que encara hi és.
-    if (response.status === 401 && readErrorCode(body) !== TASK_TOKEN_INVALID) {
+    if (
+      notifyUnauthorized &&
+      response.status === 401 &&
+      readErrorCode(body) !== TASK_TOKEN_INVALID
+    ) {
       window.dispatchEvent(new Event(UNAUTHENTICATED_EVENT));
     }
 
@@ -88,6 +92,23 @@ export const api = {
     }),
 
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
+
+  deleteAccount: async (password: string) => {
+    try {
+      return await request<{ status: string }>(
+        "/auth/delete-account",
+        { method: "POST", body: JSON.stringify({ current_password: password }) },
+        false,
+      );
+    } catch (err) {
+      // Una contrasenya incorrecta també retorna 401; comprovem la sessió abans de tancar-la.
+      if (err instanceof ApiError && err.status === 401) {
+        const session = await api.session();
+        if (!session.authenticated) window.dispatchEvent(new Event(UNAUTHENTICATED_EVENT));
+      }
+      throw err;
+    }
+  },
 
   // El token és el de l'enllaç del correu. Verificar dues vegades no és cap error.
   verifyEmail: (token: string) =>

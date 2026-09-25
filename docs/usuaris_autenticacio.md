@@ -342,6 +342,10 @@ L'exportació inclou també els vots de versions antigues dels prompts.
 
 ### Baixa i anonimització (`delete_account`)
 
+La interfície ofereix una icona de baixa al costat del correu, a la capçalera.
+Obre un diàleg que demana la contrasenya actual i informa que els vots i les
+omissions es conservaran. Després de confirmar la baixa, es mostra la portada.
+
 L'endpoint `POST /auth/delete-account` fa les operacions següents:
 
 1. Exigeix una sessió activa i la **contrasenya actual** (reautenticació) → HTTP 401 si

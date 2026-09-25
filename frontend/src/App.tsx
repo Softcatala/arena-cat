@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useNavigate, useSearchParams } from "react-rou
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import logotip from "./assets/softcatala-logotip.png";
+import DeleteAccountDialog from "./components/DeleteAccountDialog";
 import ForgotPasswordView from "./components/ForgotPasswordView";
 import HowItWorksView from "./components/HowItWorksView";
 import Login from "./components/Login";
@@ -27,6 +28,8 @@ export default function App() {
   const [session, setSession] = useState<SessionState | null>(null);
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [categoriesError, setCategoriesError] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [accountDeleted, setAccountDeleted] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const debugQuery = searchParams.has("debug") ? "?debug" : "";
@@ -34,6 +37,7 @@ export default function App() {
   const refresh = useCallback(async () => {
     try {
       setSession(await api.session());
+      setAccountDeleted(false);
     } catch {
       // Backend inaccessible: el tractem com a no autenticat, però l'error de
       // connexió ja el mostrarà el formulari quan s'intenti entrar.
@@ -66,6 +70,7 @@ export default function App() {
   useEffect(() => {
     const onUnauthenticated = () => {
       clearTask();
+      setShowDeleteAccount(false);
       setSession(UNKNOWN);
     };
     window.addEventListener(UNAUTHENTICATED_EVENT, onUnauthenticated);
@@ -93,6 +98,26 @@ export default function App() {
           {session?.authenticated && (
             <div className="flex items-center gap-2">
               <span className="hidden text-sm text-slate-500 sm:inline">{session.email}</span>
+              <button
+                type="button"
+                onClick={() => setShowDeleteAccount(true)}
+                title="Dona de baixa el compte"
+                aria-label="Dona de baixa el compte"
+                className="rounded-md p-2 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.75}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />
+                </svg>
+              </button>
               {/* Icona sola: `title` per al ratolí i `aria-label` per al lector de
                   pantalla, que altrament només trobaria un botó sense nom. */}
               <button
@@ -109,7 +134,25 @@ export default function App() {
         </div>
       </header>
 
+      {session?.authenticated && showDeleteAccount && (
+        <DeleteAccountDialog
+          onClose={() => setShowDeleteAccount(false)}
+          onDeleted={() => {
+            clearTask();
+            setShowDeleteAccount(false);
+            setSession(UNKNOWN);
+            setAccountDeleted(true);
+            navigate("/");
+          }}
+        />
+      )}
+
       <main>
+        {accountDeleted && (
+          <p role="status" className="mx-auto max-w-5xl px-4 pt-4 text-brand-700">
+            El compte s'ha donat de baixa.
+          </p>
+        )}
         {session === null ? (
           <p className="px-4 py-10 text-center text-slate-500">Carregant…</p>
         ) : (
