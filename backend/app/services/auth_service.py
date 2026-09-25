@@ -367,6 +367,7 @@ def logout_user(db: OrmSession, payload: LogoutRequest) -> LogoutResponse:
 def anonymize_user_rgpd(user: User, now: datetime) -> None:
     """Anonimitza les dades personals de l'usuari mantenint claus tècniques."""
     user.email = None
+    user.email_hash = None
     user.password_hash = None
     user.email_verified_at = None
     user.qualified_at = None
@@ -385,7 +386,6 @@ def delete_account(
     if not verify_password(current_password, user.password_hash):
         raise HTTPException(status_code=401, detail="Contrasenya incorrecta")
 
-    # Anonimització RGPD: preservem user.id i email_hash per evitar re-registres.
     anonymize_user_rgpd(user, now)
     db.add(user)
 

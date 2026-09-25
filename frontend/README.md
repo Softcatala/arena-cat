@@ -132,7 +132,7 @@ s'hagi decidit.
 
 ## Què falta
 
-- Pantalles de rànquing i estadístiques, i gestió del compte (exportació i baixa
-  RGPD, que el backend ja implementa però no són accessibles des de la interfície).
+- Pantalles de rànquing i estadístiques, i exportació de dades del compte
+  (el backend ja la implementa, però no és accessible des de la interfície).
   Si acaben necessitant URL pròpia (compartir enllaç, botó «enrere»), caldrà
   `react-router-dom`; si no, es poden fer igual que ara, amb estat de React.

@@ -168,6 +168,26 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
               </p>
             )}
 
+            <p className="text-sm text-slate-600">
+              Softcatalà és responsable del tractament de les vostres dades, amb el vostre
+              consentiment, per gestionar el compte i les avaluacions i elaborar el rànquing de
+              models.
+            </p>
+
+            <p className="text-sm text-slate-600">
+              En donar-vos de baixa, s'eliminaran el correu i la contrasenya, però es conservaran
+              els vots i les omissions de forma anònima. Consulteu els vostres drets a l'
+              <a
+                href="https://www.softcatala.org/avis-legal/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-brand-700"
+              >
+                avís legal de Softcatalà
+              </a>
+              .
+            </p>
+
             {/* Consentiment explícit: el backend en desa la data i la versió a
                 `users`, així que ha de reflectir un acte real de la persona. */}
             <label className="flex items-start gap-2 text-sm text-slate-600">
@@ -177,19 +197,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
                 onChange={(event) => setConsent(event.target.checked)}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-brand-500"
               />
-              <span>
-                Accepto el tractament de les meves dades per participar en l'avaluació, d'acord amb
-                l'{" "}
-                <a
-                  href="https://www.softcatala.org/avis-legal/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-brand-700"
-                >
-                  avís legal
-                </a>
-                .
-              </span>
+              <span>Accepto el tractament de les meves dades per participar en l'avaluació.</span>
             </label>
           </>
         )}

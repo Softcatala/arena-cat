@@ -37,7 +37,7 @@ L’[esquema de dades](db_schema.md) descriu les columnes, els tipus i les
 restriccions. Els camps principals per al flux d’autenticació són:
 
 - `email` i `password_hash`: credencials del compte actiu; es buiden en donar-se de baixa.
-- `email_hash`: HMAC del correu normalitzat, conservat després de la baixa per detectar re-registres.
+- `email_hash`: HMAC del correu normalitzat, es buida en donar-se de baixa.
 - `email_verified_at` i `qualified_at`: acrediten la verificació del correu i la superació de la prova lingüística.
 - `verification_sent_at` i `password_reset_sent_at`: limiten la freqüència d’enviament de correus.
 - `consent_version` i `consent_at`: registren el consentiment acceptat.
@@ -94,7 +94,7 @@ contrasenya que va triar. Els formularis del frontend hi avisen abans d'enviar-l
 HMAC-SHA256 amb el secret `email_hash_pepper`. El *pepper* és un secret global (no
 emmagatzemat amb les dades) que evita que un atacant amb accés a la base de dades pugui
 comprovar per força bruta si un correu concret hi és present. Aquest hash és la clau que
-permet detectar re-registres després d'una baixa.
+permet detectar comptes duplicats.
 
 ### Tokens signats — HMAC-SHA256 + expiració
 
@@ -342,18 +342,22 @@ L'exportació inclou també els vots de versions antigues dels prompts.
 
 ### Baixa i anonimització (`delete_account`)
 
+La interfície ofereix una icona de baixa al costat del correu, a la capçalera.
+Obre un diàleg que demana la contrasenya actual i informa que els vots i les
+omissions es conservaran. Després de confirmar la baixa, es mostra la portada.
+
 L'endpoint `POST /auth/delete-account` fa les operacions següents:
 
 1. Exigeix una sessió activa i la **contrasenya actual** (reautenticació) → HTTP 401 si
    falla qualsevol de les dues.
-2. Anonimitza l'usuari amb `anonymize_user_rgpd`: buida `email`, `password_hash`,
-   `email_verified_at`, `qualified_at` i `consent_at`, i estableix `deleted_at`. **Es conserven `id` i
-   `email_hash`** per poder detectar futurs re-registres del mateix correu.
+2. Anonimitza l'usuari amb `anonymize_user_rgpd`: buida `email`, `email_hash`, `password_hash`,
+   `email_verified_at`, `qualified_at` i `consent_at`, i estableix `deleted_at`. Es conserva `id`, però es pot
+   tornar a registrar el mateix correu.
 3. Revoca **totes** les sessions actives de l'usuari.
 4. S'esborra la cookie del client.
 
 Els vots continuen vinculats al mateix identificador intern. La baixa elimina
-el correu en clar i la contrasenya; conserva `email_hash` i l'historial de vots.
+el correu, el seu hash i la contrasenya; conserva l'historial de vots.
 
 ## Configuració i seguretat
 

@@ -209,7 +209,6 @@ def test_logout_without_cookie_returns_logged_out(client, session):
 
 def test_delete_account_success_anonymizes_and_revokes_sessions(client, session, logged_in_user):
     user = logged_in_user("delete_ok@example.com")
-    original_email_hash = user.email_hash
 
     response = client.post(
         "/api/auth/delete-account",
@@ -226,7 +225,7 @@ def test_delete_account_success_anonymizes_and_revokes_sessions(client, session,
     assert user.qualified_at is None
     assert user.consent_at is None
     assert user.deleted_at is not None
-    assert user.email_hash == original_email_hash
+    assert user.email_hash is None
 
     user_sessions = session.scalars(select(Session).where(Session.user_id == user.id)).all()
     assert len(user_sessions) > 0
@@ -240,7 +239,7 @@ def test_delete_account_success_anonymizes_and_revokes_sessions(client, session,
             "consent": True,
         },
     )
-    assert reregister_response.status_code == 409
+    assert reregister_response.status_code == 200
 
 
 def test_delete_account_requires_session(client):
