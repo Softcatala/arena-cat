@@ -188,7 +188,7 @@ def test_load_is_idempotent(session, dirs):
     assert _count(session, Response) == 1
 
 
-def test_changed_run_seed_remains_a_conflict(session, dirs):
+def test_changed_metadata_is_conflict_error_and_keeps_original(session, dirs):
     prompts_dir, inferencies_dir = dirs
     write_prompt(prompts_dir, "correccio_1")
     write_inference(inferencies_dir, "model-a", "correccio_1")
