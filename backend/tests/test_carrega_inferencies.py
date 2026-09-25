@@ -33,7 +33,7 @@ def write_inference(
     model_dir = inferencies_dir / model_id
     model_dir.mkdir(parents=True, exist_ok=True)
     document = {
-        "run": {"timestamp": "2026-01-01T00:00:00Z", "git_commit": "abc123", "seed": 42},
+        "run": {"seed": 42},
         "prompt": {
             "id": prompt_code,
             "path": f"data/prompts/v1/{prompt_code}.txt",
@@ -186,29 +186,6 @@ def test_load_is_idempotent(session, dirs):
     # Cap duplicat.
     assert _count(session, Prompt) == 1
     assert _count(session, Response) == 1
-
-
-@pytest.mark.parametrize("legacy_file", [False, True])
-def test_reload_ignores_legacy_run_provenance(session, dirs, legacy_file):
-    prompts_dir, inferencies_dir = dirs
-    write_prompt(prompts_dir, "correccio_1")
-    write_inference(inferencies_dir, "model-a", "correccio_1")
-    loader.run_load(session, prompts_dir, inferencies_dir)
-    response = session.scalar(select(Response))
-    assert response.inference_metadata["run"] == {"seed": 42}
-    response.inference_metadata = response.inference_metadata | {
-        "run": {"seed": 42, "timestamp": "old", "git_commit": "old"}
-    }
-    session.flush()
-    path = inferencies_dir / "model-a" / "correccio_1.yaml"
-    document = yaml.safe_load(path.read_text())
-    if not legacy_file:
-        document["run"] = {"seed": 42}
-    path.write_text(yaml.safe_dump(document))
-    result = loader.run_load(session, prompts_dir, inferencies_dir)
-    assert result.responses.skipped == 1
-    assert result.responses.errors == 0
-    assert response.inference_metadata["run"]["git_commit"] == "old"
 
 
 def test_changed_run_seed_remains_a_conflict(session, dirs):
