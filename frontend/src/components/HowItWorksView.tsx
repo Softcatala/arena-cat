@@ -36,32 +36,32 @@ export default function HowItWorksView() {
       </section>
 
       <section className="mb-8">
-        <h3 className="mb-3 text-xl font-semibold">Com pots participar-hi?</h3>
+        <h3 className="mb-3 text-xl font-semibold">Com podeu participar-hi?</h3>
         <ol className="list-decimal space-y-3 pl-5 leading-relaxed text-slate-600">
           <li>
-            <strong className="text-slate-900">Crea un compte</strong> amb el correu electrònic per
+            <strong className="text-slate-900">Creeu un compte</strong> amb el correu electrònic per
             desar el progrés i evitar vots duplicats.
           </li>
           <li>
-            <strong className="text-slate-900">Supera la prova de competència lingüística.</strong>{" "}
-            Dura uns cinc minuts i només cal superar-la un cop. Si no la superes, pots repetir-la.
+            <strong className="text-slate-900">Supereu la prova de competència lingüística.</strong>{" "}
+            Dura uns cinc minuts i només cal superar-la un cop. Si no la supereu, podeu repetir-la.
           </li>
           <li>
-            <strong className="text-slate-900">Compara i vota.</strong> Llegeix l'enunciat i les
+            <strong className="text-slate-900">Compareu i voteu.</strong> Llegiu l'enunciat i les
             respostes A i B a una mateixa tasca. Els noms dels models queden ocults per evitar
             biaixos de marca.
           </li>
         </ol>
         <p className="mt-3 leading-relaxed text-slate-600">
-          No cal saber d'IA. Calcula uns dos minuts per comparació i participa al teu ritme. El botó
-          «Tutorial» de la pantalla d'avaluació t'explica la interfície.
+          No cal saber d'IA. Calculeu uns dos minuts per comparació i participeu al vostre ritme. El
+          botó «Tutorial» de la pantalla d'avaluació us explica la interfície.
         </p>
       </section>
 
       <section className="mb-8">
-        <h3 className="mb-3 text-xl font-semibold">Què has de valorar?</h3>
+        <h3 className="mb-3 text-xl font-semibold">Què heu de valorar?</h3>
         <p className="mb-4 leading-relaxed text-slate-600">
-          Hi ha tasques de correcció, reformulació, traducció i generació. Segueix els criteris de
+          Hi ha tasques de correcció, reformulació, traducció i generació. Seguiu els criteris de
           cada tasca: correcció i naturalitat del català, respecte del significat i compliment de
           les instruccions.
         </p>
@@ -83,7 +83,7 @@ export default function HowItWorksView() {
           <div>
             <dt className="font-semibold">Omet</dt>
             <dd className="text-slate-600">
-              Prefereixes no valorar-la. No s'emet cap vot i la comparació no et tornarà a sortir.
+              Preferiu no valorar-la. No s'emet cap vot i la comparació no us tornarà a sortir.
             </dd>
           </div>
         </dl>
@@ -101,7 +101,7 @@ export default function HowItWorksView() {
           <strong>Resposta B:</strong> Els nens juga al parc.
         </p>
         <p className="leading-relaxed text-slate-600">
-          Triaries <strong>«A és millor»</strong>: «juguen» concorda amb «els nens». La resposta B
+          Triaríeu <strong>«A és millor»</strong>: «juguen» concorda amb «els nens». La resposta B
           manté l'error.
         </p>
       </section>
@@ -137,7 +137,7 @@ export default function HowItWorksView() {
       </p>
 
       <div className="rounded-lg border border-brand-200 bg-brand-100 p-6 text-center">
-        <p className="mb-4 text-lg font-semibold text-brand-700">La teva opinió compta</p>
+        <p className="mb-4 text-lg font-semibold text-brand-700">La vostra opinió compta</p>
         <Link
           to="/login"
           className="inline-flex min-h-11 items-center justify-center rounded-md bg-brand-500 px-5 py-2 font-semibold text-white hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:outline-none"

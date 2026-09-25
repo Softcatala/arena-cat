@@ -84,17 +84,17 @@ export default function QualificationView({
         <>
           <p className="mb-4 text-slate-600">
             Per saber quins models d'IA responen millor en català, necessitem valoracions amb
-            criteri lingüístic. Aquesta prova ens ajuda a comprovar que pots identificar errors i
+            criteri lingüístic. Aquesta prova ens ajuda a comprovar que podeu identificar errors i
             valorar la qualitat de les respostes, perquè els resultats d'Arena Cat siguin fiables.
           </p>
           <p className="mb-4 text-slate-600">
-            La prova dura aproximadament 5 minuts. Només cal superar-la un cop: no l'hauràs de
-            repetir quan tornis a iniciar sessió.
+            La prova dura aproximadament 5 minuts. Només cal superar-la un cop: no l'haureu de
+            repetir quan torneu a iniciar sessió.
           </p>
           <p className="mb-6 text-slate-600">
-            Abans de començar a avaluar, respon aquestes {questionnaire.questions.length} preguntes.
-            Tria una resposta per pregunta: calen {questionnaire.min_correct} encerts per superar la
-            prova. Pots revisar les respostes abans d'enviar-les.
+            Abans de començar a avaluar, responeu aquestes {questionnaire.questions.length}{" "}
+            preguntes. Trieu una resposta per pregunta: calen {questionnaire.min_correct} encerts
+            per superar la prova. Podeu revisar les respostes abans d'enviar-les.
           </p>
         </>
       )}
@@ -160,7 +160,7 @@ export default function QualificationView({
             className="rounded-lg border border-brand-100 bg-brand-50 p-5"
           >
             <h3 className="text-lg font-semibold">
-              {result.passed ? "Has superat la prova!" : "Encara no has superat la prova."}
+              {result.passed ? "Heu superat la prova!" : "Encara no heu superat la prova."}
             </h3>
             <p className="mt-1 mb-4">
               {result.score} encerts de {result.total}. Calen {result.min_correct} encerts.

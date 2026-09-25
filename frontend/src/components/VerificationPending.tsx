@@ -50,17 +50,17 @@ export default function VerificationPending({
   return (
     <div className="mx-auto max-w-sm px-4 py-10">
       <h2 className="mb-1 text-xl font-semibold text-slate-900">
-        {justSent ? "Revisa el correu" : "Verifica el correu"}
+        {justSent ? "Reviseu el correu" : "Verifiqueu el correu"}
       </h2>
       <p className="mb-3 text-sm text-slate-600">
-        {justSent ? "Hem enviat un enllaç de verificació a " : "Encara no has verificat "}
+        {justSent ? "Hem enviat un enllaç de verificació a " : "Encara no heu verificat "}
         <strong className="break-words">{email}</strong>
         {justSent
-          ? ". Obre'l per activar el compte i després inicia la sessió."
-          : ". Obre l'enllaç del correu que et vam enviar per activar el compte."}
+          ? ". Obriu-lo per activar el compte i després inicieu la sessió."
+          : ". Obriu l'enllaç del correu que us vam enviar per activar el compte."}
       </p>
       <p className="mb-6 text-sm text-slate-500">
-        Pot trigar un parell de minuts. Si no el veus, mira la carpeta de correu brossa.
+        Pot trigar un parell de minuts. Si no el veieu, mireu la carpeta de correu brossa.
       </p>
 
       {/* `role="status"` perquè un lector de pantalla anunciï el resultat sense
@@ -68,8 +68,8 @@ export default function VerificationPending({
       <div role="status" aria-live="polite">
         {resent && (
           <p className="mb-4 rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-700">
-            Si l'adreça és correcta, rebràs un altre correu en uns instants. Si en vas demanar un fa
-            poc, espera una mica.
+            Si l'adreça és correcta, rebreu un altre correu en uns instants. Si en vau demanar un fa
+            poc, espereu una mica.
           </p>
         )}
       </div>

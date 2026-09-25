@@ -41,7 +41,7 @@ def get_next_task_for_user(category_code: str | None, user: User, db: Session) -
     # Retornem excepció en cas de que no quedin tasques disponibles
     if task is None:
         raise HTTPException(
-            status_code=404, detail="No hi ha tasques disponibles o bé les has realitzat totes."
+            status_code=404, detail="No hi ha tasques disponibles o bé les heu realitzat totes."
         )
 
     # En cas que hi hagi tasca, s'extreuen els identificadors

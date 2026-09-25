@@ -48,7 +48,7 @@ export default function VerifyView() {
       {state === "success" && (
         <>
           <h2 className="mb-2 text-xl font-semibold text-slate-900">Correu verificat</h2>
-          <p className="mb-6 text-sm text-slate-600">El compte ja està actiu. Ja pots entrar.</p>
+          <p className="mb-6 text-sm text-slate-600">El compte ja està actiu. Ja podeu entrar.</p>
           <Link to="/login" className={BUTTON}>
             Inicia la sessió
           </Link>
@@ -59,7 +59,7 @@ export default function VerifyView() {
         <>
           <h2 className="mb-2 text-xl font-semibold text-slate-900">L'enllaç no és vàlid</h2>
           <p className="mb-6 text-sm text-slate-600">
-            Pot haver caducat (duren 24 hores) o estar incomplet. Inicia la sessió i et podrem
+            Pot haver caducat (duren 24 hores) o estar incomplet. Inicieu la sessió i us podrem
             enviar un enllaç nou.
           </p>
           <Link to="/login" className={BUTTON}>

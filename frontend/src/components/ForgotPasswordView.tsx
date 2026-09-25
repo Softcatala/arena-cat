@@ -42,20 +42,20 @@ export default function ForgotPasswordView() {
   if (sent) {
     return (
       <div className="mx-auto max-w-sm px-4 py-10">
-        <h2 className="mb-1 text-xl font-semibold text-slate-900">Revisa el correu</h2>
+        <h2 className="mb-1 text-xl font-semibold text-slate-900">Reviseu el correu</h2>
         <p className="mb-3 text-sm text-slate-600">
-          Si hi ha un compte amb l'adreça <strong className="break-words">{email}</strong>, li hem
+          Si hi ha un compte amb l'adreça <strong className="break-words">{email}</strong>, us hem
           enviat un enllaç per triar una contrasenya nova. Caduca d'aquí a una hora.
         </p>
         <p className="mb-6 text-sm text-slate-500">
-          Pot trigar un parell de minuts. Si no el veus, mira la carpeta de correu brossa.
+          Pot trigar un parell de minuts. Si no el veieu, mireu la carpeta de correu brossa.
         </p>
 
         <div role="status" aria-live="polite">
           {resent && (
             <p className="mb-4 rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-700">
-              Si l'adreça és correcta, rebràs un altre correu en uns instants. Si en vas demanar un
-              fa poc, espera una mica.
+              Si l'adreça és correcta, rebreu un altre correu en uns instants. Si en vau demanar un
+              fa poc, espereu una mica.
             </p>
           )}
         </div>
@@ -87,9 +87,9 @@ export default function ForgotPasswordView() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-10">
-      <h2 className="mb-1 text-xl font-semibold text-slate-900">Has oblidat la contrasenya?</h2>
+      <h2 className="mb-1 text-xl font-semibold text-slate-900">Heu oblidat la contrasenya?</h2>
       <p className="mb-6 text-sm text-slate-500">
-        Escriu el correu del compte i t'enviarem un enllaç per triar-ne una de nova.
+        Escriviu el correu del compte i us enviarem un enllaç per triar-ne una de nova.
       </p>
 
       <form

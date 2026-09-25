@@ -2,7 +2,7 @@ min_correct: 8
 questions:
 - id: q1
   category_code: correccio
-  prompt: Corregeix «No sé perquè han ajornat la reunió» per expressar que desconeixem el motiu de
+  prompt: Corregiu «No sé perquè han ajornat la reunió» per expressar que desconeixem el motiu de
     l’ajornament.
   options:
     A: No sé perquè han ajornat la reunió.
@@ -13,7 +13,7 @@ questions:
     i C omet l’accent.'
 - id: q2
   category_code: correccio
-  prompt: Corregeix «L’universitat ha publicat el calendari provisional» sense canviar-ne el significat.
+  prompt: Corregiu «L’universitat ha publicat el calendari provisional» sense canviar-ne el significat.
   options:
     A: La universitat ha publicat el calendari definitiu.
     B: L’universitat ha publicat el calendari provisional.
@@ -45,7 +45,7 @@ questions:
     i C interpreta l’expressió com un desplaçament físic.
 - id: q5
   category_code: reformulacio
-  prompt: Reformula «No tots els inscrits han confirmat l’assistència» sense alterar-ne el significat.
+  prompt: Reformuleu «No tots els inscrits han confirmat l’assistència» sense alterar-ne el significat.
   options:
     A: Cap dels inscrits ha confirmat l’assistència.
     B: Tots els inscrits han confirmat l’assistència.
@@ -55,8 +55,8 @@ questions:
     i B el contradiu.
 - id: q6
   category_code: reformulacio
-  prompt: 'Reformula en un registre formal: «Ei, no podré venir a la reunió de demà. Em podeu passar
-    l’acta?» Conserva la informació original.'
+  prompt: 'Reformuleu en un registre formal: «Ei, no podré venir a la reunió de demà. Em podeu passar
+    l’acta?» Conserveu la informació original.'
   options:
     A: Us comunico que no podré assistir a la reunió de demà i us demano que m’envieu l’acta.
     B: Us comunico que no podré assistir a la reunió de demà perquè tinc una visita mèdica i us demano
@@ -79,7 +79,7 @@ questions:
     i C intercanvia els dies.
 - id: q8
   category_code: generacio
-  prompt: 'Continua amb una frase sense contradir aquest inici: «L’últim tren ja havia marxat i aquell
+  prompt: 'Continueu amb una frase sense contradir aquest inici: «L’últim tren ja havia marxat i aquell
     dia no en passaria cap més. La Júlia encara havia de tornar a casa.»'
   options:
     A: Va pujar a l’últim tren, que encara era aturat a l’andana.

@@ -13,7 +13,7 @@ def test_get_task_empty_db(client, logged_in_user, params):
     response = client.get("/api/task", params=params)
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "No hi ha tasques disponibles o bé les has realitzat totes."
+    assert response.json()["detail"] == "No hi ha tasques disponibles o bé les heu realitzat totes."
 
 
 def test_get_task_with_data(client, session, logged_in_user):

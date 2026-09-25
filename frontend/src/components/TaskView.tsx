@@ -187,7 +187,7 @@ export default function TaskView({ categories }: { categories: Category[] }) {
     {
       ref: headerRef,
       title: "Què se li ha demanat al model",
-      text: "Aquí veus la categoria de la tasca i la instrucció exacta que s'ha enviat als dos models.",
+      text: "Aquí veieu la categoria de la tasca i la instrucció exacta que s'ha enviat als dos models.",
     },
     ...(parts?.source
       ? [
@@ -200,13 +200,13 @@ export default function TaskView({ categories }: { categories: Category[] }) {
       : []),
     {
       ref: responsesRef,
-      title: "Compara les dues respostes",
-      text: "Llegeix la resposta A i la B. No saps quin model ha generat cadascuna: és una avaluació cega.",
+      title: "Compareu les dues respostes",
+      text: "Llegiu la resposta A i la B. No sabeu quin model ha generat cadascuna: és una avaluació cega.",
     },
     {
       ref: voteRef,
-      title: "Vota",
-      text: "Tria quina resposta és millor, si estan empatades o si cap de les dues és bona. També pots fer servir les dreceres A, B, E i C.",
+      title: "Voteu",
+      text: "Trieu quina resposta és millor, si estan empatades o si cap de les dues és bona. També podeu fer servir les dreceres A, B, E i C.",
     },
   ];
 
@@ -374,10 +374,10 @@ export default function TaskView({ categories }: { categories: Category[] }) {
                     llegiria un número nou cada segon. Només anunciem el desbloqueig,
                     que és l'únic canvi que la persona necessita saber. */}
                 <span>
-                  {remaining > 0 ? `Podràs votar d'aquí ${remaining} s.` : "Ja pots votar."}
+                  {remaining > 0 ? `Podreu votar d'aquí ${remaining} s.` : "Ja podeu votar."}
                 </span>
                 <span className="sr-only" role="status">
-                  {remaining > 0 ? "" : "Ja pots votar."}
+                  {remaining > 0 ? "" : "Ja podeu votar."}
                 </span>
                 <span aria-hidden="true">·</span>
                 {/* Ometre no espera el compte enrere: si no vols jutjar la tasca, no cal llegir-la. */}
@@ -429,15 +429,15 @@ function Exhausted({
     <section className="rounded-lg border border-slate-200 bg-white px-6 py-8 text-center">
       {allDone ? (
         <>
-          <h2 className="mb-2 text-xl font-semibold text-brand-600">Ho has avaluat tot</h2>
+          <h2 className="mb-2 text-xl font-semibold text-brand-600">Ho heu avaluat tot</h2>
           <p className="text-slate-600">
             {progress
-              ? `Has emès ${progress.voted} vots dels ${progress.total} possibles.`
+              ? `Heu emès ${progress.voted} vots dels ${progress.total} possibles.`
               : "No queda cap tasca pendent."}
           </p>
           {progress && progress.skipped > 0 && (
             <p className="mt-1 text-sm text-slate-500">
-              N'has omès {progress.skipped}, que ja no tornaran a sortir.
+              N'heu omès {progress.skipped}, que ja no tornaran a sortir.
             </p>
           )}
           <p className="mt-4 text-sm text-slate-500">
@@ -446,12 +446,12 @@ function Exhausted({
         </>
       ) : (
         <>
-          <h2 className="mb-2 text-xl font-semibold text-brand-600">Has completat «{label}»</h2>
+          <h2 className="mb-2 text-xl font-semibold text-brand-600">Heu completat «{label}»</h2>
           {/* Amb progrés donem la xifra; sense, el botó continua sent útil igualment. */}
           <p className="text-slate-600">
             {progress
               ? `Encara queden ${progress.remaining} tasques a les altres categories.`
-              : "Pots continuar amb les altres categories."}
+              : "Podeu continuar amb les altres categories."}
           </p>
           <button
             type="button"

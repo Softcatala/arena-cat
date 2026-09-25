@@ -54,8 +54,7 @@ class FakeModel:
         self.generate_kwargs = None
         self.generate_calls = []
         self.outputs = [
-            inferencia.torch.tensor(output)
-            for output in (outputs or [[[1, 2, 7, 8]]])
+            inferencia.torch.tensor(output) for output in (outputs or [[[1, 2, 7, 8]]])
         ]
 
     def generate(self, **kwargs):
@@ -456,8 +455,6 @@ class TestInferencia(unittest.TestCase):
                 "backend_preferit": "transformers",
             },
             generated_text="<think>raons</think>Resposta",
-            current_timestamp="2026-06-20T10:00:00Z",
-            git_commit="abc123",
         )
 
         self.assertEqual(resultat["output"]["answer"], "Resposta")
@@ -523,13 +520,7 @@ class TestInferencia(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with (
-                patch.object(inferencia, "get_git_commit", return_value="git123"),
-                patch.object(
-                    inferencia, "timestamp_utc", return_value="2026-06-20T10:00:00Z"
-                ),
-                patch.object(inferencia.LOGGER, "info"),
-            ):
+            with patch.object(inferencia.LOGGER, "info"):
                 inferencia.run_pipeline(
                     root=root,
                     device_map="cpu",
@@ -543,7 +534,7 @@ class TestInferencia(unittest.TestCase):
             resultat = yaml.safe_load(output_path.read_text(encoding="utf-8"))
 
         self.assertEqual(resultat["output"]["answer"], "Resposta final")
-        self.assertEqual(resultat["run"]["git_commit"], "git123")
+        self.assertEqual(resultat["run"], {"seed": 42})
         self.assertEqual(resultat["model"]["model_name"], "org/fake-model")
         self.assertEqual(
             resultat["fingerprint"]["prompt_sha256"],
@@ -564,7 +555,6 @@ class TestInferencia(unittest.TestCase):
             avg_time = inferencia.run_model(
                 {"id": "fake-model", "model_name": "org/fake-model"},
                 [{"id": "prompt"}],
-                {},
                 {},
                 {},
                 root=Path("unused"),

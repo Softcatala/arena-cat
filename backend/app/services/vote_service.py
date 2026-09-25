@@ -74,7 +74,7 @@ def submit_vote(db: Session, vote_req: VoteRequest, user: User):
                 if existing.winner == expected_winner:
                     return VoteResponse(status="ok")
             raise HTTPException(
-                status_code=409, detail="Ja has votat aquesta parella de respostes"
+                status_code=409, detail="Ja heu votat aquesta parella de respostes"
             ) from err
         raise HTTPException(status_code=400, detail="El vot no s'ha pogut processar") from err
 
