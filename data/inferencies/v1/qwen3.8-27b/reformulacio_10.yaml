@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 2742c0bd596dd2405af6293e9cbf07ae54f3fb38255e81ffab2f62a1a8b6c9f7
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: Per a la teva seguretat, cal que activis un sistema de doble comprovació.
+    Això significa que, a més de posar la paraula clau que fas servir per entrar,
+    el sistema t'enviarà un número de quatre xifres al teu telèfon mòbil. Aquest número
+    només és vàlid durant poc temps. De aquesta manera, fins i tot si algú aconseguís
+    saber la teva paraula clau, no podrà entrar al teu compte perquè no tindrà aquest
+    número que li hem enviat al telèfon.
+prompt:
+  id: reformulacio_10
+  path: data/prompts/v1/reformulacio_10.txt
+  sha256: 2742c0bd596dd2405af6293e9cbf07ae54f3fb38255e81ffab2f62a1a8b6c9f7
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

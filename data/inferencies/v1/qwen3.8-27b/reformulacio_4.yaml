@@ -1,0 +1,43 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 77e0cce10754c5e62627e381df872fc26a8542cba85a55739b01bb2f016f7e98
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: Aquest matí l'alcaldessa ha dit que avui ja comencen amb el projecte per
+    a tirar fora els gossos del centre. El projecte, que és més petit del que havien
+    previst al principi, sospitem que servix per a millorar l'espai entre la botiga
+    d'enciams del carrer Pujol i l'estàtua de l'home que balla. La gent del poble
+    està mirant a veure com va, però de moment no hi ha gaires canvis visibles. S'espera
+    que les obres siguen ràpides i que no molesten massa els veïns ni els comerços
+    de la zona.
+prompt:
+  id: reformulacio_4
+  path: data/prompts/v1/reformulacio_4.txt
+  sha256: 77e0cce10754c5e62627e381df872fc26a8542cba85a55739b01bb2f016f7e98
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 1c3ee7a30f0de599d46f00cdc5ec9771a02790f8f0789cd9ab37277d9f3ce5e7
+  prompt_sha256: 77e0cce10754c5e62627e381df872fc26a8542cba85a55739b01bb2f016f7e98
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -24,17 +24,20 @@ model:
   model_name: google/gemma-4-26B-A4B-it
   revision: main
 output:
-  answer: Aquesta matí l'alcaldessa ha dit que avui mateix comencen les obres per
-    treure els gossos del centre del poble. Aquest treball, que és més curt del que
-    havien dit al principi, jo crec que el faran per deixar més espai entre la botiga
-    d'enciams del carrer Pujol i l'estàtua de l'home dansaire.
+  answer: L'alcaldessa ha dit aquest matí que avui mateix ja comencen les obres per
+    treure els gossos del centre del poble. El projecte és més petit del que havien
+    dit al principi, però l'endemà creiem que el que volen de veritat és fer més espai
+    entre la botiga d'enciams del carrer Pujol i l'estàtua de l'home dansaire. Ja
+    s'ho sabia que això passaria, que amb aquests plans només volen arreglar la zona
+    de les botigues. A l'endemà, tot aquest moviment de l'alcaldia sembla que només
+    serveixi per deixar més lliure el camí entre el carrer i l'estàtua.
 prompt:
   id: reformulacio_4
   path: data/prompts/v1/reformulacio_4.txt
-  sha256: 1c3ee7a30f0de599d46f00cdc5ec9771a02790f8f0789cd9ab37277d9f3ce5e7
+  sha256: 77e0cce10754c5e62627e381df872fc26a8542cba85a55739b01bb2f016f7e98
 reasoning:
   content: null
 run:
-  git_commit: 90464ad734b421a6fe7218280b40c12266f5c749
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
   seed: 42
-  timestamp: '2026-09-11T01:27:16.356926Z'
+  timestamp: '2026-09-25T15:53:01.712830Z'

@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
+  prompt_sha256: 9da3ba041365c697280b9c61d1b60cdccb1cd1931fb8897b0cecb13955e41cdd
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -24,26 +24,29 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: '**Narrador:** Dissabte reobrirà el mercat municipal després de sis setmanes
-    d''obres.
+  answer: '**Peixatera:** Bon dia, forner! Quina alegria tornar a la parada, després
+    de sis setmanes d''obres! Tot ha quedat com nou, la teulada, les llums, fins i
+    tot les cambres frigorífiques!
 
 
-    **Veu 1:** Han renovat la teulada, els punts de llum i les cambres frigorífiques.
+    **Forner:** Bon dia, peixatera! Jo encara he d''esperar un temps, la fleca anirà
+    a un espai provisional fins al novembre. Què faig jo, amb aquest forn tan gran...
 
 
-    **Veu 2:** Les parades de peix i fruita tornaran al passadís central, però la
-    fleca estarà en un espai provisional fins al novembre.
+    **Peixatera:** No t''enfadis, forner! Almenys nosaltres, les de peix i fruita,
+    tornem al passadís central. I a les deu hi haurà una visita guiada i una demostració
+    de cuina amb productes de temporada. Vindràs, no?
 
 
-    **Narrador:** A les deu del matí, hi haurà una visita guiada per als veïns i una
-    demostració de cuina amb productes de temporada.'
+    **Forner:** Clar que sí, peixatera! No em la perdré. I així veuré com ha quedat
+    tot.'
 prompt:
   id: reformulacio_6
   path: data/prompts/v1/reformulacio_6.txt
-  sha256: 9cb583b4cd49e7acb7f8bad681a8d760ed4b6382a014139d9b6af3c252b4d1fd
+  sha256: 9da3ba041365c697280b9c61d1b60cdccb1cd1931fb8897b0cecb13955e41cdd
 reasoning:
   content: null
 run:
-  git_commit: 90464ad734b421a6fe7218280b40c12266f5c749
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
   seed: 42
-  timestamp: '2026-09-11T01:27:16.356926Z'
+  timestamp: '2026-09-25T15:53:01.712830Z'

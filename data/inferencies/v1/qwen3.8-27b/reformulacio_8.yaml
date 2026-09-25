@@ -1,0 +1,44 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 806cc83043dde1bfa1b7b0d3473a4a3b4f55354c5d375997befffe2538867a88
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: Que canvi de dia! Resulta que el nostre estimat camí, que creuava el riuet
+    amb tota naturalitat, ara ha decidit que no vol més cotxes. Uns tècnics, amb totes
+    les seves raons, han trobat esquerdes als pilars i han tancat el pas. L'ajuntament,
+    sempre puntual, promet obres per la setmana vinent, cosa que vol dir que encara
+    no han començat a excavar. Mentrestant, per no deixar-nos a peu, ens han muntat
+    un servei de barques gratuït. Quina elegància! Ara, cada vegada que hem de creuar,
+    fem un petit viatge fluvial. Aprofitem per gaudir de l'aigua, ja que els nostres
+    cotxes, per una vegada, podran descansar una mica.
+prompt:
+  id: reformulacio_8
+  path: data/prompts/v1/reformulacio_8.txt
+  sha256: 806cc83043dde1bfa1b7b0d3473a4a3b4f55354c5d375997befffe2538867a88
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

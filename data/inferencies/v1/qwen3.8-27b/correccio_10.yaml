@@ -1,0 +1,43 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: b973ecf0223b506a6b9c53cd83e965d782c3bb9650cd88d38c44e13fb5c82ca4
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: En Pau era un pop molt curiós que vivia al fons del mar. Cada matí sortia
+    de la seva cova per explorar nous racons entre les roques i els coralls. Li agradava
+    jugar amb els peixos, perseguir bombolles i amagar-se quan veia algun cranc, una
+    mica rondinaire. Amb els seus vuit braços podia abraçar els seus amics i recollir
+    petxines de tots els colors. Un dia va trobar una estrella de mar que s'havia
+    perdut i la va ajudar a tornar a casa. Des d'aquell moment, tothom va saber que
+    en Pau era un pop valent, amable i molt generós.
+prompt:
+  id: correccio_10
+  path: data/prompts/v1/correccio_10.txt
+  sha256: b973ecf0223b506a6b9c53cd83e965d782c3bb9650cd88d38c44e13fb5c82ca4
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

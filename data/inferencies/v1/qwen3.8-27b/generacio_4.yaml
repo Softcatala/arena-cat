@@ -1,0 +1,49 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 6ae72498618f77ea97f13f2478ca204fac34b7f9e5d7dbd1bea6f907d1bb578c
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: 'El pla d''estudi per a cinc dies amb una hora diària cada tarda es distribueix
+    així: el primer dia, dedica vint minuts a llegir el temari per tenir una visió
+    global i quaranta minuts a fer un esquema bàsic de les èpoques clau. El segon
+    dia, centra''t en la comprensió profunda dels fets principals, fent notes breus
+    i relacionant causes i conseqüències. El tercer dia, aprofundeix en les figures
+    històriques i els canvis polítics, ampliant els esquemes anteriors amb detalls
+    específics. El quart dia, repassa activament mitjançant preguntes i respostes,
+    identificant els punts febles que requereixin més atenció. El cinquè dia, fes
+    una simulació d''examen amb els apunts i revisa els errors per consolidar l''aprenentge.
+    Dos consells breus: primer, mantén l''ambient de treball tranquil i lliure de
+    distraccions durant l''hora. Segon, no intentis memoritzar tot de cop, sinó que
+    entenguis les connexions lògiques entre els esdeveniments històrics per recordar-los
+    amb més facilitat.'
+prompt:
+  id: generacio_4
+  path: data/prompts/v1/generacio_4.txt
+  sha256: 6ae72498618f77ea97f13f2478ca204fac34b7f9e5d7dbd1bea6f907d1bb578c
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

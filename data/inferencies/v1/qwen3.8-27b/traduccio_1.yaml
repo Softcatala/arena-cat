@@ -1,0 +1,49 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 1b3f806e9d0b67bab73cf6395e0c2a867ea89c90536ee0b37b6a87b330dde853
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: 'MARTA: Dues dies que li dic al pare que trami a la companyia, perquè el
+    wifi va a rodar.
+
+    NIL: I de nou? Si la setmana passada vas dir que ja ho havien arreglat.
+
+    MARTA: Això va dir ell, però no m''ho crec gens. Ahir es va tallar la trucada
+    de vídeo de la classe dues vegades i després el grup va començar a emetre''m memes
+    com si fos culpa meva.
+
+    NIL: Potser és el router, que és més vell que el món.
+
+    MARTA: Doncs si això continua així, demà m''hi planto a la botiga. I si cal, porto
+    el tècnic de l''orella.'
+prompt:
+  id: traduccio_1
+  path: data/prompts/v1/traduccio_1.txt
+  sha256: 1b3f806e9d0b67bab73cf6395e0c2a867ea89c90536ee0b37b6a87b330dde853
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

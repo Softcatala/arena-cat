@@ -1,0 +1,44 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 0250d29e0d94fa2f092a7788fd9d5ed3217b97244dc8b739937ac381b72d10a9
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: 'Imagina que tens una muntanya russa. La derivada és com mirar el velocímetre
+    en un moment concret per saber quina és la teva velocitat exacta en aquest instant.
+    L''integral, en canvi, és com sumar totes les petites distàncies que has fet pas
+    a pas per saber quanta distància total has recorregut, que és com calcular l''espai
+    que queda sota la línia de la muntanya russa. Aquestes dues coses són com un cadenat
+    i la seva clau: si prens la velocitat instantània (la derivada) i la sumes tota
+    (l''integral), tornes a tenir la distància original, i viceversa, sempre que la
+    muntanya russa no tingui salts brusc.'
+prompt:
+  id: reformulacio_1
+  path: data/prompts/v1/reformulacio_1.txt
+  sha256: 0250d29e0d94fa2f092a7788fd9d5ed3217b97244dc8b739937ac381b72d10a9
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

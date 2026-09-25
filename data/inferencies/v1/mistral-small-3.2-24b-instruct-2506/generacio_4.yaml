@@ -24,46 +24,24 @@ model:
   model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
   revision: main
 output:
-  answer: 'Dilluns:
+  answer: '| Dia | Temps | Activitat |
 
-    - Llegir i resumir els temes 1 i 2 (45 minuts)
+    |-----|------|-----------|
 
-    - Fer un esquema dels temes llegits (15 minuts)
+    | 1   | 1h   | Llegir i resumir els temes 1-3 |
 
+    | 2   | 1h   | Llegir i resumir els temes 4-6 |
 
-    Dimarts:
+    | 3   | 1h   | Llegir i resumir els temes 7-9 |
 
-    - Llegir i resumir els temes 3 i 4 (45 minuts)
+    | 4   | 1h   | Repassar resumens i fer esquemes |
 
-    - Fer un esquema dels temes llegits (15 minuts)
-
-
-    Dimecres:
-
-    - Llegir i resumir els temes 5 i 6 (45 minuts)
-
-    - Fer un esquema dels temes llegits (15 minuts)
+    | 5   | 1h   | Repàs general i comprovació del coneixement |
 
 
-    Dijous:
+    - Utilitza tècniques de memòria com mnemotècniques.
 
-    - Repassar tots els esquemes fets (30 minuts)
-
-    - Pràctica de preguntes i respostes amb els esquemes (30 minuts)
-
-
-    Divendres:
-
-    - Repàs general de tot el material (30 minuts)
-
-    - Autoavaluació amb preguntes de l''examen (30 minuts)
-
-
-    Consells:
-
-    1. Utilitza tècniques de memòria com mnemotècniques per recordar dades importants.
-
-    2. Descansa bé abans de l''examen per estar fresc i concentrar-te millor.'
+    - Pràctica amb preguntes tipus examen.'
 prompt:
   id: generacio_4
   path: data/prompts/v1/generacio_4.txt
@@ -71,6 +49,6 @@ prompt:
 reasoning:
   content: null
 run:
-  git_commit: 90464ad734b421a6fe7218280b40c12266f5c749
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
   seed: 42
-  timestamp: '2026-09-11T01:27:16.356926Z'
+  timestamp: '2026-09-25T15:53:01.712830Z'

@@ -1,0 +1,48 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: b900189de6e4123e3cf58085c44323ad021694898741b7a1f7c3c03345b682b2
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: 'La transmissió oral i escrita de les receptes familiars constitueix un
+    patrimoni immaterial fonamental per a la identitat cultural catalana. Aquest treball
+    de recerca explora els mecanismes que permeten que els sabers culinaris generacionals
+    persisteixin en l''àmbit domèstic contemporani. La pregunta central que guia aquesta
+    investigació és: quins factors determinen la fidelitat o la transformació de les
+    receptes tradicionals durant el seu pas de generació en generació? Per abordar
+    aquesta qüestió, s''ha dissenyat una metodologia mixta que combina l''anàlisi
+    documental de receptaris familiars antics amb entrevistes semiestructurades a
+    cuiners i cuineres de diferents edats. Aquesta triangulació de dades permet contrastar
+    la informació escrita amb la memòria oral, oferint una visió holística de la dinàmica
+    intergeneracional en la cuina domèstica catalana i destacant el valor social i
+    afectiu d''aquests rituals gastronòmics.'
+prompt:
+  id: generacio_9
+  path: data/prompts/v1/generacio_9.txt
+  sha256: b900189de6e4123e3cf58085c44323ad021694898741b7a1f7c3c03345b682b2
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

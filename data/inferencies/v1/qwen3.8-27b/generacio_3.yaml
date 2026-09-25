@@ -1,0 +1,47 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 55b02646ac4f5b342716bffeda24d1cf986e97729c337743598518570b4bfa51
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: 'El modernisme català va néixer a finals del segle XIX, quan Barcelona vivia
+    una gran prosperitat econòmica i industrial. Els artistes volien crear una identitat
+    cultural pròpia, allunyant-se de l''art acadèmic rígid. Dos trets destaquen: l''ús
+    de la corba i la naturalesa. Imagina les finestres del Palau Güell, que no tenen
+    angles rectes, sinó formes fluides com ones o fulles, donant sensació de moviment.
+    A més, s''integrava la natura en l''arquitectura; per exemple, a la Casa Batlló,
+    les façanes recorden l''escorça d''un arbre o les aletes d''un drac, fusionant
+    l''edifici amb el món orgànic. Aquest estil va transformar la ciutat, convertint-la
+    en un museu a cel obert. Encara avui, aquests edificis ens recorden una època
+    de creativitat lliure, on l''art volia ser proper, funcional i plenament viu,
+    reflectint l''esperit de progrés i llibertat de la societat catalana de l''època.'
+prompt:
+  id: generacio_3
+  path: data/prompts/v1/generacio_3.txt
+  sha256: 55b02646ac4f5b342716bffeda24d1cf986e97729c337743598518570b4bfa51
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'

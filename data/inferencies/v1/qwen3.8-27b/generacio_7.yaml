@@ -1,0 +1,50 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.12.1
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: cfb71524889622a8d93e4fc00f47f449bffd915df664a134c721b81ee298561c
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: Estimats companys i professors, Sant Jordi no és només una festa del passat,
+    sinó un pont cap al futur. Defensar la tradició no significa rebutjar la innovació,
+    sinó adaptar-la als temps que vivim. En primer lloc, els audiollibres democratitzen
+    l'accés a la lectura, permetent gaudir de la literatura en moments de descans
+    o desplaçament, mantenint viva la flama narrativa sense exigir una immobilitat
+    física. En segon lloc, els còmics digitals ofereixen una experiència visual i
+    interactiva que captiva les noves generacions, fent que la història i els personatges
+    clàssics siguin més accessibles i atractius per a joves acostumats al llenguatge
+    audiovisual. Aquesta combinació no treu valor al llibre físic, sinó que l'enriqueix.
+    Per tant, proposem que el nostre institut creï una biblioteca digital complementària
+    amb una secció específica de Sant Jordi, on els alumnes puguin accedir a audiollibres
+    de clàssics i còmics adaptats. Així, honorem la tradició fent-la present i viva
+    en les nostres vides diàries, garantint que la passió per llegir no mori, sinó
+    que evolucioni amb nosaltres.
+prompt:
+  id: generacio_7
+  path: data/prompts/v1/generacio_7.txt
+  sha256: cfb71524889622a8d93e4fc00f47f449bffd915df664a134c721b81ee298561c
+reasoning:
+  content: null
+run:
+  git_commit: 66fe7883b28a641821a111033aed7a57593e44b1
+  seed: 42
+  timestamp: '2026-09-25T15:53:01.712830Z'
