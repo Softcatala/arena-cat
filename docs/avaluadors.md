@@ -8,7 +8,12 @@ ni una mesura de participació real. El [catàleg actual](sistema.md#categories-
 té 4 categories: amb 3 models i 10 prompts per categoria, completar totes les
 combinacions suposa 120 vots i unes 4 hores per persona. Amb 14 persones,
 són 1.680 vots, 140 per parella i categoria, i unes 56 hores en total.
-Les taules següents mantenen 3 categories per comparar els escenaris originals.
+El simulador parteix de 4 categories, un marge d'error nominal de ±5 punts
+percentuals al 95% de confiança i el mètode de parelles independents.
+Amb 3 models i 10 prompts per categoria, aquest escenari estima 39 usuaris que
+ho avaluen tot, 4.680 vots i 156 hores a 2 minuts per vot, assumint vots
+independents i decisius. Les taules següents mantenen 3 categories i els
+marges indicats en cada cas per comparar els escenaris originals.
 
 El disseny d'aquest pla parteix de la idea d'**avaluadors fidels**: persones del nucli de col·laboradors habituals de Softcatalà que es comprometen a completar **totes** les combinacions de *prompt* × categoria × parella de models. No perseguim una gran participació puntual, sinó un grup reduït i constant que garanteixi cobertura completa i comparabilitat entre respostes.
 
@@ -51,7 +56,7 @@ no una reducció de variància garantida pel sistema.
 
 Si cada avaluador respon totes les combinacions (3 parelles de models × 3 categories × 10 *prompts* = 90 vots/usuari, **~3 h per avaluador** a 2 min/vot), en calen **~14 avaluadors** (1.260 vots, 140 per parella × categoria, ≈ 42 h en total).
 
-Aquestes xifres coincideixen amb el [simulador](https://softcatala.github.io/arena-cat/simulador/) amb el mètode *Parelles independents* i l'arrodoniment dels totals activat.
+Aquestes xifres coincideixen amb el [simulador](https://softcatala.github.io/arena-cat/simulador/) configurant 3 categories, un marge de ±8,5 punts percentuals, el mètode *Parelles independents* i l'arrodoniment dels totals activat.
 
 > El 8,5% és un marge nominal amb vots independents i uns 133 vots per
 > parella i categoria; amb 140 vots és aproximadament el 8,3%. La correlació
