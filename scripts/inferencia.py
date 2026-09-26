@@ -209,17 +209,19 @@ def load_tokenizer(
         return load_mistral_common_tokenizer(get_model_name(model_entry))
 
     if model_entry.get("model_class") == "auto_multimodal_lm":
-        return AutoProcessor.from_pretrained(
-            get_model_name(model_entry),
-            revision=model_entry["revision"],
-            token=hf_token,
-        )
+        tokenizer_loader = AutoProcessor.from_pretrained
 
-    return tokenizer_loader(
+    tokenizer = tokenizer_loader(
         get_model_name(model_entry),
         revision=model_entry["revision"],
         token=hf_token,
     )
+    if "muse-glimmer" in get_model_name(model_entry).lower():
+        # Força el canal de resposta; Muse ignora enable_thinking.
+        tokenizer.chat_template += (
+            "{% if add_generation_prompt %} to=user<|message|>{% endif %}"
+        )
+    return tokenizer
 
 
 def load_model(
