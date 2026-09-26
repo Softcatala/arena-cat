@@ -8,13 +8,18 @@ ni una mesura de participació real. El [catàleg actual](sistema.md#categories-
 té 4 categories: amb 3 models i 10 prompts per categoria, completar totes les
 combinacions suposa 120 vots i unes 4 hores per persona. Amb 14 persones,
 són 1.680 vots, 140 per parella i categoria, i unes 56 hores en total.
-Les taules següents mantenen 3 categories per comparar els escenaris originals.
+El simulador parteix de 4 categories, un marge d'error nominal de ±5 punts
+percentuals al 95% de confiança i el mètode de parelles independents.
+Amb 3 models i 10 prompts per categoria, aquest escenari estima 39 usuaris que
+ho avaluen tot, 4.680 vots i 156 hores a 2 minuts per vot, assumint vots
+independents i decisius. Les taules següents mantenen 3 categories i els
+marges indicats en cada cas per comparar els escenaris originals.
 
 El disseny d'aquest pla parteix de la idea d'**avaluadors fidels**: persones del nucli de col·laboradors habituals de Softcatalà que es comprometen a completar **totes** les combinacions de *prompt* × categoria × parella de models. No perseguim una gran participació puntual, sinó un grup reduït i constant que garanteixi cobertura completa i comparabilitat entre respostes.
 
 Esperem reunir-ne **al voltant de 20 avaluadors fidels**, xifra que dona prou marge sobre el mínim per la prova de concepte (~14 avaluadors) per absorbir abandonaments i mantenir el marge d'error objectiu.
 
-Aquesta hipòtesi condiciona tot el que ve a continuació: les xifres de la prova de concepte i les taules d'escalada assumeixen que cada avaluador respon totes les combinacions (unicitat activada). L'hem dissenyat així per assegurar-nos que som capaços de tirar-ho endavant, després òbviament hi haurà una combinació d'avaluadors fidels i esporàdics, el sistema admet qualsevol configuració.
+Aquesta hipòtesi condiciona tot el que ve a continuació: les xifres de la prova de concepte i les taules d'escalada assumeixen que cada avaluador respon totes les combinacions (arrodoniment dels totals activat al simulador). L'hem dissenyat així per assegurar-nos que som capaços de tirar-ho endavant, després òbviament hi haurà una combinació d'avaluadors fidels i esporàdics, el sistema admet qualsevol configuració.
 
 Per a la projecció, suposem que **incorporem un model nou cada mes** al rànquing. Cada nou model afegit obliga a fer noves comparacions contra els models ja existents (amb *parelles independents*, $M-1$ parelles noves per cada model afegit; amb Elo/BT, l'esforç pot concentrar-se en un subconjunt dels aparellaments més informatius). Això vol dir que la feina dels avaluadors fidels no és un esforç puntual, sinó un **compromís sostingut**: cal preveure una càrrega recurrent i mecanismes perquè els avaluadors es puguin incorporar o rellevar sense trencar la comparabilitat.
 
@@ -51,7 +56,7 @@ no una reducció de variància garantida pel sistema.
 
 Si cada avaluador respon totes les combinacions (3 parelles de models × 3 categories × 10 *prompts* = 90 vots/usuari, **~3 h per avaluador** a 2 min/vot), en calen **~14 avaluadors** (1.260 vots, 140 per parella × categoria, ≈ 42 h en total).
 
-Aquestes xifres coincideixen amb el [simulador](https://softcatala.github.io/arena-cat/simulador/) amb el mètode *Parelles independents* i la restricció d'unicitat activada.
+Aquestes xifres coincideixen amb el [simulador](https://softcatala.github.io/arena-cat/simulador/) configurant 3 categories, un marge de ±8,5 punts percentuals, el mètode *Parelles independents* i l'arrodoniment dels totals activat.
 
 > El 8,5% és un marge nominal amb vots independents i uns 133 vots per
 > parella i categoria; amb 140 vots és aproximadament el 8,3%. La correlació
@@ -59,12 +64,19 @@ Aquestes xifres coincideixen amb el [simulador](https://softcatala.github.io/are
 
 ## Com escala el dimensionament
 
-Aquesta secció explica com canvia el volum de feina i la precisió quan variem els paràmetres del disseny. Suposem un grup d'avaluadors fidels que responen **totes** les combinacions (unicitat activada: cada avaluador veu cada *prompt* × parella × categoria una sola vegada). Amb $M$ models, $C$ categories i $P$ prompts per categoria:
+Aquesta secció explica com canvia el volum de feina i la precisió quan variem els paràmetres del disseny. Suposem un grup d'avaluadors fidels que responen **totes** les combinacions (cada avaluador veu cada *prompt* × parella × categoria una sola vegada). Amb $M$ models, $C$ categories i $P$ prompts per categoria:
 
 - Nombre de parelles: $M(M-1)/2$.
 - Vots per avaluador: $M(M-1)/2 \times C \times P$.
 - Vots per (parella × categoria) que aporta cada avaluador: $P$.
 - Avaluadors necessaris per assolir $V$ vots per (parella × categoria): $\lceil V / P \rceil$.
+
+El simulador mostra sempre aquest nombre d'usuaris, els vots i les hores per
+persona, també si es desactiva l'arrodoniment dels totals. La casella només
+determina si els totals corresponen a usuaris que completen totes les tasques
+o a l'objectiu de vots sense arrodonir. L'estimació assumeix que no hi ha omissions
+i que tots els vots són decisius; no garanteix l'estabilitat del rànquing.
+El backend impedeix repetir una parella per prompt i admet participacions parcials.
 
 Punt de partida (prova de concepte): $M=3$, $C=3$, $P=10$, $V \approx 133$ ⇒ 90 vots/avaluador, **14 avaluadors**, 1.260 vots totals (~42 h).
 
