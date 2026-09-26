@@ -1,0 +1,38 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 77e0cce10754c5e62627e381df872fc26a8542cba85a55739b01bb2f016f7e98
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: Aquest matí mateix l'alcaldessa ha dit que ja començaran avui el projecte
+    per treure els gossos del centre del poble. Aquest, més xicotet del que es pensava
+    al principi, ens fa pensar que el que volen és arreglar l'espai que hi ha entre
+    la botiga d'enciams del carrer Pujol i l'estàtua de l'home que balla.
+prompt:
+  id: reformulacio_4
+  path: data/prompts/v1/reformulacio_4.txt
+  sha256: 77e0cce10754c5e62627e381df872fc26a8542cba85a55739b01bb2f016f7e98
+reasoning:
+  content: null
+run:
+  seed: 42

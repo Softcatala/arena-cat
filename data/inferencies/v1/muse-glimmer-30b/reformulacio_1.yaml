@@ -1,0 +1,40 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 0250d29e0d94fa2f092a7788fd9d5ed3217b97244dc8b739937ac381b72d10a9
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'La derivada d''una funció en un punt és el valor que ens diu com canvia
+    la funció en aquest punt exacte. És com la velocitat en un instant. La integral
+    definida és la suma de molts petits trossos i ens diu quant s''acumula una cosa,
+    com l''àrea sota una corba. Derivar i integrar són operacions inverses: si derives
+    una funció i després l''integras, tornes a la funció inicial, i a l''inrevés,
+    sempre que la funció sigui contínua.'
+prompt:
+  id: reformulacio_1
+  path: data/prompts/v1/reformulacio_1.txt
+  sha256: 0250d29e0d94fa2f092a7788fd9d5ed3217b97244dc8b739937ac381b72d10a9
+reasoning:
+  content: null
+run:
+  seed: 42

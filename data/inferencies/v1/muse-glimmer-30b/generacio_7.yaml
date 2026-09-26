@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: cfb71524889622a8d93e4fc00f47f449bffd915df664a134c721b81ee298561c
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: Benvolguts companys i companyes, avui parlem de Sant Jordi, una festa que
+    ens parla de valors com el coratge i l'amor. No hem de triar entre tradició i
+    innovació, podem unir-les. Primer, els audiollibres ens permeten escoltar la llegenda
+    de Sant Jordi mentre anem a classe, fent arribar la història a tothom. Segon,
+    els còmics digitals poden explicar el mite amb imatges modernes i arribar als
+    joves que consumeixen continguts en línia. Així, mantenim l'essència i l'adaptem
+    al nostre temps. Proposo que el nostre institut creï una biblioteca digital de
+    Sant Jordi amb audiollibres i còmics fets pels alumnes. Gràcies.
+prompt:
+  id: generacio_7
+  path: data/prompts/v1/generacio_7.txt
+  sha256: cfb71524889622a8d93e4fc00f47f449bffd915df664a134c721b81ee298561c
+reasoning:
+  content: null
+run:
+  seed: 42

@@ -1,0 +1,48 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: f5389d3602629499aacd80ee096e3fa071f7c781a045f4f07a55957dbdc40805
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Benvolguts membres de la biblioteca municipal,
+
+    Us escric per sol·licitar l''ampliació de l''horari de la sala d''estudi durant
+    el període de proves d''accés a la universitat. En aquestes dates la demanda és
+    molt alta i molts estudiants necessitem més temps per preparar-nos amb tranquil·litat.
+
+    Proposem obrir la sala fins a les 22.00 hores de dilluns a divendres, i de 9.00
+    a 14.00 hores el dissabte. Aquesta mesura ajudaria significativament l''alumnat.
+
+    Agraïm la vostra consideració i quedem a la vostra disposició.
+
+    Atentament,
+
+    Un grup d''estudiants'
+prompt:
+  id: generacio_8
+  path: data/prompts/v1/generacio_8.txt
+  sha256: f5389d3602629499aacd80ee096e3fa071f7c781a045f4f07a55957dbdc40805
+reasoning:
+  content: null
+run:
+  seed: 42

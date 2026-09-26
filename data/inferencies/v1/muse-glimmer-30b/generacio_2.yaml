@@ -1,0 +1,41 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 1465ed1a69826973ffe4e08c151b5a7c6d3e935066a27bcd1d1ba692272c7057
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Hola a tots! Avui us vull parlar dels castells, una tradició catalana declarada
+    Patrimoni de la Humanitat. És com una torre humana que fan colles de persones
+    amb molta coordinació. La base és la pinya, un grup que aguanta i protegeix. A
+    sobre hi ha el tronc, les fileres que formen el cos del castell. I al cim, l’enxaneta,
+    un nen que corona la construcció. Tot es fa amb quatre valors: força per aixecar,
+    equilibri per mantenir-se drets, valor per pujar fins dalt i seny per saber quan
+    parar. És festa, música i orgull compartit.'
+prompt:
+  id: generacio_2
+  path: data/prompts/v1/generacio_2.txt
+  sha256: 1465ed1a69826973ffe4e08c151b5a7c6d3e935066a27bcd1d1ba692272c7057
+reasoning:
+  content: null
+run:
+  seed: 42

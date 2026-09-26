@@ -1,0 +1,50 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: fffbd5058309c207ead837773dc28a9c06ad70f2cfe8796fc63bedfbb0f2786e
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Un poll amb barret somiava amb volar,
+
+    mirava les mosques i començava a sospirar.
+
+    "Si salto ben alt, toco el cotó suau",
+
+    deia molt seriós assegut damunt un botó.
+
+
+    Però va venir una brisa i el feu esternudar,
+
+    i va caure en una sopa sense saber nedar.
+
+    Des d’aquell dia viatja, feliç i molt formal,
+
+    en mosca amb casc i bitllet rural.'
+prompt:
+  id: traduccio_3
+  path: data/prompts/v1/traduccio_3.txt
+  sha256: fffbd5058309c207ead837773dc28a9c06ad70f2cfe8796fc63bedfbb0f2786e
+reasoning:
+  content: null
+run:
+  seed: 42

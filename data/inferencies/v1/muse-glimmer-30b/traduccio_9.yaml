@@ -1,0 +1,44 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Quan arriba la nit, la nina dobla la roba damunt la cadira, s''encamisa
+    amb el pijama preferit i s''hi amaga al llit amb l''osset de peluix que ja té
+    una orella torçada. La seva mare deixa la porta entreoberta perquè hi entri una
+    ratlla de llum del passadís, i la casa comença a parlar baixet: cruix una fusta,
+    sospesa una finestra, s''esborna l''últim aixeta.
+
+
+    Des de l''habitació es veu el cel ple d''estrelles. Una d''elles, la més petita,
+    li canta una nana amb una veu molt baixeta, tan baixeta que només l''escolten
+    els qui ja estan a punt de somiar.'
+prompt:
+  id: traduccio_9
+  path: data/prompts/v1/traduccio_9.txt
+  sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
+reasoning:
+  content: null
+run:
+  seed: 42

@@ -1,0 +1,38 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: a39d7a6a7f1372d48f0bd7b5c98d9e0af6a9e276789899df3abf95e10e783692
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: El club obre inscripcions per a la cursa popular del 12 d'octubre. 10 quilòmetres
+    per a corredors de totes les edats. Places limitades amb samarreta i avituallament
+    inclosos. Uneix-te al repte i viu l'emoció de córrer amb nosaltres. Inscriu-te
+    ara i forma part de la nostra comunitat esportiva.
+prompt:
+  id: reformulacio_9
+  path: data/prompts/v1/reformulacio_9.txt
+  sha256: a39d7a6a7f1372d48f0bd7b5c98d9e0af6a9e276789899df3abf95e10e783692
+reasoning:
+  content: null
+run:
+  seed: 42

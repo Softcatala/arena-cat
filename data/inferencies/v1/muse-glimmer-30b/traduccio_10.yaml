@@ -1,0 +1,44 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: e9e1504ae8699d7232b1736bb804d68e0172a6bedf8003f2ad1a5e91d7704cbd
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Des que surto a córrer a les matinades em sento molt millor, encara que
+    al principi em va costar agafar el ritme. Em donava mandra llevar-me, mirava el
+    rellotge cada dos minuts i tornava a casa pensant que allò no era per a mi. Ara
+    vaig al centre esportiu tres dies a la setmana per fer exercici físic, una mica
+    de força i una classe d’estiraments que em deixa com nou.
+
+
+    La meva entrenadora diu que, si segueixo així i no em salto els descansos, d’aquí
+    un mes notarà un canvi molt gran. Jo no sé si serà per tant, però almenys ja no
+    pujo les escales bufant.'
+prompt:
+  id: traduccio_10
+  path: data/prompts/v1/traduccio_10.txt
+  sha256: e9e1504ae8699d7232b1736bb804d68e0172a6bedf8003f2ad1a5e91d7704cbd
+reasoning:
+  content: null
+run:
+  seed: 42

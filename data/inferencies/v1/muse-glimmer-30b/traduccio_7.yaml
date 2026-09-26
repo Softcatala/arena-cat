@@ -1,0 +1,43 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: cc5e623da9ca16fb2ef8b6792436064bb9ebbad02cb3aa9efc30d138d9efdf5b
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Ei, si encara no sabeu on menjar aquest cap de setmana, us recoman un lloc
+    nou al costat del port, just abans d’arribar a la plaça petita. De fora sembla
+    poca cosa, però dins tenen una barra preciosa, el peix arriba a migdia i el cambrer
+    t’explica la carta com si t’estigués contant un secret.
+
+
+    El menú no és gens barat, avís, però val cada euro que costa. Això sí: cal reservar,
+    perquè el dissabte passat van deixar mitja cua al carrer. Hi anem o ho deixam
+    per quan cobri tothom?'
+prompt:
+  id: traduccio_7
+  path: data/prompts/v1/traduccio_7.txt
+  sha256: cc5e623da9ca16fb2ef8b6792436064bb9ebbad02cb3aa9efc30d138d9efdf5b
+reasoning:
+  content: null
+run:
+  seed: 42

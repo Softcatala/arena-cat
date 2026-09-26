@@ -1,0 +1,43 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 146e34c4b13d9535f6eeeaa0a65d0480cce3edadb18587a3404eb76187357882
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: Durant la ruta literària pel meu municipi he reconegut carrers que apareixen
+    en obres d'autors locals i això m'ha fet veure el poble amb altres ulls. Caminar
+    pels mateixos llocs que descriuen els escriptors m'ha ajudat a entendre millor
+    el context de les històries i a connectar la literatura amb la vida quotidiana.
+    He après a observar detalls que abans passaven desapercebuts i a valorar la memòria
+    col·lectiva que es conserva en els textos. L'experiència m'ha aportat curiositat
+    i respecte per la nostra cultura. Per al trimestre vinent vull millorar l'expressió
+    escrita en català, utilitzant un vocabulari més precís i una sintaxi més clara
+    en els meus treballs.
+prompt:
+  id: generacio_10
+  path: data/prompts/v1/generacio_10.txt
+  sha256: 146e34c4b13d9535f6eeeaa0a65d0480cce3edadb18587a3404eb76187357882
+reasoning:
+  content: null
+run:
+  seed: 42

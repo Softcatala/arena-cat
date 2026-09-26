@@ -1,0 +1,39 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: eaa539615cf7cee896781aa66a54d1b71dbdf92f9a365e185bb24cf62f6f4a50
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Hola a tothom! Proposem una sessió d’estudi de literatura catalana el proper
+    dimarts a la tarda, a la sala d’estudi de la biblioteca, durant dues hores. Per
+    organitzar-nos, repartim tasques: la Maria prepararà la poesia, en Joan la narrativa,
+    la Laura el teatre i jo em faré càrrec del context històric. Porteu apunts i preguntes.
+    Confirmeu assistència abans de dilluns. Gràcies!'
+prompt:
+  id: generacio_6
+  path: data/prompts/v1/generacio_6.txt
+  sha256: eaa539615cf7cee896781aa66a54d1b71dbdf92f9a365e185bb24cf62f6f4a50
+reasoning:
+  content: null
+run:
+  seed: 42

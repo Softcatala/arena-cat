@@ -1,0 +1,41 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 806cc83043dde1bfa1b7b0d3473a4a3b4f55354c5d375997befffe2538867a88
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: Hola veïns, aquí en companyia de la nova ruta fluvial que ningú va demanar.
+    El camí del riuet està tancat perquè dos pilars tenen esquerdes, segons els tècnics
+    que han passat amb la cinta mètrica i cara seriosa. L'ajuntament diu que repararan
+    la propera setmana, així que encara tindrem temps d'entrenar-nos a saludar des
+    de l'altra riba. Mentrestant ens ofereixen barques gratuïtes per creuar, que és
+    pràctic si vas amb pressa i sense cotxe. Jo ja he reservat el meu seient a primera
+    fila per veure com arriba el paquet.
+prompt:
+  id: reformulacio_8
+  path: data/prompts/v1/reformulacio_8.txt
+  sha256: 806cc83043dde1bfa1b7b0d3473a4a3b4f55354c5d375997befffe2538867a88
+reasoning:
+  content: null
+run:
+  seed: 42

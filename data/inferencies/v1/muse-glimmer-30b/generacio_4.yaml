@@ -1,0 +1,56 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 6ae72498618f77ea97f13f2478ca204fac34b7f9e5d7dbd1bea6f907d1bb578c
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: '**Pla d’estudi 5 dies – Història contemporània de Catalunya (1 h/dia)**
+
+
+    | Dia | Objectiu | Activitat |
+
+    |-----|----------|-----------|
+
+    | 1 | Comprensió | Llegeix el període 1808-1874. Subratlla causes i conseqüències.
+    |
+
+    | 2 | Esquema | Resumeix 1874-1939 en un mapa conceptual amb dates clau. |
+
+    | 3 | Comprensió | Estudia 1939-1975. Fes un resum escrit de 150 paraules. |
+
+    | 4 | Repàs | Repassa els tres esquemes. Fes preguntes tipus examen i respon-les.
+    |
+
+    | 5 | Comprovació | Simula l’examen sense notes. Corregeix errors i reforça dubtes.
+    |
+
+
+    Consells: Dorm bé i fes pauses curtes.'
+prompt:
+  id: generacio_4
+  path: data/prompts/v1/generacio_4.txt
+  sha256: 6ae72498618f77ea97f13f2478ca204fac34b7f9e5d7dbd1bea6f907d1bb578c
+reasoning:
+  content: null
+run:
+  seed: 42

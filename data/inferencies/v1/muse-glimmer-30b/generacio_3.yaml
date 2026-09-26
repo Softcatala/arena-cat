@@ -1,0 +1,48 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 55b02646ac4f5b342716bffeda24d1cf986e97729c337743598518570b4bfa51
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'El Modernisme català
+
+    El Modernisme va ser un moviment artístic i cultural que va néixer a Catalunya
+    a finals del segle XIX i principis del XX, en una època de canvis socials i de
+    renaixement de la cultura catalana. Els artistes volien trencar amb el passat
+    i crear coses noves i personals.
+
+    Un tret molt clar és l’ús de la natura com a inspiració. Es veuen formes ondulades,
+    flors i animals en edificis i objectes. Per exemple, la façana de la Casa Batlló
+    a Barcelona sembla una escama de peix.
+
+    Un altre tret és la decoració molt rica i detallada. Tots els elements, des de
+    la porta fins als mobles, formen part d’un mateix disseny. Per exemple, el Parc
+    Güell té bancs de ceràmica de colors i formes de plantes.'
+prompt:
+  id: generacio_3
+  path: data/prompts/v1/generacio_3.txt
+  sha256: 55b02646ac4f5b342716bffeda24d1cf986e97729c337743598518570b4bfa51
+reasoning:
+  content: null
+run:
+  seed: 42

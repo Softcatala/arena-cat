@@ -1,0 +1,44 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: b900189de6e4123e3cf58085c44323ad021694898741b7a1f7c3c03345b682b2
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'La transmissió de receptes familiars catalanes entre generacions és un
+    procés que conserva identitat, memòria i pràctiques culinàries vinculades al territori.
+    Aquest treball de recerca analitza com es transmeten aquestes receptes i quin
+    paper tenen en la cohesió familiar i la cultura local. La pregunta de recerca
+    és: quins mecanismes i factors influeixen en la transmissió intergeneracional
+    de receptes familiars a Catalunya? Per respondre s’hi combinaran entrevistes en
+    profunditat a membres de diferents generacions d’una mateixa família amb l’anàlisi
+    de receptaris manuscrits i documents familiars. Aquesta metodologia permet contrastar
+    el relat oral amb les fonts escrites i identificar continuïtats, canvis i significats
+    associats a cada recepta.'
+prompt:
+  id: generacio_9
+  path: data/prompts/v1/generacio_9.txt
+  sha256: b900189de6e4123e3cf58085c44323ad021694898741b7a1f7c3c03345b682b2
+reasoning:
+  content: null
+run:
+  seed: 42

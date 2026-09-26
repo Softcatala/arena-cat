@@ -1,0 +1,58 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 9ebdc2c5f02d637f237de57e71757c0d8bde54f1bb403b1e6cab11a6a6f90813
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Assumpte: Sol·licitud de pròrroga per a la entrega del treball
+
+
+    Benvolguda professora,
+
+
+    Li escric per demanar-li, si és possible, una pròrroga de dos dies per a lliurar
+    el treball de l''assignatura. Aquest cap de setmana coincideix amb la preparació
+    d''una actuació castellera i, tot i haver-hi dedicat temps, reconec que m''he
+    organitzat malament i no podré acabar-lo amb la qualitat que voldria.
+
+
+    Li agrairia molt poder entregar-lo el dimecres 21 a les 9 h. Entenc perfectament
+    si no és viable i acceptaré la seva decisió.
+
+
+    Moltes gràcies per la seva comprensió.
+
+
+    Atentament,
+
+    [Nom de l''estudiant]
+
+    [Grup]'
+prompt:
+  id: generacio_1
+  path: data/prompts/v1/generacio_1.txt
+  sha256: 9ebdc2c5f02d637f237de57e71757c0d8bde54f1bb403b1e6cab11a6a6f90813
+reasoning:
+  content: null
+run:
+  seed: 42

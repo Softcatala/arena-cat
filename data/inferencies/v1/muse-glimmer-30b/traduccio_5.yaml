@@ -1,0 +1,46 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: af1487949a676806680275298f4324ad21ae64086dc489621374b119f5e85669
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: 'Benvolgut client:
+
+
+    La comanda VX-48291 arribarà més tard del previst perquè un camió va quedar retingut
+    en el nostre centre de Riba-roja i va descol·locar tota la ruta de repartiment.
+    La nova finestra d''arribada és el 18 de setembre, entre les 9.00 i les 14.00
+    hores.
+
+
+    Si el retard supera els huit dies naturals, podrà anul·lar la compra sense cost
+    o demanar un enviament alternatiu. Conserve aquest avís i el justificant, perquè
+    li estalviaran voltes si necessita fer una reclamació.'
+prompt:
+  id: traduccio_5
+  path: data/prompts/v1/traduccio_5.txt
+  sha256: af1487949a676806680275298f4324ad21ae64086dc489621374b119f5e85669
+reasoning:
+  content: null
+run:
+  seed: 42
