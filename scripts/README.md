@@ -83,6 +83,11 @@ Per veure només avisos i errors:
 uv run --group inference python scripts/inferencia.py --log-level WARNING
 ```
 
+Muse Glimmer força el canal `to=user` a la plantilla de xat per generar
+la resposta directament, perquè la seva plantilla ignora `enable_thinking=False`.
+Per regenerar les inferències existents amb aquest canvi, utilitza
+`--model-id muse-glimmer-30b --force`.
+
 Els resultats es desen a `data/inferencies/v1/<model_id>/`.
 Els YAML conserven la seed i els paràmetres de generació, però no el commit
 del codi ni la data d’execució, per evitar canvis sense diferències de contingut.

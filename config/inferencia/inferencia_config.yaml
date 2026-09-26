@@ -42,3 +42,13 @@ models:
     quantization: "none"
     model_class: "auto_multimodal_lm"
     es_reasoning_model: true
+
+  # 4. Muse Glimmer 30B
+  - id: "muse-glimmer-30b"
+    model_name: "meta-models/Muse-Glimmer-30B"
+    revision: "main"
+    torch_dtype: "bfloat16"
+    device_map: "auto"
+    quantization: "none"
+    model_class: "auto_multimodal_lm"
+    es_reasoning_model: true

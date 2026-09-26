@@ -54,6 +54,7 @@ defineix els models i les opcions d'execució. Actualment inclou:
 | Qwen 3.8 27B | `Qwen/Qwen3.8-27B` |
 | Mistral Small 3.2 24B Instruct | `mistralai/Mistral-Small-3.2-24B-Instruct-2506` |
 | Gemma 4 26B A4B Instruct | `google/gemma-4-26B-A4B-it` |
+| Muse Glimmer 30B | `meta-models/Muse-Glimmer-30B` |
 
 L'analitzador de prompts llegeix aquesta mateixa configuració per obtenir la
 llista de models. Les opcions inclouen la revisió, el tipus numèric, la
