@@ -17,6 +17,7 @@ from app.schemas import (
     QualificationResponse,
     QualificationResult,
 )
+from app.telemetry.metrics import qualifications_total
 
 QUALIFICATION_FILE = Path(__file__).resolve().parents[3] / "data/qualification.yaml"
 
@@ -70,6 +71,7 @@ def submit_qualification(
             .values(qualified_at=func.now())
         )
         db.commit()
+        qualifications_total.add(1)
 
     return QualificationResult(
         score=score,

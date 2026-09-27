@@ -10,6 +10,7 @@ from app.models import User, Vote, Winner
 from app.prompt_versions import require_active_prompt
 from app.schemas import VoteRequest, VoteResponse
 from app.security import verify_task_token
+from app.telemetry.metrics import votes_total
 
 
 def submit_vote(db: Session, vote_req: VoteRequest, user: User):
@@ -78,4 +79,5 @@ def submit_vote(db: Session, vote_req: VoteRequest, user: User):
             ) from err
         raise HTTPException(status_code=400, detail="El vot no s'ha pogut processar") from err
 
+    votes_total.add(1, {"winner": vote_req.winner.value})
     return VoteResponse(status="ok")

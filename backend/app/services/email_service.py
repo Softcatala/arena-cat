@@ -13,6 +13,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoes
 
 from app.config import get_settings
 from app.security import EMAIL_VERIFICATION_TTL_HOURS, PASSWORD_RESET_TTL_MINUTES
+from app.telemetry.metrics import email_errors_total
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,7 @@ def _send_quietly(message: EmailMessage, description: str) -> None:
         send_email(message)
     except OSError as error:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
         logger.error("No s'ha pogut enviar el correu de %s: %s", description, _describe(error))
+        email_errors_total.add(1, {"description": description})
 
 
 def send_verification_email(to_email: str, token: str) -> None:
