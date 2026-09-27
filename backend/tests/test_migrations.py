@@ -21,6 +21,8 @@ TABLES = {
     "users",
     "sessions",
     "task_skips",
+    "qualification_failures",
+    "email_deliveries",
 }
 ENUMS = {"winner"}
 

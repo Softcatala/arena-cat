@@ -42,6 +42,8 @@ make load_reference_inferences  # carrega les dades de la branca dades_inferenci
 La interfície permet completar la qualificació abans de votar. Per executar
 proves del backend a l'amfitrió, prepara l'entorn amb `make setup`. Per executar
 la interfície fora de Docker, consulta la [guia del frontend](frontend/README.md).
+Amb sessió iniciada, la pàgina [Activitat](docs/sistema.md#activitat-diària)
+permet consultar els recomptes diaris de la plataforma.
 
 `make run` deixa els serveis en primer pla. Per aturar-los, prem `Ctrl+C`; per
 eliminar els contenidors aturats, executa `docker compose down`.

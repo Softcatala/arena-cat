@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.exceptions import TASK_TOKEN_INVALID, TaskTokenError
-from app.routes import auth, categories, qualification, ranking, task, vote
+from app.routes import activity, auth, categories, qualification, ranking, task, vote
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -37,3 +37,4 @@ app.include_router(ranking.router, prefix="/api", tags=["Ranking"])
 app.include_router(auth.router, prefix="/api", tags=["Auth"])
 app.include_router(categories.router, prefix="/api", tags=["Categories"])
 app.include_router(qualification.router, prefix="/api", tags=["Qualification"])
+app.include_router(activity.router, prefix="/api", tags=["Activity"])
