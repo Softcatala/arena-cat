@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import logotip from "./assets/softcatala-logotip.png";
+import ActivityView from "./components/ActivityView";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
 import ForgotPasswordView from "./components/ForgotPasswordView";
 import HowItWorksView from "./components/HowItWorksView";
@@ -97,6 +98,9 @@ export default function App() {
           </div>
           {session?.authenticated && (
             <div className="flex items-center gap-2">
+              <Link to="/activitat" className="text-sm text-brand-600 hover:underline">
+                Activitat
+              </Link>
               <span className="hidden text-sm text-slate-500 sm:inline">{session.email}</span>
               <button
                 type="button"
@@ -157,6 +161,10 @@ export default function App() {
           <p className="px-4 py-10 text-center text-slate-500">Carregant…</p>
         ) : (
           <Routes>
+            <Route
+              path="/activitat"
+              element={session.authenticated ? <ActivityView /> : <Navigate to="/login" replace />}
+            />
             <Route path="/com-funciona" element={<HowItWorksView />} />
             <Route
               path="/login"

@@ -6,7 +6,7 @@ import pytest
 import yaml
 from sqlalchemy import func, select
 
-from app.models import Prompt, Response, TaskSkip, User, Vote
+from app.models import Prompt, QualificationFailure, Response, TaskSkip, User, Vote
 from tests.conftest import DEFAULT_PASSWORD, REPO_ROOT
 from tests.test_vote_api import ready_task_token
 
@@ -107,6 +107,11 @@ def test_qualification_returns_only_total_without_solutions(
     assert session.scalar(select(func.count()).select_from(Vote)) == 0
     assert session.scalar(select(func.count()).select_from(TaskSkip)) == 0
     assert client.get("/api/ranking").json()["n_votes_total"] == 0
+    failures = session.scalars(select(QualificationFailure)).all()
+    assert len(failures) == (0 if passed else 1)
+    if failures:
+        assert failures[0].user_id == unqualified_user.id
+        assert failures[0].created_at is not None
 
 
 def test_retry_and_qualification_survive_login(
@@ -160,6 +165,7 @@ def test_invalid_submission_does_not_qualify(
     assert client.post("/api/qualification", json=payload).status_code == 422
     session.refresh(unqualified_user)
     assert unqualified_user.qualified_at is None
+    assert session.scalar(select(func.count()).select_from(QualificationFailure)) == 0
 
 
 def test_threshold_is_read_from_yaml(

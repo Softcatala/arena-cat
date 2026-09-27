@@ -3,10 +3,13 @@
 import logging
 import re
 import smtplib
+from contextlib import nullcontext
 
 import pytest
+from sqlalchemy import select
 
 from app.config import get_settings
+from app.models import EmailDelivery
 from app.security import (
     create_email_verification_token,
     create_password_reset_token,
@@ -73,13 +76,33 @@ class FakeSMTPSSL(FakeSMTP):
 
 
 @pytest.fixture
-def fake_smtp(monkeypatch):
+def fake_smtp(monkeypatch, session):
     FakeSMTP.instances = []
     FakeSMTP.error = None
     FakeSMTP.auth_supported = True
     monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
     monkeypatch.setattr(email_service.smtplib, "SMTP_SSL", FakeSMTPSSL)
+    monkeypatch.setattr(email_service, "get_sessionmaker", lambda: lambda: nullcontext(session))
     return FakeSMTP
+
+
+@pytest.mark.parametrize("kind", ["verification", "password_reset"])
+def test_successful_email_is_recorded(smtp_env, fake_smtp, session, kind):
+    smtp_env()
+    send = getattr(email_service, f"send_{kind}_email")
+    send("usuari@example.com", "token")
+    send("usuari@example.com", "token")
+    deliveries = session.scalars(select(EmailDelivery)).all()
+    assert len(deliveries) == 2
+    assert all(delivery.kind == kind and delivery.created_at is not None for delivery in deliveries)
+
+
+def test_failed_or_unconfigured_email_is_not_counted(smtp_env, fake_smtp, session):
+    email_service.send_verification_email("usuari@example.com", "token")
+    smtp_env()
+    fake_smtp.error = smtplib.SMTPException("error")
+    email_service.send_verification_email("usuari@example.com", "token")
+    assert session.scalars(select(EmailDelivery)).all() == []
 
 
 @pytest.fixture

@@ -174,6 +174,40 @@ disponibles a l'API; el frontend encara no ofereix pantalles per a aquestes
 operacions. Els fluxos, la criptografia, l'enviament de correu i la configuració
 de seguretat es detallen a [gestió i autenticació d'usuaris](usuaris_autenticacio.md).
 
+## Activitat diària
+
+La pàgina **Activitat** (`/activitat`) i `GET /api/activity` requereixen sessió
+iniciada, sense exigir haver superat la prova. Mostren l'activitat de tota la
+plataforma, amb avui seleccionat per defecte, selector de data, botó
+d'actualització i hora de consulta. El dia va de mitjanit a mitjanit en el fus
+`Europe/Madrid`, inclosos els canvis d'horari d'estiu.
+
+Tots els recomptes s'obtenen exclusivament de PostgreSQL:
+
+| Indicador | Origen i definició |
+|---|---|
+| Usuaris registrats | Comptes amb `users.created_at` dins del dia |
+| Correus enviats | Files d'`email_deliveries`, separades entre verificació i recuperació de contrasenya |
+| Usuaris que han superat el test | Comptes amb `users.qualified_at` dins del dia |
+| Usuaris amb intents suspesos | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |
+| Votants únics | Usuaris diferents amb algun vot durant el dia; s'exclouen els vots sense `user_id` |
+| Vots emesos | Vots amb `votes.created_at` dins del dia, inclosos empats i «cap de les dues», de totes les versions |
+
+Una persona pot suspendre i aprovar el mateix dia i aparèixer als dos recomptes.
+Els usuaris que encara no han fet el test no es compten com a suspesos. Les xifres
+corresponen als esdeveniments del dia, encara que el compte s'hagi creat abans.
+Les baixes conserven el registre del compte, els vots i els suspensos vinculats a
+l'identificador anonimitzat, però buiden `qualified_at`: el recompte d'aprovats
+pot disminuir després d'una baixa.
+
+Els correus es registren després que SMTP n'accepti l'enviament; això no acredita
+el lliurament a la bústia. No es desen destinataris ni continguts. Els errors SMTP
+i els missatges de desenvolupament sense SMTP no compten. Si falla el registre
+SQL després de l'enviament, se'n deixa constància al log i el recompte no l'inclou.
+Els suspensos es desen en corregir intents complets, sense respostes ni puntuació.
+L'historial de correus i suspensos comença amb l'activació d'aquest registre;
+els anteriors no es poden reconstruir amb les dades existents.
+
 ## Rànquing
 
 El rànquing global o per categoria ajusta un model Bradley–Terry als vots

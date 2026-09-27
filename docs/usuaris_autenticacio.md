@@ -306,6 +306,9 @@ i la verificació segons la configuració anterior. Per obtenir tasques, consult
 `CurrentQualifiedUser` exigeix també `qualified_at` informat; si és nul, retorna
 HTTP 403. En superar la prova, es desa la data a `users`; no cal repetir-la en
 sessions posteriors. `GET /api/auth/session` exposa aquest estat amb `qualified`.
+Els intents suspesos es registren sense respostes ni puntuacions per als
+[recomptes d'activitat diària](sistema.md#activitat-diària), juntament amb els
+enviaments de correu acceptats per SMTP.
 
 ## Referència d'endpoints
 

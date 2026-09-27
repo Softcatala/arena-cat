@@ -86,10 +86,19 @@ Les preguntes, les solucions i `min_correct` es llegeixen de
 8 de 10 encerts acrediten l'usuari: es desa `users.qualified_at` i
 `GET /api/auth/session` retorna `qualified: true` en les sessions següents.
 Els intents fallits es poden repetir; un usuari ja acreditat rep 409 si torna
-a lliurar la prova. No es desen respostes ni es generen vots o estadístiques.
+a lliurar la prova. Es registren els intents suspesos per a
+l'[activitat diària](../docs/sistema.md#activitat-diària), sense desar respostes ni generar vots.
 
 La imatge del backend inclou el YAML. Es construeix des de l'arrel del repositori
 amb `docker compose build api` o `docker build -f backend/Dockerfile .`.
+
+### `GET /api/activity`
+
+Requereix sessió iniciada. Accepta `date=YYYY-MM-DD`; sense data, consulta avui.
+Retorna `date`, `updated_at`, `registered_users`, `verification_emails`,
+`password_reset_emails`, `qualified_users`, `failed_users`, `voters` i `votes`.
+Els recomptes provenen exclusivament de PostgreSQL. Les definicions, el fus horari
+i els límits de l'historial són a [activitat diària](../docs/sistema.md#activitat-diària).
 
 ### `GET /api/task`
 

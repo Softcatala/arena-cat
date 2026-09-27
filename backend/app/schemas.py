@@ -1,5 +1,5 @@
 import unicodedata
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
@@ -37,6 +37,18 @@ class CategoryResponse(BaseModel):
 
 class CategoriesResponse(BaseModel):
     categories: list[CategoryResponse]
+
+
+class ActivityResponse(BaseModel):
+    date: date
+    updated_at: datetime
+    registered_users: int
+    verification_emails: int
+    password_reset_emails: int
+    qualified_users: int
+    failed_users: int
+    voters: int
+    votes: int
 
 
 class TaskResponse(BaseModel):

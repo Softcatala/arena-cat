@@ -16,6 +16,10 @@ fallits i començar a avaluar quan se supera.
 Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
+La pàgina **Activitat** (`/activitat`), accessible des de la capçalera amb sessió
+iniciada, mostra els [recomptes diaris](../docs/sistema.md#activitat-diària).
+Permet triar una data, tornar a avui i actualitzar els recomptes.
+
 ## Execució amb Docker
 
 `make run` des de l'arrel arrenca tot el sistema, inclòs Vite amb recàrrega
