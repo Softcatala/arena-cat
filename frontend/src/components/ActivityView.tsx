@@ -5,8 +5,7 @@ import { api } from "../api";
 import type { Activity } from "../types";
 
 export default function ActivityView() {
-  const [date, setDate] = useState("");
-  const [refresh, setRefresh] = useState(0);
+  const [query, setQuery] = useState({ date: "" });
   const [activity, setActivity] = useState<Activity | null>(null);
   const [error, setError] = useState(false);
 
@@ -14,7 +13,7 @@ export default function ActivityView() {
     let cancelled = false;
     setActivity(null);
     setError(false);
-    api.activity(date).then(
+    api.activity(query.date).then(
       (data) => {
         if (!cancelled) setActivity(data);
       },
@@ -25,7 +24,7 @@ export default function ActivityView() {
     return () => {
       cancelled = true;
     };
-  }, [date, refresh]);
+  }, [query]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
@@ -44,24 +43,21 @@ export default function ActivityView() {
           Data
           <input
             type="date"
-            value={date || activity?.date || ""}
-            onChange={(event) => setDate(event.target.value)}
+            value={query.date || activity?.date || ""}
+            onChange={(event) => setQuery({ date: event.target.value })}
             className="mt-1 block rounded-md border border-slate-300 bg-white px-3 py-2"
           />
         </label>
         <button
           type="button"
-          onClick={() => {
-            setDate("");
-            setRefresh((value) => value + 1);
-          }}
+          onClick={() => setQuery({ date: "" })}
           className="rounded-md border border-slate-300 bg-white px-4 py-2 hover:bg-slate-100"
         >
           Avui
         </button>
         <button
           type="button"
-          onClick={() => setRefresh((value) => value + 1)}
+          onClick={() => setQuery({ ...query })}
           className="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600"
         >
           Actualitza
@@ -79,36 +75,23 @@ export default function ActivityView() {
         <>
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              ["Usuaris registrats", activity.registered_users, "Comptes creats durant el dia."],
-              [
-                "Correus enviats",
-                activity.verification_emails + activity.password_reset_emails,
-                `${activity.verification_emails} de verificació i ${activity.password_reset_emails} de recuperació de contrasenya. Acceptats pel servidor de correu.`,
-              ],
-              [
-                "Usuaris que han superat el test",
-                activity.qualified_users,
-                "Persones que s'han acreditat durant el dia.",
-              ],
-              [
-                "Usuaris amb intents suspesos",
-                activity.failed_users,
-                "Persones amb almenys un suspens durant el dia, encara que després hagin aprovat.",
-              ],
-              [
-                "Votants únics",
-                activity.voters,
-                "Persones que han emès almenys un vot durant el dia.",
-              ],
-              ["Vots emesos", activity.votes, "Inclou els empats i «cap de les dues»."],
-            ].map(([label, value, description]) => (
+              ["Usuaris registrats", activity.registered_users],
+              ["Correus enviats", activity.verification_emails + activity.password_reset_emails],
+              ["Usuaris que han superat el test", activity.qualified_users],
+              ["Usuaris amb intents suspesos", activity.failed_users],
+              ["Votants únics", activity.voters],
+              ["Vots emesos", activity.votes],
+            ].map(([label, value]) => (
               <div key={label} className="rounded-lg border border-slate-200 bg-white p-5">
                 <dt className="font-medium text-slate-600">{label}</dt>
                 <dd className="mt-2 text-3xl font-bold">{value.toLocaleString("ca-ES")}</dd>
-                <dd className="mt-2 text-sm text-slate-500">{description}</dd>
               </div>
             ))}
           </dl>
+          <p className="text-sm text-slate-500">
+            Correus acceptats pel servidor: {activity.verification_emails} de verificació i{" "}
+            {activity.password_reset_emails} de recuperació de contrasenya.
+          </p>
           <p className="text-sm text-slate-500">
             Última actualització:{" "}
             {new Date(activity.updated_at).toLocaleString("ca-ES", { timeZone: "Europe/Madrid" })}.
@@ -116,8 +99,10 @@ export default function ActivityView() {
         </>
       )}
       <p className="text-sm text-slate-500">
-        Els usuaris amb intents suspesos no inclouen els que encara no han fet el test. L'historial
-        de correus i suspensos només està disponible des de l'activació d'aquests recomptes.
+        Els recomptes d'usuaris i votants compten cada persona una vegada. Pot haver suspès i
+        aprovat el mateix dia; qui encara no ha fet el test no compta com a suspès. Els vots
+        inclouen els empats i «cap de les dues». L'historial de correus i suspensos només està
+        disponible des de l'activació d'aquests recomptes.
       </p>
     </div>
   );

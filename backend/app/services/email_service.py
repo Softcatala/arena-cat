@@ -158,7 +158,7 @@ def _describe(error: OSError) -> str:
     return f"{name} (codi SMTP {code})" if code else name
 
 
-def _send_quietly(message: EmailMessage, description: str, kind: str) -> None:
+def _send_quietly(message: EmailMessage, kind: str) -> None:
     """Envia el missatge sense propagar errors: s'executa en segon pla.
 
     Un servidor de correu caigut no ha d'impedir l'operació que l'ha provocat; la
@@ -166,30 +166,23 @@ def _send_quietly(message: EmailMessage, description: str, kind: str) -> None:
     per no deixar dades personals als logs.
     """
     try:
-        sent = send_email(message)
-    except OSError as error:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
-        logger.error("No s'ha pogut enviar el correu de %s: %s", description, _describe(error))
-        return
-    if sent:
-        try:
+        if send_email(message):
             with get_sessionmaker()() as db:
                 db.add(EmailDelivery(kind=kind))
                 db.commit()
-        except SQLAlchemyError:
-            logger.error("No s'ha pogut registrar l'enviament del correu de %s", description)
+    except OSError as error:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
+        logger.error("No s'ha pogut enviar el correu (%s): %s", kind, _describe(error))
+    except SQLAlchemyError:
+        logger.error("No s'ha pogut registrar l'enviament del correu (%s)", kind)
 
 
 def send_verification_email(to_email: str, token: str) -> None:
     """Envia el correu de verificació de l'adreça."""
     link = build_verification_link(token)
-    _send_quietly(build_verification_message(to_email, link), "verificació", "verification")
+    _send_quietly(build_verification_message(to_email, link), "verification")
 
 
 def send_password_reset_email(to_email: str, token: str) -> None:
     """Envia el correu de restabliment de contrasenya."""
     link = build_password_reset_link(token)
-    _send_quietly(
-        build_password_reset_message(to_email, link),
-        "restabliment de contrasenya",
-        "password_reset",
-    )
+    _send_quietly(build_password_reset_message(to_email, link), "password_reset")
