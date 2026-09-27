@@ -1,4 +1,5 @@
 import logging
+import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +7,11 @@ from fastapi.responses import JSONResponse
 
 from app.exceptions import TASK_TOKEN_INVALID, TaskTokenError
 from app.routes import auth, categories, qualification, ranking, task, vote
+from app.telemetry.metrics import (
+    http_errors_total,
+    http_requests_duration,
+    http_requests_total,
+)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -20,6 +26,20 @@ async def task_token_error_handler(request: Request, exc: TaskTokenError) -> JSO
         status_code=exc.status_code,
         content={"detail": exc.detail, "error_code": TASK_TOKEN_INVALID},
     )
+
+
+@app.middleware("http")
+async def telemetry_middleware(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+    route = str(request.url.path)
+    attrs = {"method": request.method, "route": route, "status_code": response.status_code}
+    http_requests_total.add(1, attrs)
+    http_requests_duration.record(duration, attrs)
+    if response.status_code >= 500:
+        http_errors_total.add(1, attrs)
+    return response
 
 
 # CORS permissiu per a desenvolupament local
