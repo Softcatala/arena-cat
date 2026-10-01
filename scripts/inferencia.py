@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 from pathlib import Path
+import sys
 import time
 from typing import Any
 
@@ -21,6 +22,10 @@ from transformers import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.lib.prompt_versions import inference_directory, latest_prompt_files  # noqa: E402
+
 ConfigDict = dict[str, Any]
 Prompt = dict[str, Any]
 Loader = Callable[..., Any]
@@ -117,10 +122,8 @@ def discover_prompt_files(
     elif global_config is None:
         global_config = {}
 
-    prompts_dir = resolve_config_dir(
-        global_config, "dir_prompts", "data/prompts/v1", root
-    )
-    return sorted(prompts_dir.glob("*.txt"))
+    prompts_dir = resolve_config_dir(global_config, "dir_prompts", "data/prompts", root)
+    return latest_prompt_files(prompts_dir)
 
 
 def load_prompts(
@@ -741,15 +744,23 @@ def run_model(
     """
     model_id = model_entry["id"]
     model_name = get_model_name(model_entry)
-    output_dir = (
-        resolve_config_dir(global_config, "dir_sortida", "data/inferencies/v1", root)
-        / model_id
+    output_root = resolve_config_dir(
+        global_config, "dir_sortida", "data/inferencies", root
     )
+    output_dirs = {
+        prompt["id"]: inference_directory(
+            output_root, Path(prompt["_path_origen"]).parent.name
+        )
+        / model_id
+        for prompt in prompt_list
+    }
     if only_changed:
         prompt_list = [
             prompt
             for prompt in prompt_list
-            if not is_inference_current(prompt, generation_params, output_dir)
+            if not is_inference_current(
+                prompt, generation_params, output_dirs[prompt["id"]]
+            )
         ]
 
     if not prompt_list:
@@ -784,7 +795,7 @@ def run_model(
                 global_config,
             )
             inference_times.append(time.perf_counter() - start_time)
-            save_result(result_yaml, output_dir, prompt_id)
+            save_result(result_yaml, output_dirs[prompt_id], prompt_id)
     finally:
         release_model(model, tokenizer)
 

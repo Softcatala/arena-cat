@@ -33,6 +33,7 @@ RESUM DE RANGS
 {{ '=' * 80 }}
 PROMPT {{ e.prompt_id }}
 {{ '=' * 80 }}
+Versió: {{ e.version }}
 Rang (0 = més discriminant): {{ loop.index0 }}
 Puntuació (combinat mitjà, més alt = més divergent): {{ '%.4f' | format(e.metrics.combinat_mean) }}
 

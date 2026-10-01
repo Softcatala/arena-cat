@@ -5,9 +5,9 @@
 
 REFERENCE_INFERENCES_WORKTREE ?= ../arena-cat-dades-inferencia
 REFERENCE_INFERENCES_BRANCH ?= dades_inferencia
-REFERENCE_INFERENCES_DIR ?= $(REFERENCE_INFERENCES_WORKTREE)/data/inferencies/v1
-LOCAL_INFERENCES_DIR ?= data/inferencies/v1
-PUBLISH_INFERENCES_DIR ?= data/inferencies/v1
+REFERENCE_INFERENCES_DIR ?= $(REFERENCE_INFERENCES_WORKTREE)/data/inferencies
+LOCAL_INFERENCES_DIR ?= data/inferencies
+PUBLISH_INFERENCES_DIR ?= data/inferencies
 PUBLISH_INFERENCES_COMMIT_MESSAGE ?= data: publish new inferences
 
 setup:
@@ -37,7 +37,7 @@ inferences:
 
 # Genera results.txt; INFERENCIES_DIR permet seleccionar un altre directori.
 analyze_inferences:
-	uv run --group scripts python scripts/analitza_inferencies.py $(if $(INFERENCIES_DIR),--inferencies "$(INFERENCIES_DIR)")
+	uv run --group scripts python scripts/analitza_inferencies.py $(if $(INFERENCIES_DIR),--inferencies "$(INFERENCIES_DIR)") $(if $(PROMPTS_DIR),--prompts-dir "$(PROMPTS_DIR)")
 
 # Copia les inferències de referència al directori local, sobreescrivint coincidències.
 copy_reference_inferences:
@@ -66,7 +66,8 @@ publish_inferences:
 	fi
 
 # Carrega els prompts i les inferències versionats a la base de dades.
-# Per defecte usa data/prompts/v1 i data/inferencies/v1. Es poden sobreescriure
+# Per defecte carrega totes les versions de data/prompts i data/inferencies.
+# Es poden sobreescriure els directoris
 # amb variables d'entorn:
 #   make load_inferences
 #   PROMPTS_DIR=data/prompts/v2 INFERENCIES_DIR=data/inferencies/v2 make load_inferences

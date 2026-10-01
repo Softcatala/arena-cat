@@ -90,6 +90,10 @@ conservades es rebutgen; cal publicar una versió nova. El raonament intern,
 quan n'hi ha, es desa a les metadades i no es mostra com a resposta.
 
 Les inferències de referència es mantenen a la branca `dades_inferencia`.
+La generació i l'anàlisi seleccionen l'última revisió disponible de cada
+prompt al repositori; la càrrega importa totes les versions per conservar
+l'historial. La [selecció de versions](../scripts/README.md#selecció-de-versions)
+detalla el recorregut dels directoris i les opcions per fixar una versió.
 Les comandes de generació, els filtres, les proves amb models petits i la
 càrrega de dades es detallen a la [guia de la canonada](../scripts/README.md).
 
@@ -252,8 +256,8 @@ El repositori defineix tres imatges:
 - [`frontend/Dockerfile`](../frontend/Dockerfile): compila el frontend i serveix
   els fitxers estàtics amb un servidor Node al port 80, amb retorn d'`index.html`
   per a les rutes de l'aplicació. `VITE_API_BASE_URL` es fixa en compilar.
-- [`Dockerfile.load-inferences`](../Dockerfile.load-inferences): incorpora els
-  prompts i les inferències v1 i executa el carregador.
+- [`Dockerfile.load-inferences`](../Dockerfile.load-inferences): incorpora
+  totes les versions dels prompts i les inferències i executa el carregador.
 
 La [configuració de GitLab CI](../.gitlab-ci.yml) construeix i publica aquestes
 imatges i delega el desplegament al projecte d'infraestructura. Per construir

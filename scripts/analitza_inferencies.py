@@ -15,6 +15,11 @@ import yaml  # noqa: E402
 from jinja2 import Environment, FileSystemLoader  # noqa: E402
 
 from scripts.lib.inference_metrics import load_answers, pairwise_metrics  # noqa: E402
+from scripts.lib.prompt_versions import (  # noqa: E402
+    VERSION_PATTERN,
+    inference_directory,
+    latest_prompt_files,
+)
 
 RECOMMENDED_THRESHOLD = 0.40
 
@@ -104,32 +109,64 @@ def _print_category_summary(category_summary: list[dict]) -> None:
         )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Calcula mètriques de distància entre sortides de models "
         "per als prompts d'un directori d'inferències."
     )
     parser.add_argument(
         "--inferencies",
-        default="data/inferencies/v1",
-        help="Subdirectori d'inferències (relatiu al repo).",
+        default="data/inferencies",
+        help="Arrel d'inferències o directori d'una versió (relatiu al repo).",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--prompts-dir",
+        default="data/prompts",
+        help="Arrel dels prompts per seleccionar-ne les últimes revisions.",
+    )
+    args = parser.parse_args(argv)
 
     inferences_dir = REPO_ROOT / args.inferencies
+    flat_directory = VERSION_PATTERN.fullmatch(inferences_dir.name) or any(
+        (inferences_dir / model).is_dir() for model in MODEL_IDS
+    )
+    if flat_directory:
+        prompts = [
+            (code, inferences_dir.name, inferences_dir, None)
+            for code in _discover_prompt_ids(inferences_dir)
+        ]
+    else:
+        prompts = [
+            (
+                path.stem,
+                path.parent.name,
+                inference_directory(inferences_dir, path.parent.name),
+                path,
+            )
+            for path in latest_prompt_files(REPO_ROOT / args.prompts_dir)
+        ]
     entries = []
-    for prompt_id in _discover_prompt_ids(inferences_dir):
-        outputs = load_answers(prompt_id, MODEL_IDS, inference_subdir=args.inferencies)
+    for prompt_id, version, directory, prompt_path in prompts:
+        outputs = load_answers(prompt_id, MODEL_IDS, inference_subdir=str(directory))
         if len(outputs) < 2:
-            print(f"avís: {prompt_id} té només {len(outputs)} sortida(es), s'omet")
+            print(
+                f"avís: {prompt_id}/{version} té només {len(outputs)} sortida(es), s'omet"
+            )
             continue
-        entries.append({
-            "prompt_id": prompt_id,
-            "prompt_text": _load_original_prompt(inferences_dir, prompt_id),
-            "outputs": outputs,
-            "metrics": pairwise_metrics(outputs),
-            "missing": [m for m in MODEL_IDS if m not in outputs],
-        })
+        entries.append(
+            {
+                "prompt_id": prompt_id,
+                "version": version,
+                "prompt_text": (
+                    prompt_path.read_text(encoding="utf-8").strip()
+                    if prompt_path
+                    else _load_original_prompt(directory, prompt_id)
+                ),
+                "outputs": outputs,
+                "metrics": pairwise_metrics(outputs),
+                "missing": [m for m in MODEL_IDS if m not in outputs],
+            }
+        )
 
     entries.sort(key=lambda e: e["metrics"]["combinat_mean"], reverse=True)
     category_summary = _category_summary(entries)
