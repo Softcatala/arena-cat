@@ -9,12 +9,12 @@ from pathlib import Path
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
+sys.path.insert(0, str(REPO_ROOT))
 
 import yaml  # noqa: E402
 from jinja2 import Environment, FileSystemLoader  # noqa: E402
 
-from metriques import load_answers, pairwise_metrics  # noqa: E402
+from scripts.lib.inference_metrics import load_answers, pairwise_metrics  # noqa: E402
 
 RECOMMENDED_THRESHOLD = 0.40
 

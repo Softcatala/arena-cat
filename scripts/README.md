@@ -94,12 +94,13 @@ del codi ni la data d’execució, per evitar canvis sense diferències de conti
 
 ### 6. Mètriques de distància entre sortides
 
-`scripts/metriques.py` calcula com de diferents són les sortides dels diferents
+El mòdul `scripts/lib/inference_metrics.py`, utilitzat per
+`scripts/analitza_inferencies.py`, calcula com de diferents són les sortides dels
 models per a un mateix prompt. Serveix per detectar prompts on els models
 generen respostes massa semblants — i, per tant, on un avaluador humà no podrà
 distingir-les fàcilment.
 
-Per a cada parella de models imprimeix dues mètriques **normalitzades a
+Per a cada parella de models calcula dues mètriques **normalitzades a
 distància** (0 = sortides idèntiques, 1 = totalment diferents) i la seva
 mitjana:
 
@@ -107,7 +108,7 @@ mitjana:
 - **edit**: Levenshtein normalitzat a caràcter.
 - **combinat**: mitjana de les dues anteriors, com a resum d'un cop d'ull.
 
-A més de la mitjana de les parelles, mostra la **parella pitjor** (la més
+A més de la mitjana de les parelles, calcula la **parella pitjor** (la més
 semblant del trio, mínim de les distàncies), que delata si dos models continuen
 sonant igual encara que la mitjana sigui alta.
 
@@ -120,8 +121,8 @@ La taula de resum de `make analyze_inferences` mostra també `worst` i
 categoria, respectivament.
 
 ```bash
-uv run python scripts/metriques.py
-uv run python scripts/metriques.py --inferencies data/inferencies/hypotheses
+make analyze_inferences
+make analyze_inferences INFERENCIES_DIR=data/inferencies/hypotheses
 ```
 
 ### 7. Prova local amb un model molt petit
