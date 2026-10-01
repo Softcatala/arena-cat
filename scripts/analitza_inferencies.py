@@ -58,6 +58,7 @@ def _category_summary(entries: list[dict]) -> list[dict]:
     rows = {}
     for e in entries:
         category = _category(e["prompt_id"])
+        score = e["metrics"]["combinat_worst"]
         row = rows.setdefault(
             category,
             {
@@ -65,35 +66,41 @@ def _category_summary(entries: list[dict]) -> list[dict]:
                 "total": 0,
                 "valid": 0,
                 "invalid": 0,
+                "worst": score,
+                "mean_worst": 0.0,
             },
         )
         row["total"] += 1
-        if e["metrics"]["combinat_worst"] >= RECOMMENDED_THRESHOLD:
+        row["worst"] = min(row["worst"], score)
+        row["mean_worst"] += score
+        if score >= RECOMMENDED_THRESHOLD:
             row["valid"] += 1
         else:
             row["invalid"] += 1
 
-    summaries = []
     for row in rows.values():
+        row["mean_worst"] /= row["total"]
         row["valid_pct"] = row["valid"] * 100 / row["total"]
         row["invalid_pct"] = row["invalid"] * 100 / row["total"]
-        summaries.append(row)
-    return sorted(summaries, key=lambda s: str(s["category"]))
+    return sorted(rows.values(), key=lambda s: s["category"])
 
 
 def _print_category_summary(category_summary: list[dict]) -> None:
     print("\nResum de revisió per categoria")
     print(f"Cal revisar = combinat_worst < {RECOMMENDED_THRESHOLD:.2f}")
-    print("Totes les categories usen la distància de la parella més semblant.")
+    print("worst = mínim de combinat_worst dels prompts de la categoria.")
+    print("mean_worst = mitjana de combinat_worst dels prompts de la categoria.")
     print(
         f"{'categoria':<16}{'total':>7}{'acceptables':>13}{'cal revisar':>13}"
-        f"{'% acceptables':>15}{'% cal revisar':>15}"
+        f"{'% acceptables':>15}{'% cal revisar':>15}{'worst':>10}"
+        f"{'mean_worst':>12}"
     )
     for row in category_summary:
         print(
             f"{row['category']:<16}{row['total']:>7}{row['valid']:>13}"
             f"{row['invalid']:>13}{row['valid_pct']:>14.1f}%"
-            f"{row['invalid_pct']:>14.1f}%"
+            f"{row['invalid_pct']:>14.1f}%{row['worst']:>10.4f}"
+            f"{row['mean_worst']:>12.4f}"
         )
 
 

@@ -115,6 +115,9 @@ L’analitzador marca «cal revisar» quan `combinat_worst < 0.40` en totes les
 categories, inclosa traducció. El llindar orienta la revisió humana i no
 invalida automàticament el prompt. `combinat_mean` es conserva com a dada
 complementària i per ordenar el rànquing de diversitat global.
+La taula de resum de `make analyze_inferences` mostra també `worst` i
+`mean_worst`: el mínim i la mitjana de `combinat_worst` dels prompts de cada
+categoria, respectivament.
 
 ```bash
 uv run python scripts/metriques.py
