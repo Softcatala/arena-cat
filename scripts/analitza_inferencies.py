@@ -17,7 +17,6 @@ from jinja2 import Environment, FileSystemLoader  # noqa: E402
 from metriques import load_answers, pairwise_metrics  # noqa: E402
 
 RECOMMENDED_THRESHOLD = 0.40
-TRANSLATION_CATEGORY = "traduccio"
 
 config_path = REPO_ROOT / "config/inferencia/inferencia_config.yaml"
 config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
@@ -27,13 +26,6 @@ MODEL_IDS = list(MODEL_DISPLAY)
 
 def _category(prompt_id: str) -> str:
     return prompt_id.split("_", 1)[0]
-
-
-def _validation_score(entry: dict) -> float:
-    """Retorna la puntuació usada per validar el prompt segons la categoria."""
-    if _category(entry["prompt_id"]) == TRANSLATION_CATEGORY:
-        return entry["metrics"]["combinat_mean"]
-    return entry["metrics"]["combinat_worst"]
 
 
 def _discover_prompt_ids(inferences_dir: Path) -> list[str]:
@@ -76,7 +68,7 @@ def _category_summary(entries: list[dict]) -> list[dict]:
             },
         )
         row["total"] += 1
-        if _validation_score(e) >= RECOMMENDED_THRESHOLD:
+        if e["metrics"]["combinat_worst"] >= RECOMMENDED_THRESHOLD:
             row["valid"] += 1
         else:
             row["invalid"] += 1
@@ -90,18 +82,18 @@ def _category_summary(entries: list[dict]) -> list[dict]:
 
 
 def _print_category_summary(category_summary: list[dict]) -> None:
-    print("\nResum de validesa per categoria")
-    print(f"Invàlid = puntuació de validació < {RECOMMENDED_THRESHOLD:.2f}")
-    print("Validació: traduccio usa combinat_mean; la resta usa combinat_worst")
+    print("\nResum de revisió per categoria")
+    print(f"Cal revisar = combinat_worst < {RECOMMENDED_THRESHOLD:.2f}")
+    print("Totes les categories usen la distància de la parella més semblant.")
     print(
-        f"{'categoria':<16}{'total':>7}{'vàlids':>9}{'invàlids':>10}"
-        f"{'% vàlids':>10}{'% invàlids':>12}"
+        f"{'categoria':<16}{'total':>7}{'acceptables':>13}{'cal revisar':>13}"
+        f"{'% acceptables':>15}{'% cal revisar':>15}"
     )
     for row in category_summary:
         print(
-            f"{row['category']:<16}{row['total']:>7}{row['valid']:>9}"
-            f"{row['invalid']:>10}{row['valid_pct']:>9.1f}%"
-            f"{row['invalid_pct']:>11.1f}%"
+            f"{row['category']:<16}{row['total']:>7}{row['valid']:>13}"
+            f"{row['invalid']:>13}{row['valid_pct']:>14.1f}%"
+            f"{row['invalid_pct']:>14.1f}%"
         )
 
 

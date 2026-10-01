@@ -111,6 +111,11 @@ A més de la mitjana de les parelles, mostra la **parella pitjor** (la més
 semblant del trio, mínim de les distàncies), que delata si dos models continuen
 sonant igual encara que la mitjana sigui alta.
 
+L’analitzador marca «cal revisar» quan `combinat_worst < 0.40` en totes les
+categories, inclosa traducció. El llindar orienta la revisió humana i no
+invalida automàticament el prompt. `combinat_mean` es conserva com a dada
+complementària i per ordenar el rànquing de diversitat global.
+
 ```bash
 uv run python scripts/metriques.py
 uv run python scripts/metriques.py --inferencies data/inferencies/hypotheses
