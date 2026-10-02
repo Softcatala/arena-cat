@@ -101,6 +101,15 @@ subdirectoris `v<N>` per ordre numèric descendent (`v10`, `v9`, …, `v1`).
 Per a cada nom de prompt, conserva el primer fitxer trobat i ignora les
 revisions anteriors.
 
+Per consultar la versió i el camí seleccionats per a cada prompt:
+
+```bash
+make prompt_latest
+make prompt_latest PROMPTS_DIR=data/prompts/v2
+# Equivalent directe:
+uv run python -m scripts.prompt_latest --prompts-dir data/prompts
+```
+
 Per exemple, si `v2` només conté `correccio_1.txt`, es fa servir aquest fitxer
 i la resta de prompts es recuperen de `v1`. La comprovació d'inferències
 existents es fa a la carpeta de la versió seleccionada.
