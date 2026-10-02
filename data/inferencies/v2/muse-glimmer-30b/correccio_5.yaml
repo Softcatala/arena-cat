@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: b76530d636e901e81930da3d38538a90910ecf0e96ceaccf3f57c6264e5fd399
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: muse-glimmer-30b
+  model_name: meta-models/Muse-Glimmer-30B
+  revision: main
+output:
+  answer: La setmana passada va obrir les portes un nou bar al centre del barri. L'establiment
+    ofereix esmorzars, tapes, entrepans i una àmplia selecció de begudes per a tots
+    els gustos. Els propietaris han renovat completament el local, que ara té un ambient
+    modern, còmode i acollidor. Durant el primer dia d'obertura, molts veïns s'hi
+    van acostar per conèixer l'espai i tastar els seus productes. L'equip del bar
+    va rebre els clients amb un tracte amable i els hi va oferir un petit detall de
+    benvinguda. Els responsables esperen que el negoci es converteixi en un punt de
+    trobada habitual per a la gent del barri.
+prompt:
+  id: correccio_5
+  path: data/prompts/v2/correccio_5.txt
+  sha256: b76530d636e901e81930da3d38538a90910ecf0e96ceaccf3f57c6264e5fd399
+reasoning:
+  content: null
+run:
+  seed: 42

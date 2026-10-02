@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: a714344d1c4df033a79c4985dabc054d9477350e2175d47262e50eabbb99b5c1
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: mistral-small-3.2-24b-instruct-2506
+  model_name: mistralai/Mistral-Small-3.2-24B-Instruct-2506
+  revision: main
+output:
+  answer: Tarragona és una ciutat situada a la costa Mediterrània, coneguda pel seu
+    ric patrimoni històric i cultural. Va ser una de les principals ciutats de l'Imperi
+    Romà a la Península Ibèrica, fet que es reflecteix en monuments com l'amfiteatre,
+    les muralles i el circ romà. El seu conjunt arqueològic ha estat declarat Patrimoni
+    Mundial per la UNESCO. A més de la seva història, Tarragona destaca com a destinació
+    turística per les seves platges, el seu port i la gastronomia basada en productes
+    del mar. Les festes de Santa Tecla i els Castells són dos de les tradicions més
+    representatives de la ciutat.
+prompt:
+  id: correccio_2
+  path: data/prompts/v2/correccio_2.txt
+  sha256: a714344d1c4df033a79c4985dabc054d9477350e2175d47262e50eabbb99b5c1
+reasoning:
+  content: null
+run:
+  seed: 42

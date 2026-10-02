@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: c4401feccd455488ca4adcffde106a275d34584eb7613b69da6f0dd77a4f0451
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: Les platges són espais naturals molt apreciats tant pels habitants com pels
+    visitants. Durant l'estiu, moltes persones hi van per prendre el sol, banyar-se
+    o practicar esports aquàtics. No només són llocs d'oci, sinó que també tenen un
+    gran valor ecològic, ja que acullen moltes espècies de flora i fauna protegides.
+    És important mantenir-les netes i respectar el seu entorn per preservar-ne la
+    bellesa i la biodiversitat. Passejar per la vora del mar, escoltar el so de les
+    onades i sentir la brisa marina són experiències que transmeten calma i benestar
+    a persones de totes les edats.
+prompt:
+  id: correccio_1
+  path: data/prompts/v2/correccio_1.txt
+  sha256: c4401feccd455488ca4adcffde106a275d34584eb7613b69da6f0dd77a4f0451
+reasoning:
+  content: null
+run:
+  seed: 42

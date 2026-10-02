@@ -1,0 +1,36 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 25
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: bd37225de1db962e3a5e3903fa43553ac4fbd10276816faf063eaf168cb16ce4
+generation:
+  max_new_tokens: 1024
+  min_token_len: 25
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: qwen3.8-27b
+  model_name: Qwen/Qwen3.8-27B
+  revision: main
+output:
+  answer: El text original no presenta cap falta d'ortografia, gramàtica ni puntuació.
+    És correcte tal com està.
+prompt:
+  id: correccio_9
+  path: data/prompts/v2/correccio_9.txt
+  sha256: bd37225de1db962e3a5e3903fa43553ac4fbd10276816faf063eaf168cb16ce4
+reasoning:
+  content: null
+run:
+  seed: 42
