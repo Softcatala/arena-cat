@@ -129,9 +129,10 @@ Per executar el CLI directament (també carrega `.env`):
 
 `SHOW` (o `--show` al CLI) accepta `summary` (per defecte), `all`, `categories`,
 `prompts` o `inferences`. El resum mostra l'ID, el codi i el nom de les categories;
-l'ID, el codi, la versió i la categoria dels prompts; i l'ID, el prompt, el model
-i `created_at` de les inferències, amb una fila per registre i el recompte de cada
-taula. La resta d'opcions mostren JSON; `--show all` inclou totes les dades completes.
+l'ID, el codi, la versió i la categoria dels prompts; i l'ID, l'ID i el codi del
+prompt, la versió, el model i `created_at` de les inferències, amb una fila per
+registre i el recompte de cada taula. La resta d'opcions mostren JSON;
+`--show all` inclou totes les dades completes.
 Consulta totes les versions carregades a la base de dades, no els fitxers locals.
 
 ### 6. Mètriques de distància entre sortides

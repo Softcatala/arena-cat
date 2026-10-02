@@ -44,10 +44,22 @@ def main() -> None:
     except (URLError, TimeoutError, ValueError) as error:
         parser.exit(1, f"Error: {error}\n")
     if args.show == "summary":
+        prompts = {prompt["id"]: prompt for prompt in data["prompts"]}
+        for response in data["responses"]:
+            prompt = prompts[response["prompt_id"]]
+            response["prompt_code"] = prompt["code"]
+            response["version"] = prompt["version"]
         fields = {
             "categories": ("id", "code", "name"),
             "prompts": ("id", "code", "version", "category_id"),
-            "responses": ("id", "prompt_id", "model", "created_at"),
+            "responses": (
+                "id",
+                "prompt_id",
+                "prompt_code",
+                "version",
+                "model",
+                "created_at",
+            ),
         }
         for key, columns in fields.items():
             rows = [[str(row[field]) for field in columns] for row in data[key]]
