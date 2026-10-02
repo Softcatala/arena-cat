@@ -113,8 +113,8 @@ Per generar només una versió concreta, configureu `dir_prompts` amb
 #### Consulta de les dades carregades en remot
 
 El CLI consulta [`GET /api/dataset`](../backend/README.md#get-apidataset) per
-HTTPS i imprimeix les dades en JSON. `make dataset` carrega `API_URL` i
-`ADMIN_API_TOKEN` de `.env`, si existeix; els arguments i les variables
+HTTPS i mostra un resum en taules compactes. El CLI carrega `API_URL` i
+`ADMIN_API_TOKEN` del `.env` de l'arrel, si existeix; els arguments i les variables
 d'entorn tenen prioritat. Si falta el token, el demana sense mostrar-lo.
 La URL ha d'incloure el prefix complet de l'API.
 
@@ -124,10 +124,15 @@ make dataset API_URL=https://servidor.example/api
 make dataset API_URL=https://servidor.example/api SHOW=prompts
 ```
 
-Per executar el CLI directament amb `.env`:
-`uv run --env-file .env python -m scripts.dataset`.
+Per executar el CLI directament (també carrega `.env`):
+`uv run scripts/dataset.py`.
 
-`SHOW` accepta `all` (per defecte), `categories`, `prompts` o `inferences`.
+`SHOW` (o `--show` al CLI) accepta `summary` (per defecte), `all`, `categories`,
+`prompts` o `inferences`. El resum mostra l'ID, el codi i el nom de les categories;
+l'ID, el codi, la versió i la categoria dels prompts; i l'ID, l'ID i el codi del
+prompt, la versió, el model i `created_at` de les inferències, amb una fila per
+registre i el recompte de cada taula. La resta d'opcions mostren JSON;
+`--show all` inclou totes les dades completes.
 Consulta totes les versions carregades a la base de dades, no els fitxers locals.
 
 ### 6. Mètriques de distància entre sortides
@@ -183,6 +188,15 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 `scripts/carrega_inferencies.py` sincronitza `data/prompts/categories.yaml`, la font de veritat de les categories, amb la taula `categories` i publica els fitxers disponibles localment a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/<version>/*.txt` (text pla, clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/<version>/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
 
 Les inferències de referència es conserven a la branca `dades_inferencia`, separades de les branques de codi. El target `make load_reference_inferences` crea o reutilitza un worktree paral·lel i apunta el carregador a les dades de referència.
+
+`make publish_inferences` actualitza el worktree amb `git pull --ff-only`,
+copia les inferències locals noves i en fa commit i push a `dades_inferencia`.
+La publicació és additiva: conserva els fitxers publicats absents del directori
+local i omet els que tenen contingut idèntic. Si algun fitxer ja publicat té
+contingut diferent, acaba amb error abans de copiar, fer commit o push de cap
+inferència. Per modificar una resposta publicada, genereu-la en una versió nova.
+El worktree de dades ha d'estar net, inclosos els fitxers sense seguiment.
+`PUBLISH_INFERENCES_DIR` permet seleccionar el directori local d'origen.
 
 La versió s'aplica a cada prompt (`code`) independentment. Ha de tenir el format
 `v<N>`, amb un enter positiu sense zeros inicials i fins a 31 dígits. Per publicar
