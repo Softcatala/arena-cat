@@ -96,27 +96,20 @@ del codi ni la data d’execució, per evitar canvis sense diferències de conti
 #### Selecció de versions
 
 Per defecte, `dir_prompts` apunta a `data/prompts` i `dir_sortida` a
-`data/inferencies`. El mòdul `scripts/lib/prompt_versions.py` recorre els
-subdirectoris `v<N>` per ordre numèric descendent (`v10`, `v9`, …, `v1`).
-Per a cada nom de prompt, conserva el primer fitxer trobat i ignora les
-revisions anteriors.
+`data/inferencies`. `scripts/lib/prompt_versions.py` recorre `v<N>` per ordre
+numèric descendent (`v10`, `v9`, …, `v1`) i conserva el primer fitxer de cada
+prompt. Només cal posar a `v2` els prompts modificats; les inferències es
+generen i es reutilitzen dins de la versió corresponent.
 
 Per consultar la versió i el camí seleccionats per a cada prompt:
 
 ```bash
 make prompt_latest
 make prompt_latest PROMPTS_DIR=data/prompts/v2
-# Equivalent directe:
-uv run python -m scripts.prompt_latest --prompts-dir data/prompts
 ```
 
-Per exemple, si `v2` només conté `correccio_1.txt`, es fa servir aquest fitxer
-i la resta de prompts es recuperen de `v1`. La comprovació d'inferències
-existents es fa a la carpeta de la versió seleccionada.
-
 Per generar només una versió concreta, configureu `dir_prompts` amb
-`data/prompts/v2`. Podeu mantenir `dir_sortida: data/inferencies` o indicar
-`data/inferencies/v2`; una versió de sortida diferent es rebutja.
+`data/prompts/v2` i `dir_sortida` amb `data/inferencies` o `data/inferencies/v2`.
 
 ### 6. Mètriques de distància entre sortides
 
@@ -146,12 +139,9 @@ La taula de resum de `make analyze_inferences` mostra també `worst` i
 `mean_worst`: el mínim i la mitjana de `combinat_worst` dels prompts de cada
 categoria, respectivament.
 
-L'anàlisi selecciona les últimes revisions amb el mateix criteri que la
-generació i compara només respostes de la mateixa versió. Si una revisió té
-menys de dues respostes, ho indica i l'omet; no recorre a una revisió anterior.
-`results.txt` indica la versió de cada prompt analitzat. Podeu passar
-`PROMPTS_DIR` per seleccionar una altra arrel de prompts i `INFERENCIES_DIR`
-per seleccionar una altra arrel d'inferències o una versió concreta.
+L'anàlisi usa les últimes revisions, sense barrejar versions, i omet amb un
+avís les que tenen menys de dues respostes. `results.txt` indica la versió de
+cada prompt. `PROMPTS_DIR` i `INFERENCIES_DIR` permeten canviar els directoris.
 
 ```bash
 make analyze_inferences
@@ -199,8 +189,7 @@ make load_inferences
 ```
 
 Per defecte usa `data/prompts/categories.yaml` i carrega totes les versions
-de `data/prompts` i `data/inferencies`, conservant l'historial. La selecció de
-la revisió activa continua a càrrec del backend. Per carregar només una versió:
+de `data/prompts` i `data/inferencies`. Per carregar només una versió:
 
 ```bash
 make load_inferences VERSION=v2

@@ -131,22 +131,19 @@ def main(argv: list[str] | None = None) -> None:
         (inferences_dir / model).is_dir() for model in MODEL_IDS
     )
     if flat_directory:
-        prompts = [
-            (code, inferences_dir.name, inferences_dir, None)
-            for code in _discover_prompt_ids(inferences_dir)
-        ]
+        prompts = [(code, None) for code in _discover_prompt_ids(inferences_dir)]
     else:
         prompts = [
-            (
-                path.stem,
-                path.parent.name,
-                inference_directory(inferences_dir, path.parent.name),
-                path,
-            )
+            (path.stem, path)
             for path in latest_prompt_files(REPO_ROOT / args.prompts_dir)
         ]
     entries = []
-    for prompt_id, version, directory, prompt_path in prompts:
+    for prompt_id, prompt_path in prompts:
+        directory = (
+            inference_directory(inferences_dir, prompt_path.parent.name)
+            if prompt_path else inferences_dir
+        )
+        version = directory.name
         outputs = load_answers(prompt_id, MODEL_IDS, inference_subdir=str(directory))
         if len(outputs) < 2:
             print(

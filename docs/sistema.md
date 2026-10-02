@@ -90,12 +90,8 @@ conservades es rebutgen; cal publicar una versió nova. El raonament intern,
 quan n'hi ha, es desa a les metadades i no es mostra com a resposta.
 
 Les inferències de referència es mantenen a la branca `dades_inferencia`.
-La generació i l'anàlisi seleccionen l'última revisió disponible de cada
-prompt al repositori; la càrrega importa totes les versions per conservar
-l'historial. La [selecció de versions](../scripts/README.md#selecció-de-versions)
-detalla el recorregut dels directoris i les opcions per fixar una versió.
-Les comandes de generació, els filtres, les proves amb models petits i la
-càrrega de dades es detallen a la [guia de la canonada](../scripts/README.md).
+La [guia de la canonada](../scripts/README.md) detalla les comandes de generació,
+la selecció de versions, els filtres, les proves amb models petits i la càrrega.
 
 ### Versions actives
 

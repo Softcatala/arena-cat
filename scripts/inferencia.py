@@ -747,23 +747,15 @@ def run_model(
     output_root = resolve_config_dir(
         global_config, "dir_sortida", "data/inferencies", root
     )
-    output_dirs = {
-        prompt["id"]: inference_directory(
+    pending = []
+    for prompt in prompt_list:
+        output_dir = inference_directory(
             output_root, Path(prompt["_path_origen"]).parent.name
-        )
-        / model_id
-        for prompt in prompt_list
-    }
-    if only_changed:
-        prompt_list = [
-            prompt
-            for prompt in prompt_list
-            if not is_inference_current(
-                prompt, generation_params, output_dirs[prompt["id"]]
-            )
-        ]
+        ) / model_id
+        if not only_changed or not is_inference_current(prompt, generation_params, output_dir):
+            pending.append((prompt, output_dir))
 
-    if not prompt_list:
+    if not pending:
         LOGGER.info("No hi ha prompts pendents per al model %s", model_id)
         return None
 
@@ -782,7 +774,7 @@ def run_model(
 
     inference_times: list[float] = []
     try:
-        for prompt in prompt_list:
+        for prompt, output_dir in pending:
             prompt_id = prompt["id"]
             LOGGER.info("Executant prompt %s", prompt_id)
             start_time = time.perf_counter()
@@ -795,7 +787,7 @@ def run_model(
                 global_config,
             )
             inference_times.append(time.perf_counter() - start_time)
-            save_result(result_yaml, output_dirs[prompt_id], prompt_id)
+            save_result(result_yaml, output_dir, prompt_id)
     finally:
         release_model(model, tokenizer)
 

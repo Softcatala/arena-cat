@@ -486,7 +486,7 @@ def run_load(
                 raise SchemaError(f"no s'ha trobat la versió {version} a {prompts_dir}")
         try:
             directories = [
-                (p, inference_directory(inferencies_dir, p.name), p.name) for p in versions
+                (p, inference_directory(inferencies_dir, p.name)) for p in versions
             ]
         except ValueError as error:
             raise SchemaError(str(error)) from error
@@ -496,12 +496,13 @@ def run_load(
             raise SchemaError(f"no s'han trobat directoris de versió vàlids a {prompts_dir}")
         if version_directories(inferencies_dir):
             inferencies_dir = inference_directory(inferencies_dir, version)
-        directories = [(prompts_dir, inferencies_dir, version)]
+        directories = [(prompts_dir, inferencies_dir)]
 
     categories = load_category_catalog(categories_file)
     category_ids = load_categories(session, categories)
     summary = Summary(prompts=Stats(), responses=Stats())
-    for prompt_directory, response_directory, revision in directories:
+    for prompt_directory, response_directory in directories:
+        revision = version or prompt_directory.name
         load_prompts(session, prompt_directory, revision, category_ids, summary.prompts)
         load_responses(session, response_directory, revision, summary.responses)
     return summary
