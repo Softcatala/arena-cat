@@ -89,6 +89,10 @@ idèntiques no crea duplicats. Els conflictes de text o de metadades de resposta
 conservades es rebutgen; cal publicar una versió nova. El raonament intern,
 quan n'hi ha, es desa a les metadades i no es mostra com a resposta.
 
+Amb `ADMIN_API_TOKEN`, [`GET /api/dataset`](../backend/README.md#get-apidataset)
+permet consultar totes les categories, versions de prompts i respostes
+carregades, amb els noms dels models i les metadades d'inferència.
+
 Les inferències de referència es mantenen a la branca `dades_inferencia`.
 La [guia de la canonada](../scripts/README.md) detalla les comandes de generació,
 la selecció de versions, els filtres, les proves amb models petits i la càrrega.

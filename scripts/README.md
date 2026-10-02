@@ -105,11 +105,30 @@ Per consultar la versió i el camí seleccionats per a cada prompt:
 
 ```bash
 make prompt_latest
-make prompt_latest PROMPTS_DIR=data/prompts/v2
 ```
 
 Per generar només una versió concreta, configureu `dir_prompts` amb
 `data/prompts/v2` i `dir_sortida` amb `data/inferencies` o `data/inferencies/v2`.
+
+#### Consulta de les dades carregades en remot
+
+El CLI consulta [`GET /api/dataset`](../backend/README.md#get-apidataset) per
+HTTPS i imprimeix les dades en JSON. `make dataset` carrega `API_URL` i
+`ADMIN_API_TOKEN` de `.env`, si existeix; els arguments i les variables
+d'entorn tenen prioritat. Si falta el token, el demana sense mostrar-lo.
+La URL ha d'incloure el prefix complet de l'API.
+
+```bash
+make dataset
+make dataset API_URL=https://servidor.example/api
+make dataset API_URL=https://servidor.example/api SHOW=prompts
+```
+
+Per executar el CLI directament amb `.env`:
+`uv run --env-file .env python -m scripts.dataset`.
+
+`SHOW` accepta `all` (per defecte), `categories`, `prompts` o `inferences`.
+Consulta totes les versions carregades a la base de dades, no els fitxers locals.
 
 ### 6. Mètriques de distància entre sortides
 

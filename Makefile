@@ -1,7 +1,7 @@
 # Comandes de desenvolupament d'Arena Cat. Executa-les des de l'arrel del repositori.
 
 .PHONY: setup run test check format inferences analyze_inferences publish_inferences load_inferences load_reference_inferences \
-	copy_reference_inferences prompt_latest frontend-setup frontend-dev frontend-check
+	copy_reference_inferences prompt_latest dataset frontend-setup frontend-dev frontend-check
 
 REFERENCE_INFERENCES_WORKTREE ?= ../arena-cat-dades-inferencia
 REFERENCE_INFERENCES_BRANCH ?= dades_inferencia
@@ -35,9 +35,13 @@ format:
 inferences:
 	uv run --group inference python scripts/inferencia.py $(if $(CONFIG),--config $(CONFIG)) $(if $(DEVICE_MAP),--device-map $(DEVICE_MAP)) $(if $(CATEGORY),--prompt-prefix $(CATEGORY)_) $(if $(FORCE),--force)
 
-# Llista l'última versió de cada prompt; PROMPTS_DIR permet canviar l'arrel.
+# Llista l'última versió de cada prompt de data/prompts.
 prompt_latest:
-	uv run python -m scripts.prompt_latest $(if $(PROMPTS_DIR),--prompts-dir "$(PROMPTS_DIR)")
+	uv run python -m scripts.prompt_latest
+
+# Consulta l'API remota amb la configuració de .env; API_URL i SHOW permeten sobreescriure-la.
+dataset:
+	@uv run $(if $(wildcard .env),--env-file .env) python -m scripts.dataset $(if $(API_URL),"$(API_URL)") $(if $(SHOW),--show "$(SHOW)")
 
 # Genera results.txt; INFERENCIES_DIR permet seleccionar un altre directori.
 analyze_inferences:
