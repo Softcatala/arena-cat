@@ -189,6 +189,15 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 
 Les inferències de referència es conserven a la branca `dades_inferencia`, separades de les branques de codi. El target `make load_reference_inferences` crea o reutilitza un worktree paral·lel i apunta el carregador a les dades de referència.
 
+`make publish_inferences` actualitza el worktree amb `git pull --ff-only`,
+copia les inferències locals noves i en fa commit i push a `dades_inferencia`.
+La publicació és additiva: conserva els fitxers publicats absents del directori
+local i omet els que tenen contingut idèntic. Si algun fitxer ja publicat té
+contingut diferent, acaba amb error abans de copiar, fer commit o push de cap
+inferència. Per modificar una resposta publicada, genereu-la en una versió nova.
+El worktree de dades ha d'estar net, inclosos els fitxers sense seguiment.
+`PUBLISH_INFERENCES_DIR` permet seleccionar el directori local d'origen.
+
 La versió s'aplica a cada prompt (`code`) independentment. Ha de tenir el format
 `v<N>`, amb un enter positiu sense zeros inicials i fins a 31 dígits. Per publicar
 una revisió, n'hi ha prou de carregar aquell prompt i les seves inferències en un
