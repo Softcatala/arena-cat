@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 90bc6595439e148dfb91d86105b85432be1ce7955aa1613a010c88b3c77c6007
+  prompt_sha256: 51567332c3f2fcbdd25d6ca7977067240faa9c75ce23a53594a63f04b7181c35
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -26,17 +26,16 @@ model:
 output:
   answer: Cada vegada hi ha més joves que passen moltes hores jugant a l'ordinador.
     Tot i que els videojocs poden ser una forma d'entreteniment, un ús excessiu pot
-    provocar diversos problemes. Com més temps es passa davant de la pantalla, menys
-    queda per estudiar o fer exercici, i això pot afectar el rendiment escolar i dificultar
-    que es desenvolupin relacions socials. A més, dormir poc o descuidar altres responsabilitats
-    pot tenir conseqüències negatives per a la salut i el benestar, i molts joves
-    no se'n adonen. Per aquest motiu, les famílies han de ajudar-los a mantenir un
-    equilibri entre el temps dedicat als videojocs, els estudis, l'exercici físic
-    i les activitats socials.
+    provocar diversos problemes. Passar massa temps davant de la pantalla pot reduir
+    l'activitat física, afectar el rendiment escolar i dificultar que es desenvolupin
+    relacions socials. A més, dormir poc o descuidar altres responsabilitats pot tenir
+    conseqüències negatives per a la salut i el benestar. Per aquest motiu, és important
+    mantenir un equilibri entre el temps dedicat als videojocs, els estudis, l'exercici
+    físic i les activitats socials.
 prompt:
   id: correccio_6
   path: data/prompts/v1/correccio_6.txt
-  sha256: 90bc6595439e148dfb91d86105b85432be1ce7955aa1613a010c88b3c77c6007
+  sha256: 51567332c3f2fcbdd25d6ca7977067240faa9c75ce23a53594a63f04b7181c35
 reasoning:
   content: null
 run:

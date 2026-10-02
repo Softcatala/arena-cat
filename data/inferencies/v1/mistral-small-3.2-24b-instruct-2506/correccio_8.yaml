@@ -1,7 +1,7 @@
 backend:
   engine: transformers
   torch_version: 2.12.1+cu130
-  transformers_version: 5.15.0
+  transformers_version: 5.12.1
 fingerprint:
   generation:
     max_new_tokens: 1024
@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 684bee528d81136aa1f20d3840737894f8ad5d8a0fe88378b1d8cf1fb8bb28b2
+  prompt_sha256: 89964a528b955fd6a4c168195bdc0d89df02c7f1f1e4a4f2d2fc8db82f193d4a
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -26,15 +26,14 @@ model:
 output:
   answer: No entenc com has pogut actuar d'aquesta manera. Em vas prometre que podia
     confiar en tu i, al final, has fet exactament el contrari. Has explicat coses
-    que eren personals sense demanar-me permís i ara m'he quedat en una situació molt
+    que eren personals sense demanar-me permís i ara em trobo en una situació molt
     incòmoda. Em sento decebut i molt enfadat perquè esperava més respecte per part
-    teva. Em dona la sensació que no t'importa res. Si realment valores la nostra
-    amistat, hauries de reconèixer l'error i demanar disculpes. Ara mateix necessito
-    distància.
+    teva. Si realment valoraves la nostra amistat, hauries de reconèixer l'error i
+    demanar disculpes. Ara mateix necessito distància.
 prompt:
   id: correccio_8
   path: data/prompts/v1/correccio_8.txt
-  sha256: 684bee528d81136aa1f20d3840737894f8ad5d8a0fe88378b1d8cf1fb8bb28b2
+  sha256: 89964a528b955fd6a4c168195bdc0d89df02c7f1f1e4a4f2d2fc8db82f193d4a
 reasoning:
   content: null
 run:

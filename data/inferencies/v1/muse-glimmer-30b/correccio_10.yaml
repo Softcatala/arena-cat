@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 2edbb203b62fc8b37c8fce8edd29c2c20be590890d65597c96be0d888e1563ad
+  prompt_sha256: b973ecf0223b506a6b9c53cd83e965d782c3bb9650cd88d38c44e13fb5c82ca4
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -28,13 +28,13 @@ output:
     de la seva cova per explorar nous racons entre les roques i els coralls. Li agradava
     jugar amb els peixos, perseguir bombolles i amagar-se quan veia algun cranc, una
     mica rondinaire. Amb els seus vuit braços podia abraçar els seus amics i recollir
-    petxines de tots els colors. Sempre en trobava de noves. Un dia va trobar una
-    estrella de mar que s'havia perdut i li va ajudar a tornar a casa. Des d'aquell
-    moment, tothom va saber que en Pau era un pop valent, amable i molt generós.
+    petxines de tots els colors. Un dia va trobar una estrella de mar que s'havia
+    perdut i la va ajudar a tornar a casa. Des d'aquell moment, tothom va saber que
+    en Pau era un pop valent, amable i molt generós.
 prompt:
   id: correccio_10
   path: data/prompts/v1/correccio_10.txt
-  sha256: 2edbb203b62fc8b37c8fce8edd29c2c20be590890d65597c96be0d888e1563ad
+  sha256: b973ecf0223b506a6b9c53cd83e965d782c3bb9650cd88d38c44e13fb5c82ca4
 reasoning:
   content: null
 run:

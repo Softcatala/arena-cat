@@ -1,7 +1,7 @@
 backend:
   engine: transformers
   torch_version: 2.12.1+cu130
-  transformers_version: 5.15.0
+  transformers_version: 5.12.1
 fingerprint:
   generation:
     max_new_tokens: 1024
@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: a714344d1c4df033a79c4985dabc054d9477350e2175d47262e50eabbb99b5c1
+  prompt_sha256: d831140dad4e77ece1445c359d8604356128c13c5f560914569b5986aec34e6a
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -28,14 +28,14 @@ output:
     ric patrimoni històric i cultural. Va ser una de les principals ciutats de l'Imperi
     Romà a la Península Ibèrica, fet que es reflecteix en monuments com l'amfiteatre,
     les muralles i el circ romà. El seu conjunt arqueològic ha estat declarat Patrimoni
-    Mundial per la UNESCO. A més de la seva història, Tarragona destaca com a destinació
-    turística per les seves platges, el seu port i la gastronomia basada en productes
-    del mar. Les festes de Santa Tecla i els Castells són dos de les tradicions més
-    representatives de la ciutat.
+    Mundial per la UNESCO. A més de la seva història, Tarragona destaca per les seves
+    platges, el seu port i la gastronomia basada en productes del mar. Les festes
+    de Santa Tecla i els Castells són dos de les tradicions més representatives de
+    la ciutat.
 prompt:
   id: correccio_2
   path: data/prompts/v1/correccio_2.txt
-  sha256: a714344d1c4df033a79c4985dabc054d9477350e2175d47262e50eabbb99b5c1
+  sha256: d831140dad4e77ece1445c359d8604356128c13c5f560914569b5986aec34e6a
 reasoning:
   content: null
 run:
