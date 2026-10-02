@@ -113,8 +113,8 @@ Per generar només una versió concreta, configureu `dir_prompts` amb
 #### Consulta de les dades carregades en remot
 
 El CLI consulta [`GET /api/dataset`](../backend/README.md#get-apidataset) per
-HTTPS i imprimeix les dades en JSON. `make dataset` carrega `API_URL` i
-`ADMIN_API_TOKEN` de `.env`, si existeix; els arguments i les variables
+HTTPS i mostra un resum en taules compactes. El CLI carrega `API_URL` i
+`ADMIN_API_TOKEN` del `.env` de l'arrel, si existeix; els arguments i les variables
 d'entorn tenen prioritat. Si falta el token, el demana sense mostrar-lo.
 La URL ha d'incloure el prefix complet de l'API.
 
@@ -124,10 +124,14 @@ make dataset API_URL=https://servidor.example/api
 make dataset API_URL=https://servidor.example/api SHOW=prompts
 ```
 
-Per executar el CLI directament amb `.env`:
-`uv run --env-file .env python -m scripts.dataset`.
+Per executar el CLI directament (també carrega `.env`):
+`uv run scripts/dataset.py`.
 
-`SHOW` accepta `all` (per defecte), `categories`, `prompts` o `inferences`.
+`SHOW` (o `--show` al CLI) accepta `summary` (per defecte), `all`, `categories`,
+`prompts` o `inferences`. El resum mostra l'ID, el codi i el nom de les categories;
+l'ID, el codi, la versió i la categoria dels prompts; i l'ID, el prompt, el model
+i `created_at` de les inferències, amb una fila per registre i el recompte de cada
+taula. La resta d'opcions mostren JSON; `--show all` inclou totes les dades completes.
 Consulta totes les versions carregades a la base de dades, no els fitxers locals.
 
 ### 6. Mètriques de distància entre sortides

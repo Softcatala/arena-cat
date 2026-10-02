@@ -4,8 +4,11 @@ import argparse
 from getpass import getpass
 import json
 import os
+from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
+
+from dotenv import load_dotenv
 
 
 def fetch_dataset(api_url: str, token: str) -> dict:
@@ -19,6 +22,7 @@ def fetch_dataset(api_url: str, token: str) -> dict:
 
 
 def main() -> None:
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "api_url",
@@ -27,7 +31,9 @@ def main() -> None:
         help="URL base de l'API; per defecte, API_URL.",
     )
     parser.add_argument(
-        "--show", choices=("all", "categories", "prompts", "inferences"), default="all"
+        "--show",
+        choices=("summary", "all", "categories", "prompts", "inferences"),
+        default="summary",
     )
     args = parser.parse_args()
     if not args.api_url:
@@ -37,8 +43,25 @@ def main() -> None:
         data = fetch_dataset(args.api_url, token)
     except (URLError, TimeoutError, ValueError) as error:
         parser.exit(1, f"Error: {error}\n")
-    key = "responses" if args.show == "inferences" else args.show
-    print(json.dumps(data if key == "all" else data[key], ensure_ascii=False, indent=2))
+    if args.show == "summary":
+        fields = {
+            "categories": ("id", "code", "name"),
+            "prompts": ("id", "code", "version", "category_id"),
+            "responses": ("id", "prompt_id", "model", "created_at"),
+        }
+        for key, columns in fields.items():
+            rows = [[str(row[field]) for field in columns] for row in data[key]]
+            widths = [max(map(len, values)) for values in zip(columns, *rows)]
+            print(f"\n{key} ({len(rows)})")
+            for row in [columns, *rows]:
+                print(
+                    "  ".join(value.ljust(width) for value, width in zip(row, widths))
+                )
+        return
+    if args.show != "all":
+        key = "responses" if args.show == "inferences" else args.show
+        data = data[key]
+    print(json.dumps(data, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
