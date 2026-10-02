@@ -1,7 +1,7 @@
 backend:
   engine: transformers
   torch_version: 2.12.1+cu130
-  transformers_version: 5.12.1
+  transformers_version: 5.15.0
 fingerprint:
   generation:
     max_new_tokens: 1024
@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 6b7077439097a44bcb16cb19b8d8b3a31c5b83b3ad3f2dd54a81542bb460f370
+  prompt_sha256: bd37225de1db962e3a5e3903fa43553ac4fbd10276816faf063eaf168cb16ce4
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -27,14 +27,15 @@ output:
   answer: He llegit dos llibres aquest estiu i, tot i que tots dos m'han agradat,
     són força diferents. El primer té una història plena d'acció i manté l'interès
     des de la primera pàgina. Els personatges són molt dinàmics i sempre passen coses
-    inesperades. En canvi, el segon és més tranquil i reflexiu. Es centra en les emocions
-    dels protagonistes i fa pensar sobre les decisions que prenem a la vida. Personalment,
-    m'ho he passat millor amb el primer perquè és més entretingut, però crec que el
-    segon deixa una empremta més profunda. Depèn molt del que busqui cada lector.
+    inesperades. En canvi, el segon és més tranquil i reflexiu, perquè se centra en
+    les emocions dels protagonistes i fa pensar sobre les decisions que prenem a la
+    vida. Personalment, m'ho he passat millor amb el primer perquè és més entretingut,
+    però crec que el segon deixa una empremta més profunda. Depèn molt del que busqui
+    cada lector.
 prompt:
   id: correccio_9
   path: data/prompts/v1/correccio_9.txt
-  sha256: 6b7077439097a44bcb16cb19b8d8b3a31c5b83b3ad3f2dd54a81542bb460f370
+  sha256: bd37225de1db962e3a5e3903fa43553ac4fbd10276816faf063eaf168cb16ce4
 reasoning:
   content: null
 run:

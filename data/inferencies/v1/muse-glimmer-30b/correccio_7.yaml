@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 58f2a270b8fe086366a9e0be65eeb7450be60cfc63828fd38def3a10b7aa3256
+  prompt_sha256: db6c3b275cc51cdf2796d7dd436c3aaa009665f2c3b3c091b3fed85dd8b2df7f
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -24,18 +24,18 @@ model:
   model_name: meta-models/Muse-Glimmer-30B
   revision: main
 output:
-  answer: Es lloga pis ampli i luminós en una zona tranquila i ben comunicada. L'habitatge
+  answer: Es lloga pis ampli i lluminós en una zona tranquila i ben comunicada. L'habitatge
     disposa de tres habitacions, dos banys, cuina totalment equipada, menjador espaiós
     i un balcó amb bones vistes. El pis també inclou aire condicionat, calefacció,
     connexió a internet i plaça d'aparcament. Es troba a prop de supermercats, escoles,
     transport públic i zones verdes, fet que el converteix en una opció ideal tant
     per a famílies com per a parelles. El pis està preparat per entrar-hi a viure
-    immediatament. Si voleu més informació o concertar una visita, podeu contactar
-    per telèfon o correu electrònic.
+    des que es signi el contracte. Si voleu més informació quant a les condicions
+    o concertar una visita, podeu contactar per telèfon o correu electrònic.
 prompt:
   id: correccio_7
   path: data/prompts/v1/correccio_7.txt
-  sha256: 58f2a270b8fe086366a9e0be65eeb7450be60cfc63828fd38def3a10b7aa3256
+  sha256: db6c3b275cc51cdf2796d7dd436c3aaa009665f2c3b3c091b3fed85dd8b2df7f
 reasoning:
   content: null
 run:

@@ -1,7 +1,7 @@
 backend:
   engine: transformers
   torch_version: 2.12.1+cu130
-  transformers_version: 5.12.1
+  transformers_version: 5.15.0
 fingerprint:
   generation:
     max_new_tokens: 1024
@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 03f244596842190b3535292c45ad5023f01af2f65f17c64627aa02aa6f1c4862
+  prompt_sha256: 240021867c378537ce4343f567376f1af470ebdf7ac530a85c73b8f3b3b51a37
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -28,13 +28,14 @@ output:
     Per a alguns, es troba en els grans moments de la vida, mentre que per a altres
     s'amaga en els petits gestos quotidians, com compartir una conversa, passejar
     per la natura o gaudir d'un àpat en família. Tot i que no sempre és possible sentir-se
-    feliç, mantenir una actitud positiva i valorar allò que tenim pot contribuir al
-    benestar. La felicitat també està relacionada amb la salut, les relacions personals
-    i la possibilitat de desenvolupar els propis somnis i objectius.
+    feliç, mantenir una actitud positiva i valorar allò que tenim, en lloc de pensar
+    en el que ens falta, pot contribuir al benestar. També cal ser conscients que
+    la felicitat està relacionada amb la salut, les relacions personals i la possibilitat
+    de desenvolupar els propis somnis i objectius.
 prompt:
   id: correccio_4
   path: data/prompts/v1/correccio_4.txt
-  sha256: 03f244596842190b3535292c45ad5023f01af2f65f17c64627aa02aa6f1c4862
+  sha256: 240021867c378537ce4343f567376f1af470ebdf7ac530a85c73b8f3b3b51a37
 reasoning:
   content: null
 run:

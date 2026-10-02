@@ -1,7 +1,7 @@
 backend:
   engine: transformers
   torch_version: 2.12.1+cu130
-  transformers_version: 5.12.1
+  transformers_version: 5.15.0
 fingerprint:
   generation:
     max_new_tokens: 1024
@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 7fa7a0af6d8774fa77313526f4674182227dc80e36a721fee08ba3ca862fd572
+  prompt_sha256: 3eab34f0c2e6ab9dff6354310e293552d742cc24d3f5f1b6f15798c2a3425a7e
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -29,13 +29,13 @@ output:
     mantenir-los frescos durant més temps i reduir el risc que es facin malbé. Actualment,
     hi ha models de diferents mides i característiques, alguns amb congelador integrat
     o funcions d'estalvi energètic. Una bona organització dels aliments a l'interior
-    facilita trobar-los i contribueix a una millor conservació. També és recomanable
-    netejar la nevera periodicament i evitar deixar la porta oberta durant massa estona
+    facilita trobar-los i contribueix a una millor conservació. També cal netejar
+    la nevera periòdicament i evitar deixar-ne la porta oberta durant massa estona
     per estalviar energia.
 prompt:
   id: correccio_3
   path: data/prompts/v1/correccio_3.txt
-  sha256: 7fa7a0af6d8774fa77313526f4674182227dc80e36a721fee08ba3ca862fd572
+  sha256: 3eab34f0c2e6ab9dff6354310e293552d742cc24d3f5f1b6f15798c2a3425a7e
 reasoning:
   content: null
 run:

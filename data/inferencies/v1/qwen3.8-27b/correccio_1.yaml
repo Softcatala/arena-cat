@@ -1,7 +1,7 @@
 backend:
   engine: transformers
   torch_version: 2.12.1+cu130
-  transformers_version: 5.12.1
+  transformers_version: 5.15.0
 fingerprint:
   generation:
     max_new_tokens: 1024
@@ -12,7 +12,7 @@ fingerprint:
       format Markdown o HTML ni elements com ara taules.
     temperature: 0.7
     top_p: 0.9
-  prompt_sha256: 2f73c5b383fea2339d370bb77a9d70ede85b4b453bbe8c020165264670902c45
+  prompt_sha256: c4401feccd455488ca4adcffde106a275d34584eb7613b69da6f0dd77a4f0451
 generation:
   max_new_tokens: 1024
   min_token_len: 25
@@ -26,15 +26,16 @@ model:
 output:
   answer: Les platges són espais naturals molt apreciats tant pels habitants com pels
     visitants. Durant l'estiu, moltes persones hi van per prendre el sol, banyar-se
-    o practicar esports aquàtics. A més de ser llocs d'oci, també tenen un gran valor
-    ecològic, ja que acullen diverses espècies de flora i fauna. És important mantenir-les
-    netes i respectar el seu entorn per preservar-ne la bellesa i la biodiversitat.
-    Passejar per la vora del mar, escoltar el so de les onades i sentir la brisa marina
-    són experiències que transmeten calma i benestar a persones de totes les edats.
+    o practicar esports aquàtics. No només són llocs d'oci, sinó que també tenen un
+    gran valor ecològic, ja que acullen moltes espècies de flora i fauna protegides.
+    És important mantenir-les netes i respectar el seu entorn per preservar-ne la
+    bellesa i la biodiversitat. Passejar per la vora del mar, escoltar el so de les
+    onades i sentir la brisa marina són experiències que transmeten calma i benestar
+    a persones de totes les edats.
 prompt:
   id: correccio_1
   path: data/prompts/v1/correccio_1.txt
-  sha256: 2f73c5b383fea2339d370bb77a9d70ede85b4b453bbe8c020165264670902c45
+  sha256: c4401feccd455488ca4adcffde106a275d34584eb7613b69da6f0dd77a4f0451
 reasoning:
   content: null
 run:
