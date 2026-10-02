@@ -72,6 +72,24 @@ Retorna el catàleg públic de categories, ordenat per codi. Les dades provenen 
 }
 ```
 
+### `GET /api/dataset`
+
+Requereix `Authorization: Bearer <ADMIN_API_TOKEN>` per HTTPS. Configureu un
+token aleatori al servidor; buit desactiva l'accés. Un token absent o incorrecte
+retorna 401; una sessió d'usuari no dona accés. Retorna tres llistes ordenades
+per `id`, amb totes les dades carregades a PostgreSQL:
+
+- `categories`: els camps de `/api/categories` més `id`.
+- `prompts`: `id`, `code`, `version`, `category_id`, `text` i `created_at`.
+- `responses`: `id`, `prompt_id`, `model`, `text`, `inference_metadata` i `created_at`.
+
+Inclou totes les versions, les categories sense prompts i els prompts sense
+respostes. Les llistes buides es retornen com `[]`. `category_id` i `prompt_id`
+permeten relacionar les dades. No pagina ni filtra per versió activa.
+Exposa els noms dels models i les metadades d'inferència; `/api/task` manté
+les respostes anònimes. La resposta porta `Cache-Control: no-store`.
+Podeu consultar-lo amb el [CLI de consulta remota](../scripts/README.md#consulta-de-les-dades-carregades-en-remot).
+
 ### `GET /api/qualification` i `POST /api/qualification`
 
 Requereixen una sessió vàlida i la verificació del correu, si està activada.

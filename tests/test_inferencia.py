@@ -554,7 +554,7 @@ class TestInferencia(unittest.TestCase):
         ):
             avg_time = inferencia.run_model(
                 {"id": "fake-model", "model_name": "org/fake-model"},
-                [{"id": "prompt"}],
+                [{"id": "prompt", "_path_origen": "data/prompts/v1/prompt.txt"}],
                 {},
                 {},
                 root=Path("unused"),
@@ -565,6 +565,37 @@ class TestInferencia(unittest.TestCase):
         self.assertIsNone(avg_time)
         tokenizer_loader.assert_not_called()
         model_loader.assert_not_called()
+
+    def test_run_model_writes_each_revision_separately_and_reuses_results(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            for version, codes in {
+                "v1": ["correccio_1", "traduccio_1"],
+                "v2": ["correccio_1"],
+            }.items():
+                directory = root / "data/prompts" / version
+                directory.mkdir(parents=True)
+                for code in codes:
+                    (directory / f"{code}.txt").write_text(f"{code} {version}")
+            prompts = inferencia.load_prompts(
+                inferencia.discover_prompt_files(root=root), root=root
+            )
+            model = {"id": "fake", "model_name": "org/fake", "revision": "main"}
+            params = {"temperature": 0, "top_p": 1, "max_new_tokens": 16}
+            config = {"seed": 42, "backend_preferit": "transformers"}
+            with (
+                patch.object(inferencia, "load_tokenizer"),
+                patch.object(inferencia, "load_model") as load_model,
+                patch.object(inferencia, "generate_text", return_value="Resposta"),
+                patch.object(inferencia, "release_model"),
+            ):
+                inferencia.run_model(model, prompts, params, config, root=root)
+                inferencia.run_model(model, prompts, params, config, root=root)
+                load_model.assert_called_once()
+            base = root / "data/inferencies"
+            self.assertTrue((base / "v2/fake/correccio_1.yaml").is_file())
+            self.assertTrue((base / "v1/fake/traduccio_1.yaml").is_file())
+            self.assertFalse((base / "v1/fake/correccio_1.yaml").exists())
 
 
 if __name__ == "__main__":
