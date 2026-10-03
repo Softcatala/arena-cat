@@ -4,7 +4,6 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.routing import APIRoute, Match
 
 from app.exceptions import TASK_TOKEN_INVALID, TaskTokenError
 from app.routes import auth, categories, qualification, ranking, task, vote
@@ -42,17 +41,11 @@ app.include_router(categories.router, prefix="/api", tags=["Categories"])
 app.include_router(qualification.router, prefix="/api", tags=["Qualification"])
 
 
+API_PREFIX = "/api"
+
+
 @app.middleware("http")
 async def telemetry_middleware(request: Request, call_next):
-    matched_route = None
-    for route in request.app.routes:
-        if isinstance(route, APIRoute) and route.matches(request.scope)[0] == Match.FULL:
-            matched_route = route.path
-            break
-
-    if matched_route is None:
-        return await call_next(request)
-
     start = time.perf_counter()
     status_code = 500
 
@@ -61,16 +54,17 @@ async def telemetry_middleware(request: Request, call_next):
         status_code = response.status_code
         return response
     finally:
-        duration = time.perf_counter() - start
+        route = request.scope.get("route")
+        if route is not None:
+            duration = time.perf_counter() - start
+            attrs = {
+                "method": request.method,
+                "route": f"{API_PREFIX}{route.path}",
+                "status_code": status_code,
+            }
 
-        attrs = {
-            "method": request.method,
-            "route": matched_route,
-            "status_code": status_code,
-        }
+            http_requests_total.add(1, attrs)
+            http_requests_duration.record(duration, attrs)
 
-        http_requests_total.add(1, attrs)
-        http_requests_duration.record(duration, attrs)
-
-        if status_code >= 500:
-            http_errors_total.add(1, attrs)
+            if status_code >= 500:
+                http_errors_total.add(1, attrs)

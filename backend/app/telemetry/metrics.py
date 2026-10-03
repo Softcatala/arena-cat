@@ -4,10 +4,20 @@ from opentelemetry import metrics
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.metrics.view import ExplicitBucketHistogramAggregation, View
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 
 if os.getenv("TELEMETRY_ENABLED", "true") in ("true", "yes", "1"):
     reader = PeriodicExportingMetricReader(OTLPMetricExporter(), export_interval_millis=5000)
-    provider = MeterProvider(metric_readers=[reader])
+    resource = Resource.create({SERVICE_NAME: "arena-cat"})
+    latency_view = View(
+        instrument_name="http.server.duration",
+        aggregation=ExplicitBucketHistogramAggregation(
+            boundaries=(0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10)
+        ),
+    )
+
+    provider = MeterProvider(metric_readers=[reader], views=[latency_view], resource=resource)
 else:
     # No-op provider if not enabled.
     provider = MeterProvider()
