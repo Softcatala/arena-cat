@@ -47,7 +47,7 @@ services:
       # Així podem mantenir DB_HOST=127.0.0.1 al .env per executar tests
       - DB_HOST=postgres
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - TELEMETRY_ENABLED=true
+      - TELEMETRY_ENABLED=${TELEMETRY_ENABLED:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,9 +66,12 @@ services:
     depends_on:
       - api
 
+  # Contenidors de monitoratge: no s'aixequen amb `docker compose up`.
+  # Només calen per provar les mètriques: `docker compose --profile monitoring up`.
   prometheus:
     image: prom/prometheus:v3.11.2
     restart: unless-stopped
+    profiles: ["monitoring"]
     volumes:
       - ./telemetry_config/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
@@ -80,6 +83,7 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.150.1
     restart: unless-stopped
+    profiles: ["monitoring"]
     volumes:
       - ./telemetry_config/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
@@ -91,6 +95,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     restart: unless-stopped
+    profiles: ["monitoring"]
     ports:
       - "3000:3000"
     volumes:

@@ -7,7 +7,7 @@ from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.metrics.view import ExplicitBucketHistogramAggregation, View
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 
-if os.getenv("TELEMETRY_ENABLED", "true") in ("true", "yes", "1"):
+if os.getenv("TELEMETRY_ENABLED", "false") in ("true", "yes", "1"):
     reader = PeriodicExportingMetricReader(OTLPMetricExporter(), export_interval_millis=5000)
     resource = Resource.create({SERVICE_NAME: "arena-cat"})
     latency_view = View(
