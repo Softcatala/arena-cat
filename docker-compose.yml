@@ -94,9 +94,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards-json:/var/lib/grafana/dashboards
+      - ./telemetry_config/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./telemetry_config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./telemetry_config/grafana/dashboards-json:/var/lib/grafana/dashboards
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
