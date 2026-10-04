@@ -154,8 +154,7 @@ export const api = {
       body: JSON.stringify({ token, new_password: newPassword }),
     }),
 
-  // Sense `category_code` el backend recorre les categories i serveix la primera
-  // que encara tingui feina per a aquest usuari.
+  // Sense `category_code` es prioritzen els prompts menys vistos entre totes les categories.
   nextTask: (category: CategoryFilter) =>
     request<Task>(category ? `/task?category_code=${encodeURIComponent(category)}` : "/task"),
 
