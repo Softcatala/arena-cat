@@ -127,7 +127,7 @@ superat la prova de competència lingüística; altrament, es retorna 403.
 
 **Paràmetres de la URL:**
 - `category_code` (string, opcional): La categoria de la tasca sol·licitada (p. ex., `correccio`).
-  Sense filtre, s'aplica la [selecció aleatòria entre categories disponibles](../docs/sistema.md#selecció-i-registre-de-tasques).
+  Sense filtre, s'aplica la [priorització dels prompts menys vistos entre totes les categories](../docs/sistema.md#selecció-i-registre-de-tasques).
 
 L'usuari s'identifica amb la cookie de sessió per evitar repetir tasques.
 

@@ -2,7 +2,7 @@
 
 export type CategoryCode = string;
 
-/** `""` vol dir «qualsevol»: `GET /api/task` sense `category_code` tria la primera pendent. */
+/** `""` vol dir «qualsevol»: `GET /api/task` sense `category_code` prioritza els prompts menys vistos entre totes les categories. */
 export type CategoryFilter = CategoryCode | "";
 
 export interface Category {

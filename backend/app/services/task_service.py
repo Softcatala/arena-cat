@@ -1,4 +1,3 @@
-import random
 from collections import defaultdict
 from itertools import combinations
 
@@ -8,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.exceptions import TaskTokenError
-from app.models import Category, Response, TaskSkip, User, Vote
+from app.models import Response, TaskSkip, User, Vote
 from app.prompt_versions import active_prompt_ids, require_active_prompt
 from app.ranking.sampler import select_next_task
 from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskProgressResponse, TaskResponse
@@ -26,17 +25,7 @@ def get_next_task_for_user(category_code: str | None, user: User, db: Session) -
     Returns:
         TaskResponse: objecte amb el prompt, les dues respostes i el token
     """
-    # Obtenim la propera tasca via el mòdul ranking
-    if category_code is not None:
-        task = select_next_task(db, category_code, user.id)
-    else:
-        task = None
-        category_codes = list(db.scalars(select(Category.code)))
-        random.shuffle(category_codes)
-        for code in category_codes:
-            task = select_next_task(db, code, user.id)
-            if task is not None:
-                break
+    task = select_next_task(db, category_code, user.id)
 
     # Retornem excepció en cas de que no quedin tasques disponibles
     if task is None:

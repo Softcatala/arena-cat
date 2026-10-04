@@ -76,15 +76,16 @@ La unitat de selecció és una combinació de prompt i parella de models. Un
 mostreig uniforme entre totes les combinacions pot deixar comparacions amb
 molts menys vots que d'altres, especialment amb pressupostos petits.
 
-El selector tria a l'atzar entre les combinacions disponibles amb menys vots.
-Això afavoreix la cobertura equilibrada dins de la categoria. No imposa una
-quota màxima ni garanteix igualtat entre categories. L'ordre A/B també es
-randomitza per reduir el biaix de posició.
+Amb usuari, el selector prioritza els prompts menys vistos segons els vots i
+les omissions personals. Després tria a l'atzar entre les combinacions amb
+menys vots comunitaris. Sense usuari, només considera el recompte comunitari.
+La diversitat personal té prioritat sobre l'equilibri dels vots: no imposa una
+quota màxima ni garanteix igualtat entre cel·les o categories. L'ordre A/B també
+es randomitza per reduir el biaix de posició.
 
-Els filtres per usuari, les omissions i l'ordre de les categories es descriuen
-a [selecció i registre de tasques](sistema.md#selecció-i-registre-de-tasques).
-No hi ha estratègies configurables de mostreig actiu, ponderació per diversitat
-ni retirada automàtica de models.
+Els filtres per usuari i categoria i les omissions es descriuen a
+[selecció i registre de tasques](sistema.md#selecció-i-registre-de-tasques).
+No hi ha estratègies configurables de mostreig actiu, ni retirada automàtica de models.
 
 ## 5. Confiança del rànquing
 

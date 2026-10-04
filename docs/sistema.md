@@ -151,11 +151,13 @@ Els detalls de les pantalles i del comportament del client són al
 ### Selecció i registre de tasques
 
 El selector considera cada combinació de prompt actiu i parella de models com
-una cel·la. Dins de la categoria, tria aleatòriament entre les cel·les amb menys
-vots i exclou les que l'usuari ja ha votat o omès. L'ordre de les respostes A/B
-també és aleatori. Sense filtre de categoria, el servei tria amb la mateixa
-probabilitat entre les categories amb feina pendent per a l'usuari, recorrent-les
-en un ordre aleatori fins a trobar una tasca disponible.
+una cel·la. Exclou les que l'usuari ja ha votat o omès i prioritza els prompts
+que ha votat o omès menys vegades. Entre les cel·les d'aquests prompts, tria
+aleatòriament les que tenen menys vots comunitaris. Quan no queden prompts nous,
+continua amb els menys repetits. L'ordre de les respostes A/B també és aleatori.
+Amb filtre, considera només la categoria demanada; sense filtre, aplica aquesta
+prioritat conjuntament a totes les categories. No garanteix la mateixa
+probabilitat per categoria: depèn de les cel·les candidates.
 
 La justificació del mostreig es recull al
 [disseny de selecció de tasques](ranking_design.md#4-selecció-de-tasques).

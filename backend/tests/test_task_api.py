@@ -1,5 +1,4 @@
-import random
-
+import numpy as np
 import pytest
 
 from app.models import Category, Prompt, Response, TaskSkip, Vote, Winner
@@ -89,7 +88,8 @@ def test_unfiltered_tasks_can_select_each_available_category(
     client, logged_in_user, category_tasks, monkeypatch
 ):
     """Les peticions sense filtre no es concentren en la primera categoria."""
-    monkeypatch.setattr(random, "shuffle", random.Random(0).shuffle)
+    rng = np.random.default_rng(0)
+    monkeypatch.setattr("app.ranking.sampler.np.random.default_rng", lambda seed: rng)
     logged_in_user("random_category@example.com")
     selected = set()
     for _ in range(12):
@@ -221,3 +221,28 @@ def test_skip_task_invalid_token(client, logged_in_user):
     response = client.post("/api/task/skip", json={"token": "inventat"})
     assert response.status_code == 401
     assert response.json()["error_code"] == "task_token_invalid"
+
+
+@pytest.mark.parametrize("completed", [Vote, TaskSkip])
+def test_unfiltered_tasks_prioritize_unseen_prompts(
+    client, session, logged_in_user, category_tasks, completed
+):
+    """Un prompt d'una altra categoria té prioritat sobre un prompt ja llegit."""
+    user = logged_in_user("unseen_prompt@example.com")
+    prompt, response_a, response_b = category_tasks["a_category"]
+    session.add(Response(prompt=prompt, model="third", text="Tercera resposta"))
+    fields = {"winner": Winner.a} if completed is Vote else {}
+    session.add(
+        completed(
+            user_id=user.id,
+            prompt_id=prompt.id,
+            response_a_id=response_a.id,
+            response_b_id=response_b.id,
+            **fields,
+        )
+    )
+    session.flush()
+    for _ in range(5):
+        response = client.get("/api/task")
+        assert response.status_code == 200
+        assert response.json()["category_code"] == "z_category"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import UTC, datetime
+from itertools import combinations
 
 from sqlalchemy import select
 
@@ -227,3 +228,93 @@ def test_select_next_task_different_sessions_are_independent(session):
     user_b = _create_user(session, "sampler-indep-b@example.com")
     task_b = select_next_task(session, "reformulacio", user_id=user_b.id, seed=0)
     assert task_b is not None
+
+
+def test_user_prompt_priority_across_categories(session):
+    """Un prompt nou té prioritat encara que acumuli més vots comunitaris."""
+    user = _create_user(session, "prompt-priority@example.com")
+    old_prompt, old_responses = _seed_prompts(session, "correccio", 1)[0]
+    new_prompt, new_responses = _seed_prompts(session, "traduccio", 1)[0]
+    old_pair = list(old_responses.values())[:2]
+    session.add(
+        Vote(
+            prompt_id=old_prompt.id,
+            user_id=user.id,
+            response_a_id=old_pair[0].id,
+            response_b_id=old_pair[1].id,
+            winner=Winner.a,
+        )
+    )
+    for a, b in combinations(new_responses.values(), 2):
+        session.add(
+            Vote(
+                prompt_id=new_prompt.id,
+                response_a_id=a.id,
+                response_b_id=b.id,
+                winner=Winner.a,
+            )
+        )
+    session.flush()
+    for seed in range(10):
+        task = select_next_task(session, None, user.id, seed)
+        assert task["prompt_id"] == new_prompt.id
+        assert task["category_code"] == "traduccio"
+    assert select_next_task(session, "correccio", user.id)["prompt_id"] == old_prompt.id
+
+
+def test_skipped_prompts_are_deprioritized_and_remain_available(session):
+    """Les omissions compten com a lectures i els prompts repetits continuen disponibles."""
+    user = _create_user(session, "skip-priority@example.com")
+    prompts = _seed_prompts(session, "correccio", 2)
+    for prompt, responses in prompts:
+        pair = list(responses.values())[:2]
+        session.add(
+            TaskSkip(
+                prompt_id=prompt.id,
+                user_id=user.id,
+                response_a_id=pair[0].id,
+                response_b_id=pair[1].id,
+            )
+        )
+        session.flush()
+        task = select_next_task(session, "correccio", user.id, seed=42)
+        if prompt == prompts[0][0]:
+            assert task["prompt_id"] == prompts[1][0].id
+        else:
+            assert task is not None
+    prompt, responses = prompts[0]
+    pair = list(responses.values())[1:]
+    session.add(
+        Vote(
+            prompt_id=prompt.id,
+            user_id=user.id,
+            response_a_id=pair[0].id,
+            response_b_id=pair[1].id,
+            winner=Winner.a,
+        )
+    )
+    session.flush()
+    for seed in range(10):
+        assert (
+            select_next_task(session, "correccio", user.id, seed)["prompt_id"] == prompts[1][0].id
+        )
+
+
+def test_user_priority_breaks_ties_with_community_votes(session):
+    """Amb les mateixes lectures personals, tenen prioritat les cel·les menys votades."""
+    user = _create_user(session, "community-priority@example.com")
+    prompts = _seed_prompts(session, "correccio", 2)
+    prompt, responses = prompts[0]
+    for a, b in combinations(responses.values(), 2):
+        session.add(
+            Vote(
+                prompt_id=prompt.id,
+                response_a_id=a.id,
+                response_b_id=b.id,
+                winner=Winner.a,
+            )
+        )
+    session.flush()
+    for seed in range(10):
+        task = select_next_task(session, "correccio", user.id, seed)
+        assert task["prompt_id"] == prompts[1][0].id
