@@ -11,7 +11,7 @@ categories:
     name: Correcció
     description: Corregeix aquest text.
     evaluation_instructions: |-
-      - Correcció ortogràfica i gramatical.
+      - Correcció ortogràfica i gramatical, inclosa la puntuació.
       - Conservació del significat original.
       - Naturalitat en català.
       - Absència de canvis innecessaris.
