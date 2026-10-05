@@ -93,27 +93,29 @@ def _load_clustered_votes(
     return by_prompt, sorted(seen_models)
 
 
-def _bootstrap_deltas(
+def _bootstrap_run(
     by_prompt: dict[int, list[tuple[str, str]]],
     models: list[str],
     best_model: str,
     n_bootstrap: int,
     seed: int,
     alpha: float,
-) -> np.ndarray:
-    """Re-mostra prompts amb reemplaçament i retorna l'array de deltas."""
+) -> tuple[np.ndarray, np.ndarray]:
+    """Re-mostra prompts amb reemplaçament i retorna deltas i skills per rèplica."""
     competitors = [m for m in models if m != best_model]
     prompt_ids = list(by_prompt.keys())
     n_prompts = len(prompt_ids)
     rng = np.random.default_rng(seed)
 
     deltas = np.empty(n_bootstrap)
+    thetas = np.empty((n_bootstrap, len(models)))
     for b in range(n_bootstrap):
         sampled = rng.choice(prompt_ids, size=n_prompts, replace=True)
         votes = [v for p in sampled for v in by_prompt[p]]
         theta_b = fit_bt(votes, models, alpha=alpha)
         deltas[b] = theta_b[best_model] - max(theta_b[c] for c in competitors)
-    return deltas
+        thetas[b] = [theta_b[m] for m in models]
+    return deltas, thetas
 
 
 def assess_confidence(
@@ -150,6 +152,7 @@ def assess_confidence(
           del temps quan re-mostregem").
         - `ci_lo`, `ci_hi`: percentils 2.5 i 97.5 del gap entre el best fix
           i el millor competidor. Pot ser negatiu si el rànquing és inestable.
+        - `per_model_ci`: percentils 2.5 i 97.5 de l'skill BT per model.
         - `is_stable`: True si es pot calcular la confiança i `ci_lo > 0`.
 
     Limitacions (cal documentar-les públicament):
@@ -180,14 +183,16 @@ def assess_confidence(
             "p_best_is_best": 0.97,    # fracció de repliques on best guanya
             "ci_lo": 0.12,             # percentil 2.5 del delta
             "ci_hi": 0.44,             # percentil 97.5 del delta
+            "per_model_ci": {"gemma-3-4b-it": {"lo": 0.21, "hi": 0.33}, ...},
             "is_stable": True,         # True si ci_lo > 0
         }
         ```
 
         Amb menys de dos models, menys de deu prompts amb vots decisius o
         models desconnectats en les comparacions decisives, retorna
-        `p_best_is_best`, `ci_lo` i `ci_hi` a None i `is_stable=False`.
-        Conserva el millor model observat quan hi ha vots decisius.
+        `p_best_is_best`, `ci_lo`, `ci_hi` i `per_model_ci` a None i
+        `is_stable=False`. Conserva el millor model observat quan hi ha
+        vots decisius.
     """
     by_prompt, models = _load_clustered_votes(session, category_code)
     all_decisive = [vote for votes in by_prompt.values() for vote in votes]
@@ -212,11 +217,12 @@ def assess_confidence(
             "p_best_is_best": None,
             "ci_lo": None,
             "ci_hi": None,
+            "per_model_ci": None,
             "is_stable": False,
         }
 
     # Bootstrap clusteritzat.
-    deltas = _bootstrap_deltas(
+    deltas, thetas = _bootstrap_run(
         by_prompt=by_prompt,
         models=models,
         best_model=best_model,
@@ -227,6 +233,11 @@ def assess_confidence(
 
     ci_lo, ci_hi = np.percentile(deltas, [2.5, 97.5])
     p_best_is_best = float(np.mean(deltas > 0))
+    model_lo, model_hi = np.percentile(thetas, [2.5, 97.5], axis=0)
+    per_model_ci = {
+        m: {"lo": round(float(model_lo[i]), 4), "hi": round(float(model_hi[i]), 4)}
+        for i, m in enumerate(models)
+    }
 
     return {
         "category_code": category_code,
@@ -236,5 +247,6 @@ def assess_confidence(
         "p_best_is_best": round(p_best_is_best, 3),
         "ci_lo": round(float(ci_lo), 4),
         "ci_hi": round(float(ci_hi), 4),
+        "per_model_ci": per_model_ci,
         "is_stable": bool(ci_lo > 0),
     }

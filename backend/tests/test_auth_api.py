@@ -454,11 +454,15 @@ def test_get_ranking_full_category(client, session):
             "rank": 1,
             "model": "model_1",
             "bt_skill": response.json()["ranked_models"][0]["bt_skill"],
+            "ci_lo": None,
+            "ci_hi": None,
         },
         {
             "rank": 2,
             "model": "model_2",
             "bt_skill": response.json()["ranked_models"][1]["bt_skill"],
+            "ci_lo": None,
+            "ci_hi": None,
         },
     ]
     assert (

@@ -61,6 +61,7 @@ def test_assess_confidence_empty_category(session):
     assert result["p_best_is_best"] is None
     assert result["ci_lo"] is None
     assert result["ci_hi"] is None
+    assert result["per_model_ci"] is None
 
 
 @pytest.mark.parametrize("n_votes", [1, 30])
@@ -177,6 +178,12 @@ def test_assess_confidence_clear_winner_is_stable(session):
     assert result["p_best_is_best"] >= 0.95
     assert result["is_stable"] is True
     assert result["ci_lo"] > 0
+    # Interval per model: cada model present, lo ≤ hi i el líder domina el conjunt.
+    per_model_ci = result["per_model_ci"]
+    assert set(per_model_ci) == set(MODELS)
+    for ci in per_model_ci.values():
+        assert ci["lo"] <= ci["hi"]
+    assert per_model_ci[gemma]["lo"] > per_model_ci[qwen]["hi"]
 
 
 def test_assess_confidence_without_category_returns_global_confidence(session):

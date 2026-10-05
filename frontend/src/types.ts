@@ -63,6 +63,8 @@ export interface RankedModel {
   rank: number;
   model: string;
   bt_skill: number;
+  ci_lo: number | null;
+  ci_hi: number | null;
 }
 
 export interface RankingConfidence {
