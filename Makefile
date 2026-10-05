@@ -56,15 +56,20 @@ copy_reference_inferences:
 	mkdir -p "$(LOCAL_INFERENCES_DIR)"
 	cp -R "$(REFERENCE_INFERENCES_DIR)/." "$(LOCAL_INFERENCES_DIR)/"
 
-# Publica les inferències generades a la branca de dades.
+# Publica només inferències noves; les revisions requereixen una versió nova.
 publish_inferences:
 	test -d "$(PUBLISH_INFERENCES_DIR)"
 	@if [ ! -e "$(REFERENCE_INFERENCES_WORKTREE)/.git" ]; then \
 		git worktree add "$(REFERENCE_INFERENCES_WORKTREE)" "$(REFERENCE_INFERENCES_BRANCH)"; \
 	fi
+	@status=$$(git -C "$(REFERENCE_INFERENCES_WORKTREE)" status --porcelain --untracked-files=all) || exit 1; \
+	if [ -n "$$status" ]; then \
+		echo "El worktree de dades té canvis locals; reviseu-los abans de publicar." >&2; \
+		exit 1; \
+	fi
 	git -C "$(REFERENCE_INFERENCES_WORKTREE)" pull --ff-only
-	mkdir -p "$(REFERENCE_INFERENCES_DIR)"
-	cp -R "$(PUBLISH_INFERENCES_DIR)/." "$(REFERENCE_INFERENCES_DIR)/"
+	python3 scripts/publish_inferences.py --source "$(PUBLISH_INFERENCES_DIR)" \
+		--destination "$(REFERENCE_INFERENCES_DIR)" --worktree "$(REFERENCE_INFERENCES_WORKTREE)"
 	git -C "$(REFERENCE_INFERENCES_WORKTREE)" add data/inferencies
 	@if git -C "$(REFERENCE_INFERENCES_WORKTREE)" diff --cached --quiet; then \
 		echo "No hi ha inferències noves per publicar."; \
