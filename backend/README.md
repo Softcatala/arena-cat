@@ -193,17 +193,23 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
     {
       "rank": 1,
       "model": "gemma-3-4b-it",
-      "bt_skill": 0.27
+      "bt_skill": 0.27,
+      "ci_lo": 0.21,
+      "ci_hi": 0.33
     },
     {
       "rank": 2,
       "model": "qwen-3.5-9b",
-      "bt_skill": -0.04
+      "bt_skill": -0.04,
+      "ci_lo": -0.11,
+      "ci_hi": 0.03
     },
     {
       "rank": 3,
       "model": "salamandra-7b-instruct",
-      "bt_skill": -0.23
+      "bt_skill": -0.23,
+      "ci_lo": -0.31,
+      "ci_hi": -0.15
     }
   ],
   "confidence": {
@@ -221,8 +227,9 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
 }
 ```
 
-Quan no es pot estimar la confiança, `p_best_is_best` i `confidence_interval`
-són `null` i `is_stable` és `false`. Vegeu el
+Quan no es pot estimar la confiança, `p_best_is_best`, `confidence_interval` i
+els camps `ci_lo`/`ci_hi` de cada model són `null` i `is_stable` és `false`.
+Vegeu el
 [criteri mínim i les limitacions](../docs/ranking_design.md#52-seguiment-del-mateix-model).
 
 El camp `status` indica l'estat del rànquing: `insufficient_data` si

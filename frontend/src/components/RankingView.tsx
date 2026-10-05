@@ -2,7 +2,19 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api, ApiError } from "../api";
-import type { Category, CategoryFilter, Ranking } from "../types";
+import type { Category, CategoryFilter, Ranking, RankedModel } from "../types";
+
+const ELO_SCALE = 400 / Math.log(10);
+const ELO_OFFSET = 1000;
+
+function formatScore(item: RankedModel): string {
+  const score = Math.round(item.bt_skill * ELO_SCALE + ELO_OFFSET);
+  if (item.ci_lo === null || item.ci_hi === null) {
+    return `${score}`;
+  }
+  const margin = Math.round(((item.ci_hi - item.ci_lo) / 2) * ELO_SCALE);
+  return `${score} ± ${margin}`;
+}
 
 export default function RankingView({
   categories,
@@ -143,8 +155,7 @@ export default function RankingView({
                     </td>
                     <td className="px-5 py-3 font-medium text-slate-800">{item.model}</td>
                     <td className="px-5 py-3 text-right font-mono text-slate-700">
-                      {item.bt_skill >= 0 ? "+" : ""}
-                      {item.bt_skill.toFixed(2)}
+                      {formatScore(item)}
                     </td>
                   </tr>
                 ))}
@@ -166,15 +177,6 @@ export default function RankingView({
               <Stat label="Decisius" value={ranking.n_votes_decisive} />
               <Stat label="Empats" value={ranking.n_ties} />
               <Stat label="Cap de les dues" value={ranking.n_neither} />
-            </div>
-
-            <div className="flex items-center justify-between border-t border-slate-200 px-5 py-3 text-sm">
-              <span className="text-slate-500">Confiança del líder</span>
-              <span className="font-semibold text-slate-700">
-                {ranking.confidence.p_best_is_best === null
-                  ? "Dades insuficients"
-                  : `${Math.round(ranking.confidence.p_best_is_best * 100)}%`}
-              </span>
             </div>
           </section>
 

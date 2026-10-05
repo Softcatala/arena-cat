@@ -290,6 +290,8 @@ class RankedModel(BaseModel):
     rank: int
     model: str
     bt_skill: float
+    ci_lo: float | None = None
+    ci_hi: float | None = None
 
 
 class RankingResponse(BaseModel):
