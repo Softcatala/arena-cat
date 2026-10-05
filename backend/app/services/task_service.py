@@ -12,6 +12,7 @@ from app.prompt_versions import active_prompt_ids, require_active_prompt
 from app.ranking.sampler import select_next_task
 from app.schemas import SkipTaskRequest, SkipTaskResponse, TaskProgressResponse, TaskResponse
 from app.security import create_task_token, verify_task_token
+from app.telemetry.metrics import task_skips_total, tasks_served_total
 
 
 def get_next_task_for_user(category_code: str | None, user: User, db: Session) -> TaskResponse:
@@ -42,6 +43,7 @@ def get_next_task_for_user(category_code: str | None, user: User, db: Session) -
     token = create_task_token(prompt_id, response_a_id, response_b_id, user.id)
 
     # Retornem la tasca i el token
+    tasks_served_total.add(1, {"category_code": category_code or "all"})
     return TaskResponse(
         category_code=task["category_code"],
         prompt=task["prompt_text"],
@@ -78,6 +80,7 @@ def skip_task_for_user(skip_req: SkipTaskRequest, user: User, db: Session) -> Sk
                 status_code=400, detail="L'omissió no s'ha pogut processar"
             ) from err
 
+    task_skips_total.add(1)
     return SkipTaskResponse(status="ok")
 
 

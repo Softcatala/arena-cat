@@ -16,6 +16,7 @@ from app.config import get_settings
 from app.db import get_sessionmaker
 from app.models import EmailDelivery
 from app.security import EMAIL_VERIFICATION_TTL_HOURS, PASSWORD_RESET_TTL_MINUTES
+from app.telemetry.metrics import email_errors_total
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +173,7 @@ def _send_quietly(message: EmailMessage, kind: str) -> None:
                 db.commit()
     except OSError as error:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
         logger.error("No s'ha pogut enviar el correu (%s): %s", kind, _describe(error))
+        email_errors_total.add(1, {"description": kind})
     except SQLAlchemyError:
         logger.error("No s'ha pogut registrar l'enviament del correu (%s)", kind)
 

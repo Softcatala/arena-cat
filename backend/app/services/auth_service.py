@@ -38,6 +38,7 @@ from app.security import (
     verify_password,
     verify_password_reset_token,
 )
+from app.telemetry.metrics import registrations_total
 
 
 @dataclass(frozen=True)
@@ -151,6 +152,7 @@ def register_user(
     _commit(db, status_code=409, detail="No s'ha pogut completar el registre")
 
     db.refresh(user)
+    registrations_total.add(1, {"email_verified": not settings.require_email_verification})
 
     if not settings.require_email_verification:
         return RegisterResponse(status="verified"), None
