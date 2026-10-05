@@ -12,8 +12,9 @@ function formatScore(item: RankedModel): string {
   if (item.ci_lo === null || item.ci_hi === null) {
     return `${score}`;
   }
-  const margin = Math.round(((item.ci_hi - item.ci_lo) / 2) * ELO_SCALE);
-  return `${score} ± ${margin}`;
+  const lower = Math.round(item.ci_lo * ELO_SCALE + ELO_OFFSET);
+  const upper = Math.round(item.ci_hi * ELO_SCALE + ELO_OFFSET);
+  return `${score} (${lower}–${upper})`;
 }
 
 export default function RankingView({
@@ -129,7 +130,7 @@ export default function RankingView({
                 <tr className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
                   <th className="px-5 py-2">Posició</th>
                   <th className="px-5 py-2">Model</th>
-                  <th className="px-5 py-2 text-right">Puntuació</th>
+                  <th className="px-5 py-2 text-right">Puntuació (IC 95%)</th>
                 </tr>
               </thead>
               <tbody>

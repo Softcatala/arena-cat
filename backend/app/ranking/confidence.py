@@ -101,12 +101,7 @@ def _bootstrap_run(
     seed: int,
     alpha: float,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Re-mostra prompts amb reemplaçament.
-
-    Retorna els deltas (gap líder vs millor competidor per rèplica) i la
-    matriu `(n_bootstrap, n_models)` amb l'skill BT ajustat per rèplica,
-    que serveix per estimar els intervals de confiança per model.
-    """
+    """Re-mostra prompts amb reemplaçament i retorna deltas i skills per rèplica."""
     competitors = [m for m in models if m != best_model]
     prompt_ids = list(by_prompt.keys())
     n_prompts = len(prompt_ids)
@@ -119,8 +114,7 @@ def _bootstrap_run(
         votes = [v for p in sampled for v in by_prompt[p]]
         theta_b = fit_bt(votes, models, alpha=alpha)
         deltas[b] = theta_b[best_model] - max(theta_b[c] for c in competitors)
-        for i, m in enumerate(models):
-            thetas[b, i] = theta_b[m]
+        thetas[b] = [theta_b[m] for m in models]
     return deltas, thetas
 
 
