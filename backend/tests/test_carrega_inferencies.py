@@ -64,6 +64,38 @@ def _count(session, model) -> int:
     return session.scalar(select(func.count()).select_from(model))
 
 
+def test_load_version_tree_keeps_history_and_active_revision(session, tmp_path):
+    prompts = tmp_path / "prompts"
+    inferences = tmp_path / "inferencies"
+    for version in ("v1", "v2"):
+        write_prompt(prompts / version, "correccio_1", f"Text {version}")
+        for model in ("model-a", "model-b"):
+            write_inference(inferences / version, model, "correccio_1", f"Resposta {version}")
+    write_prompt(prompts / "v1", "traduccio_1")
+
+    summary = loader.run_load(session, prompts, inferences)
+    assert summary.prompts.inserted == 3
+    assert summary.responses.inserted == 4
+    assert summary.total_errors == 0
+    active = session.scalars(select(Prompt).where(Prompt.id.in_(active_prompt_ids()))).all()
+    assert [(p.code, p.version) for p in active] == [("correccio_1", "v2")]
+    repeated = loader.run_load(session, prompts, inferences)
+    assert repeated.prompts.skipped == 3
+    assert repeated.responses.skipped == 4
+
+
+def test_load_specific_version_from_roots(session, tmp_path):
+    prompts = tmp_path / "prompts"
+    inferences = tmp_path / "inferencies"
+    for version in ("v1", "v2"):
+        write_prompt(prompts / version, "correccio_1", f"Text {version}")
+        write_inference(inferences / version, "model-a", "correccio_1")
+    summary = loader.run_load(session, prompts, inferences, version="v2")
+    assert summary.prompts.inserted == 1
+    assert summary.responses.inserted == 1
+    assert session.scalar(select(Prompt)).version == "v2"
+
+
 def write_categories(
     path: Path,
     name: str = "Cultura",

@@ -206,7 +206,7 @@ export default function TaskView({ categories }: { categories: Category[] }) {
     {
       ref: voteRef,
       title: "Voteu",
-      text: "Trieu quina resposta és millor, si estan empatades o si cap de les dues és bona. També podeu fer servir les dreceres A, B, E i C.",
+      text: "Trieu quina resposta és millor. Trieu «Empat» si totes dues resolen prou bé la tasca amb una qualitat semblant, encara que tinguin alguna errada menor, o «Cap de les dues» si cap la resol prou bé. També podeu fer servir les dreceres A, B, E i C.",
     },
   ];
 

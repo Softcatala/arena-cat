@@ -11,7 +11,7 @@ import yaml
 from rapidfuzz.distance import Levenshtein
 from sacrebleu.metrics import CHRF
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 _CHRF = CHRF(char_order=6, word_order=0, beta=2)
 
 

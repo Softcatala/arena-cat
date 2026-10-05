@@ -10,6 +10,7 @@
 
 import { readDetail, readErrorCode, TASK_TOKEN_INVALID } from "./errors";
 import type {
+  Activity,
   Category,
   CategoryFilter,
   Progress,
@@ -70,6 +71,9 @@ async function request<T>(path: string, init?: RequestInit, notifyUnauthorized =
 }
 
 export const api = {
+  activity: (date: string) =>
+    request<Activity>(date ? `/activity?date=${encodeURIComponent(date)}` : "/activity"),
+
   categories: async () => (await request<{ categories: Category[] }>("/categories")).categories,
 
   // Respon 200 tant si hi ha sessió com si no; la cookie és HttpOnly i el client
@@ -150,8 +154,7 @@ export const api = {
       body: JSON.stringify({ token, new_password: newPassword }),
     }),
 
-  // Sense `category_code` el backend recorre les categories i serveix la primera
-  // que encara tingui feina per a aquest usuari.
+  // Sense `category_code` es prioritzen els prompts menys vistos entre totes les categories.
   nextTask: (category: CategoryFilter) =>
     request<Task>(category ? `/task?category_code=${encodeURIComponent(category)}` : "/task"),
 

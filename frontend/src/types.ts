@@ -2,7 +2,7 @@
 
 export type CategoryCode = string;
 
-/** `""` vol dir «qualsevol»: `GET /api/task` sense `category_code` tria la primera pendent. */
+/** `""` vol dir «qualsevol»: `GET /api/task` sense `category_code` prioritza els prompts menys vistos entre totes les categories. */
 export type CategoryFilter = CategoryCode | "";
 
 export interface Category {
@@ -87,4 +87,15 @@ export interface Ranking {
   best_model: string | null;
   ranked_models: RankedModel[];
   confidence: RankingConfidence;
+}
+export interface Activity {
+  date: string;
+  updated_at: string;
+  registered_users: number;
+  verification_emails: number;
+  password_reset_emails: number;
+  qualified_users: number;
+  failed_users: number;
+  voters: number;
+  votes: number;
 }

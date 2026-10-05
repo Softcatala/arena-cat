@@ -1,5 +1,5 @@
 import unicodedata
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
@@ -37,6 +37,50 @@ class CategoryResponse(BaseModel):
 
 class CategoriesResponse(BaseModel):
     categories: list[CategoryResponse]
+
+
+class DatasetCategory(CategoryResponse):
+    id: int
+
+
+class DatasetPrompt(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    code: str
+    version: str
+    category_id: int
+    text: str
+    created_at: datetime
+
+
+class DatasetModelResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    prompt_id: int
+    model: str
+    text: str
+    inference_metadata: dict | None
+    created_at: datetime
+
+
+class DatasetResponse(BaseModel):
+    categories: list[DatasetCategory]
+    prompts: list[DatasetPrompt]
+    responses: list[DatasetModelResponse]
+
+
+class ActivityResponse(BaseModel):
+    date: date
+    updated_at: datetime
+    registered_users: int
+    verification_emails: int
+    password_reset_emails: int
+    qualified_users: int
+    failed_users: int
+    voters: int
+    votes: int
 
 
 class TaskResponse(BaseModel):

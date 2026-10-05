@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 REPO_ROOT = Path(__file__).resolve().parents[1]
 # El model de dades i la configuració viuen al paquet backend/app.
 sys.path.insert(0, str(REPO_ROOT / "backend"))
+sys.path.insert(0, str(REPO_ROOT))
 
 from sqlalchemy import select  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
@@ -34,13 +35,13 @@ from sqlalchemy.orm import Session  # noqa: E402
 from app.db import get_sessionmaker  # noqa: E402
 from app.models import Category, Prompt, Response  # noqa: E402
 from app.prompt_versions import VERSION_PATTERN  # noqa: E402
+from scripts.lib.prompt_versions import inference_directory, version_directories  # noqa: E402
 
 LOGGER = logging.getLogger("carrega_inferencies")
 
-DEFAULT_VERSION = "v1"
 DEFAULT_CATEGORIES_FILE = REPO_ROOT / "data" / "prompts" / "categories.yaml"
-DEFAULT_PROMPTS_DIR = REPO_ROOT / "data" / "prompts" / DEFAULT_VERSION
-DEFAULT_INFERENCIES_DIR = REPO_ROOT / "data" / "inferencies" / DEFAULT_VERSION
+DEFAULT_PROMPTS_DIR = REPO_ROOT / "data" / "prompts"
+DEFAULT_INFERENCIES_DIR = REPO_ROOT / "data" / "inferencies"
 
 # El codi d'un prompt acaba amb un sufix numèric (p. ex. ``traduccio_10``); la
 # resta identifica la categoria (``traduccio``).
@@ -469,25 +470,41 @@ def run_load(
         session: Sessió de base de dades activa.
         prompts_dir: Directori dels prompts.
         inferencies_dir: Directori arrel de les inferències.
-        version: Versió del conjunt de dades. Si és ``None``, es dedueix del nom
-            del directori de prompts (p. ex. ``data/prompts/v1`` -> ``v1``).
+        version: Versió concreta. Si és ``None``, es carreguen tots els subdirectoris
+            de versió o es dedueix del nom d'un directori concret.
 
     Returns:
         Resum amb els recomptes de prompts i respostes.
     """
     prompts_dir = Path(prompts_dir)
     inferencies_dir = Path(inferencies_dir)
-    version = version or prompts_dir.name
-    if not re.fullmatch(VERSION_PATTERN, version):
-        raise SchemaError(
-            "la versió ha de ser v<N>, amb N positiu, sense zeros inicials i fins a 31 dígits"
-        )
+    versions = version_directories(prompts_dir)
+    if versions:
+        if version:
+            versions = [p for p in versions if p.name == version]
+            if not versions:
+                raise SchemaError(f"no s'ha trobat la versió {version} a {prompts_dir}")
+        try:
+            directories = [
+                (p, inference_directory(inferencies_dir, p.name)) for p in versions
+            ]
+        except ValueError as error:
+            raise SchemaError(str(error)) from error
+    else:
+        version = version or prompts_dir.name
+        if not re.fullmatch(VERSION_PATTERN, version):
+            raise SchemaError(f"no s'han trobat directoris de versió vàlids a {prompts_dir}")
+        if version_directories(inferencies_dir):
+            inferencies_dir = inference_directory(inferencies_dir, version)
+        directories = [(prompts_dir, inferencies_dir)]
 
     categories = load_category_catalog(categories_file)
     category_ids = load_categories(session, categories)
     summary = Summary(prompts=Stats(), responses=Stats())
-    load_prompts(session, prompts_dir, version, category_ids, summary.prompts)
-    load_responses(session, inferencies_dir, version, summary.responses)
+    for prompt_directory, response_directory in directories:
+        revision = version or prompt_directory.name
+        load_prompts(session, prompt_directory, revision, category_ids, summary.prompts)
+        load_responses(session, response_directory, revision, summary.responses)
     return summary
 
 
@@ -517,18 +534,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--prompts-dir",
         type=Path,
         default=DEFAULT_PROMPTS_DIR,
-        help="Directori amb els fitxers de text dels prompts.",
+        help="Arrel dels prompts versionats o directori d'una versió concreta.",
     )
     parser.add_argument(
         "--inferencies-dir",
         type=Path,
         default=DEFAULT_INFERENCIES_DIR,
-        help="Directori arrel amb les inferències (un subdirectori per model).",
+        help="Arrel de les inferències versionades o directori d'una versió concreta.",
     )
     parser.add_argument(
         "--version",
         default=None,
-        help="Versió del conjunt de dades. Per defecte, el nom del directori de prompts.",
+        help="Limita la càrrega a una versió; per defecte es carreguen totes.",
     )
     parser.add_argument(
         "--log-level",

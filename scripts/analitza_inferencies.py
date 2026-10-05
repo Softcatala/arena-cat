@@ -9,15 +9,19 @@ from pathlib import Path
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
+sys.path.insert(0, str(REPO_ROOT))
 
 import yaml  # noqa: E402
 from jinja2 import Environment, FileSystemLoader  # noqa: E402
 
-from metriques import load_answers, pairwise_metrics  # noqa: E402
+from scripts.lib.inference_metrics import load_answers, pairwise_metrics  # noqa: E402
+from scripts.lib.prompt_versions import (  # noqa: E402
+    VERSION_PATTERN,
+    inference_directory,
+    latest_prompt_files,
+)
 
 RECOMMENDED_THRESHOLD = 0.40
-TRANSLATION_CATEGORY = "traduccio"
 
 config_path = REPO_ROOT / "config/inferencia/inferencia_config.yaml"
 config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
@@ -27,13 +31,6 @@ MODEL_IDS = list(MODEL_DISPLAY)
 
 def _category(prompt_id: str) -> str:
     return prompt_id.split("_", 1)[0]
-
-
-def _validation_score(entry: dict) -> float:
-    """Retorna la puntuació usada per validar el prompt segons la categoria."""
-    if _category(entry["prompt_id"]) == TRANSLATION_CATEGORY:
-        return entry["metrics"]["combinat_mean"]
-    return entry["metrics"]["combinat_worst"]
 
 
 def _discover_prompt_ids(inferences_dir: Path) -> list[str]:
@@ -66,6 +63,7 @@ def _category_summary(entries: list[dict]) -> list[dict]:
     rows = {}
     for e in entries:
         category = _category(e["prompt_id"])
+        score = e["metrics"]["combinat_worst"]
         row = rows.setdefault(
             category,
             {
@@ -73,64 +71,99 @@ def _category_summary(entries: list[dict]) -> list[dict]:
                 "total": 0,
                 "valid": 0,
                 "invalid": 0,
+                "worst": score,
+                "mean_worst": 0.0,
             },
         )
         row["total"] += 1
-        if _validation_score(e) >= RECOMMENDED_THRESHOLD:
+        row["worst"] = min(row["worst"], score)
+        row["mean_worst"] += score
+        if score >= RECOMMENDED_THRESHOLD:
             row["valid"] += 1
         else:
             row["invalid"] += 1
 
-    summaries = []
     for row in rows.values():
+        row["mean_worst"] /= row["total"]
         row["valid_pct"] = row["valid"] * 100 / row["total"]
         row["invalid_pct"] = row["invalid"] * 100 / row["total"]
-        summaries.append(row)
-    return sorted(summaries, key=lambda s: str(s["category"]))
+    return sorted(rows.values(), key=lambda s: s["category"])
 
 
 def _print_category_summary(category_summary: list[dict]) -> None:
-    print("\nResum de validesa per categoria")
-    print(f"Invàlid = puntuació de validació < {RECOMMENDED_THRESHOLD:.2f}")
-    print("Validació: traduccio usa combinat_mean; la resta usa combinat_worst")
+    print("\nResum de revisió per categoria")
+    print(f"Cal revisar = combinat_worst < {RECOMMENDED_THRESHOLD:.2f}")
+    print("worst = mínim de combinat_worst dels prompts de la categoria.")
+    print("mean_worst = mitjana de combinat_worst dels prompts de la categoria.")
     print(
-        f"{'categoria':<16}{'total':>7}{'vàlids':>9}{'invàlids':>10}"
-        f"{'% vàlids':>10}{'% invàlids':>12}"
+        f"{'categoria':<16}{'total':>7}{'acceptables':>13}{'cal revisar':>13}"
+        f"{'% acceptables':>15}{'% cal revisar':>15}{'worst':>10}"
+        f"{'mean_worst':>12}"
     )
     for row in category_summary:
         print(
-            f"{row['category']:<16}{row['total']:>7}{row['valid']:>9}"
-            f"{row['invalid']:>10}{row['valid_pct']:>9.1f}%"
-            f"{row['invalid_pct']:>11.1f}%"
+            f"{row['category']:<16}{row['total']:>7}{row['valid']:>13}"
+            f"{row['invalid']:>13}{row['valid_pct']:>14.1f}%"
+            f"{row['invalid_pct']:>14.1f}%{row['worst']:>10.4f}"
+            f"{row['mean_worst']:>12.4f}"
         )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Calcula mètriques de distància entre sortides de models "
         "per als prompts d'un directori d'inferències."
     )
     parser.add_argument(
         "--inferencies",
-        default="data/inferencies/v1",
-        help="Subdirectori d'inferències (relatiu al repo).",
+        default="data/inferencies",
+        help="Arrel d'inferències o directori d'una versió (relatiu al repo).",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--prompts-dir",
+        default="data/prompts",
+        help="Arrel dels prompts per seleccionar-ne les últimes revisions.",
+    )
+    args = parser.parse_args(argv)
 
     inferences_dir = REPO_ROOT / args.inferencies
+    flat_directory = VERSION_PATTERN.fullmatch(inferences_dir.name) or any(
+        (inferences_dir / model).is_dir() for model in MODEL_IDS
+    )
+    if flat_directory:
+        prompts = [(code, None) for code in _discover_prompt_ids(inferences_dir)]
+    else:
+        prompts = [
+            (path.stem, path)
+            for path in latest_prompt_files(REPO_ROOT / args.prompts_dir)
+        ]
     entries = []
-    for prompt_id in _discover_prompt_ids(inferences_dir):
-        outputs = load_answers(prompt_id, MODEL_IDS, inference_subdir=args.inferencies)
+    for prompt_id, prompt_path in prompts:
+        directory = (
+            inference_directory(inferences_dir, prompt_path.parent.name)
+            if prompt_path else inferences_dir
+        )
+        version = directory.name
+        outputs = load_answers(prompt_id, MODEL_IDS, inference_subdir=str(directory))
         if len(outputs) < 2:
-            print(f"avís: {prompt_id} té només {len(outputs)} sortida(es), s'omet")
+            print(
+                f"avís: {prompt_id}/{version} té només {len(outputs)} sortida(es), s'omet"
+            )
             continue
-        entries.append({
-            "prompt_id": prompt_id,
-            "prompt_text": _load_original_prompt(inferences_dir, prompt_id),
-            "outputs": outputs,
-            "metrics": pairwise_metrics(outputs),
-            "missing": [m for m in MODEL_IDS if m not in outputs],
-        })
+        entries.append(
+            {
+                "prompt_id": prompt_id,
+                "version": version,
+                "prompt_text": (
+                    prompt_path.read_text(encoding="utf-8").strip()
+                    if prompt_path
+                    else _load_original_prompt(directory, prompt_id)
+                ),
+                "outputs": outputs,
+                "metrics": pairwise_metrics(outputs),
+                "missing": [m for m in MODEL_IDS if m not in outputs],
+            }
+        )
 
     entries.sort(key=lambda e: e["metrics"]["combinat_mean"], reverse=True)
     category_summary = _category_summary(entries)

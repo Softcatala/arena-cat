@@ -72,6 +72,24 @@ Retorna el catàleg públic de categories, ordenat per codi. Les dades provenen 
 }
 ```
 
+### `GET /api/dataset`
+
+Requereix `Authorization: Bearer <ADMIN_API_TOKEN>` per HTTPS. Configureu un
+token aleatori al servidor; buit desactiva l'accés. Un token absent o incorrecte
+retorna 401; una sessió d'usuari no dona accés. Retorna tres llistes ordenades
+per `id`, amb totes les dades carregades a PostgreSQL:
+
+- `categories`: els camps de `/api/categories` més `id`.
+- `prompts`: `id`, `code`, `version`, `category_id`, `text` i `created_at`.
+- `responses`: `id`, `prompt_id`, `model`, `text`, `inference_metadata` i `created_at`.
+
+Inclou totes les versions, les categories sense prompts i els prompts sense
+respostes. Les llistes buides es retornen com `[]`. `category_id` i `prompt_id`
+permeten relacionar les dades. No pagina ni filtra per versió activa.
+Exposa els noms dels models i les metadades d'inferència; `/api/task` manté
+les respostes anònimes. La resposta porta `Cache-Control: no-store`.
+Podeu consultar-lo amb el [CLI de consulta remota](../scripts/README.md#consulta-de-les-dades-carregades-en-remot).
+
 ### `GET /api/qualification` i `POST /api/qualification`
 
 Requereixen una sessió vàlida i la verificació del correu, si està activada.
@@ -86,10 +104,19 @@ Les preguntes, les solucions i `min_correct` es llegeixen de
 8 de 10 encerts acrediten l'usuari: es desa `users.qualified_at` i
 `GET /api/auth/session` retorna `qualified: true` en les sessions següents.
 Els intents fallits es poden repetir; un usuari ja acreditat rep 409 si torna
-a lliurar la prova. No es desen respostes ni es generen vots o estadístiques.
+a lliurar la prova. Es registren els intents suspesos per a
+l'[activitat diària](../docs/sistema.md#activitat-diària), sense desar respostes ni generar vots.
 
 La imatge del backend inclou el YAML. Es construeix des de l'arrel del repositori
 amb `docker compose build api` o `docker build -f backend/Dockerfile .`.
+
+### `GET /api/activity`
+
+Requereix sessió iniciada. Accepta `date=YYYY-MM-DD`; sense data, consulta avui.
+Retorna `date`, `updated_at`, `registered_users`, `verification_emails`,
+`password_reset_emails`, `qualified_users`, `failed_users`, `voters` i `votes`.
+Els recomptes provenen exclusivament de PostgreSQL. Les definicions, el fus horari
+i els límits de l'historial són a [activitat diària](../docs/sistema.md#activitat-diària).
 
 ### `GET /api/task`
 
@@ -100,7 +127,7 @@ superat la prova de competència lingüística; altrament, es retorna 403.
 
 **Paràmetres de la URL:**
 - `category_code` (string, opcional): La categoria de la tasca sol·licitada (p. ex., `correccio`).
-  Sense filtre, s'aplica la [selecció aleatòria entre categories disponibles](../docs/sistema.md#selecció-i-registre-de-tasques).
+  Sense filtre, s'aplica la [priorització dels prompts menys vistos entre totes les categories](../docs/sistema.md#selecció-i-registre-de-tasques).
 
 L'usuari s'identifica amb la cookie de sessió per evitar repetir tasques.
 

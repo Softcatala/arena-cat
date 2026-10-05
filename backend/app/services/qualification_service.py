@@ -9,7 +9,7 @@ from pydantic import model_validator
 from sqlalchemy import func, update
 from sqlalchemy.orm import Session
 
-from app.models import User
+from app.models import QualificationFailure, User
 from app.schemas import (
     QualificationChoice,
     QualificationQuestion,
@@ -48,7 +48,7 @@ def load_qualification() -> Questionnaire:
 def submit_qualification(
     db: Session, user: User, payload: QualificationRequest, *, debug: bool = False
 ) -> QualificationResult:
-    """Corregeix un intent complet i desa només la primera acreditació."""
+    """Corregeix un intent complet i desa el suspens o la primera acreditació."""
     if user.qualified_at is not None:
         raise HTTPException(status_code=409, detail="Ja heu superat la prova")
 
@@ -70,7 +70,10 @@ def submit_qualification(
             .where(User.id == user.id, User.qualified_at.is_(None))
             .values(qualified_at=func.now())
         )
-        db.commit()
+    else:
+        db.add(QualificationFailure(user_id=user.id))
+    db.commit()
+    if passed:
         qualifications_total.add(1)
 
     return QualificationResult(

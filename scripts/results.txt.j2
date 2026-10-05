@@ -13,13 +13,13 @@ Rang 0 = prompt MÉS DISCRIMINANT (sortides més divergents entre models).
 {% if not entries -%}
 CAP PROMPT ANALITZAT
 {% else -%}
-RESUM DE VALIDESA PER CATEGORIA
+RESUM DE REVISIÓ PER CATEGORIA
 {{ '-' * 80 }}
-Invàlid = puntuació de validació < {{ '%.2f' | format(recommended_threshold) }}
-Validació: traduccio usa combinat mitjà; la resta usa combinat pitjor.
-{{ '%-16s%7s%9s%10s%10s%12s' | format('categoria', 'total', 'vàlids', 'invàlids', '% vàlids', '% invàlids') }}
+Cal revisar = combinat_worst < {{ '%.2f' | format(recommended_threshold) }}
+Totes les categories usen la distància de la parella més semblant.
+{{ '%-16s%7s%13s%13s%15s%15s' | format('categoria', 'total', 'acceptables', 'cal revisar', '% acceptables', '% cal revisar') }}
 {%- for row in category_summary %}
-{{ '%-16s%7d%9d%10d%9.1f%%%11.1f%%' | format(row.category, row.total, row.valid, row.invalid, row.valid_pct, row.invalid_pct) }}
+{{ '%-16s%7d%13d%13d%14.1f%%%14.1f%%' | format(row.category, row.total, row.valid, row.invalid, row.valid_pct, row.invalid_pct) }}
 {%- endfor %}
 
 RESUM DE RANGS
@@ -33,6 +33,7 @@ RESUM DE RANGS
 {{ '=' * 80 }}
 PROMPT {{ e.prompt_id }}
 {{ '=' * 80 }}
+Versió: {{ e.version }}
 Rang (0 = més discriminant): {{ loop.index0 }}
 Puntuació (combinat mitjà, més alt = més divergent): {{ '%.4f' | format(e.metrics.combinat_mean) }}
 

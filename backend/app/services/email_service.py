@@ -10,8 +10,11 @@ from pathlib import Path
 from urllib.parse import quote
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import get_settings
+from app.db import get_sessionmaker
+from app.models import EmailDelivery
 from app.security import EMAIL_VERIFICATION_TTL_HOURS, PASSWORD_RESET_TTL_MINUTES
 from app.telemetry.metrics import email_errors_total
 
@@ -102,7 +105,7 @@ def build_password_reset_message(to_email: str, link: str) -> EmailMessage:
     return message
 
 
-def send_email(message: EmailMessage) -> None:
+def send_email(message: EmailMessage) -> bool:
     """Envia el missatge pel servidor SMTP configurat.
 
     Sense `smtp_host` no obre cap connexió: deixa el missatge al log perquè es pugui
@@ -115,7 +118,7 @@ def send_email(message: EmailMessage) -> None:
             message["To"],
             message.get_body(preferencelist=("plain",)).get_content(),
         )
-        return
+        return False
 
     context = ssl.create_default_context()
     if settings.smtp_security == "ssl":
@@ -142,6 +145,7 @@ def send_email(message: EmailMessage) -> None:
             else:
                 logger.warning("El servidor SMTP no anuncia AUTH: s'envia sense autenticar")
         connection.send_message(message)
+    return True
 
 
 def _describe(error: OSError) -> str:
@@ -155,7 +159,7 @@ def _describe(error: OSError) -> str:
     return f"{name} (codi SMTP {code})" if code else name
 
 
-def _send_quietly(message: EmailMessage, description: str) -> None:
+def _send_quietly(message: EmailMessage, kind: str) -> None:
     """Envia el missatge sense propagar errors: s'executa en segon pla.
 
     Un servidor de correu caigut no ha d'impedir l'operació que l'ha provocat; la
@@ -163,19 +167,24 @@ def _send_quietly(message: EmailMessage, description: str) -> None:
     per no deixar dades personals als logs.
     """
     try:
-        send_email(message)
+        if send_email(message):
+            with get_sessionmaker()() as db:
+                db.add(EmailDelivery(kind=kind))
+                db.commit()
     except OSError as error:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
-        logger.error("No s'ha pogut enviar el correu de %s: %s", description, _describe(error))
-        email_errors_total.add(1, {"description": description})
+        logger.error("No s'ha pogut enviar el correu (%s): %s", kind, _describe(error))
+        email_errors_total.add(1, {"description": kind})
+    except SQLAlchemyError:
+        logger.error("No s'ha pogut registrar l'enviament del correu (%s)", kind)
 
 
 def send_verification_email(to_email: str, token: str) -> None:
     """Envia el correu de verificació de l'adreça."""
     link = build_verification_link(token)
-    _send_quietly(build_verification_message(to_email, link), "verificació")
+    _send_quietly(build_verification_message(to_email, link), "verification")
 
 
 def send_password_reset_email(to_email: str, token: str) -> None:
     """Envia el correu de restabliment de contrasenya."""
     link = build_password_reset_link(token)
-    _send_quietly(build_password_reset_message(to_email, link), "restabliment de contrasenya")
+    _send_quietly(build_password_reset_message(to_email, link), "password_reset")

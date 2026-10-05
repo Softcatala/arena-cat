@@ -89,9 +89,13 @@ idèntiques no crea duplicats. Els conflictes de text o de metadades de resposta
 conservades es rebutgen; cal publicar una versió nova. El raonament intern,
 quan n'hi ha, es desa a les metadades i no es mostra com a resposta.
 
+Amb `ADMIN_API_TOKEN`, [`GET /api/dataset`](../backend/README.md#get-apidataset)
+permet consultar totes les categories, versions de prompts i respostes
+carregades, amb els noms dels models i les metadades d'inferència.
+
 Les inferències de referència es mantenen a la branca `dades_inferencia`.
-Les comandes de generació, els filtres, les proves amb models petits i la
-càrrega de dades es detallen a la [guia de la canonada](../scripts/README.md).
+La [guia de la canonada](../scripts/README.md) detalla les comandes de generació,
+la selecció de versions, els filtres, les proves amb models petits i la càrrega.
 
 ### Versions actives
 
@@ -147,11 +151,13 @@ Els detalls de les pantalles i del comportament del client són al
 ### Selecció i registre de tasques
 
 El selector considera cada combinació de prompt actiu i parella de models com
-una cel·la. Dins de la categoria, tria aleatòriament entre les cel·les amb menys
-vots i exclou les que l'usuari ja ha votat o omès. L'ordre de les respostes A/B
-també és aleatori. Sense filtre de categoria, el servei tria amb la mateixa
-probabilitat entre les categories amb feina pendent per a l'usuari, recorrent-les
-en un ordre aleatori fins a trobar una tasca disponible.
+una cel·la. Exclou les que l'usuari ja ha votat o omès i prioritza els prompts
+que ha votat o omès menys vegades. Entre les cel·les d'aquests prompts, tria
+aleatòriament les que tenen menys vots comunitaris. Quan no queden prompts nous,
+continua amb els menys repetits. L'ordre de les respostes A/B també és aleatori.
+Amb filtre, considera només la categoria demanada; sense filtre, aplica aquesta
+prioritat conjuntament a totes les categories. No garanteix la mateixa
+probabilitat per categoria: depèn de les cel·les candidates.
 
 La justificació del mostreig es recull al
 [disseny de selecció de tasques](ranking_design.md#4-selecció-de-tasques).
@@ -173,6 +179,40 @@ conserven quan un usuari es dona de baixa. La baixa i l'exportació estan
 disponibles a l'API; el frontend encara no ofereix pantalles per a aquestes
 operacions. Els fluxos, la criptografia, l'enviament de correu i la configuració
 de seguretat es detallen a [gestió i autenticació d'usuaris](usuaris_autenticacio.md).
+
+## Activitat diària
+
+La pàgina **Activitat** (`/activitat`) i `GET /api/activity` requereixen sessió
+iniciada, sense exigir haver superat la prova. Mostren l'activitat de tota la
+plataforma, amb avui seleccionat per defecte, selector de data, botó
+d'actualització i hora de consulta. El dia va de mitjanit a mitjanit en el fus
+`Europe/Madrid`, inclosos els canvis d'horari d'estiu.
+
+Tots els recomptes s'obtenen exclusivament de PostgreSQL:
+
+| Indicador | Origen i definició |
+|---|---|
+| Usuaris registrats | Comptes amb `users.created_at` dins del dia |
+| Correus enviats | Files d'`email_deliveries`, separades entre verificació i recuperació de contrasenya |
+| Usuaris que han superat el test | Comptes amb `users.qualified_at` dins del dia |
+| Usuaris amb intents suspesos | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |
+| Votants únics | Usuaris diferents amb algun vot durant el dia; s'exclouen els vots sense `user_id` |
+| Vots emesos | Vots amb `votes.created_at` dins del dia, inclosos empats i «cap de les dues», de totes les versions |
+
+Una persona pot suspendre i aprovar el mateix dia i aparèixer als dos recomptes.
+Els usuaris que encara no han fet el test no es compten com a suspesos. Les xifres
+corresponen als esdeveniments del dia, encara que el compte s'hagi creat abans.
+Les baixes conserven el registre del compte, els vots i els suspensos vinculats a
+l'identificador anonimitzat, però buiden `qualified_at`: el recompte d'aprovats
+pot disminuir després d'una baixa.
+
+Els correus es registren després que SMTP n'accepti l'enviament; això no acredita
+el lliurament a la bústia. No es desen destinataris ni continguts. Els errors SMTP
+i els missatges de desenvolupament sense SMTP no compten. Si falla el registre
+SQL després de l'enviament, se'n deixa constància al log i el recompte no l'inclou.
+Els suspensos es desen en corregir intents complets, sense respostes ni puntuació.
+L'historial de correus i suspensos comença amb l'activació d'aquest registre;
+els anteriors no es poden reconstruir amb les dades existents.
 
 ## Rànquing
 
@@ -218,8 +258,8 @@ El repositori defineix tres imatges:
 - [`frontend/Dockerfile`](../frontend/Dockerfile): compila el frontend i serveix
   els fitxers estàtics amb un servidor Node al port 80, amb retorn d'`index.html`
   per a les rutes de l'aplicació. `VITE_API_BASE_URL` es fixa en compilar.
-- [`Dockerfile.load-inferences`](../Dockerfile.load-inferences): incorpora els
-  prompts i les inferències v1 i executa el carregador.
+- [`Dockerfile.load-inferences`](../Dockerfile.load-inferences): incorpora
+  totes les versions dels prompts i les inferències i executa el carregador.
 
 La [configuració de GitLab CI](../.gitlab-ci.yml) construeix i publica aquestes
 imatges i delega el desplegament al projecte d'infraestructura. Per construir

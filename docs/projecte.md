@@ -62,6 +62,12 @@ En una tasca de traducció, l’avaluador llegeix el text original i dues traduc
 
 > **Avaluació cega**: els models s'avaluen de forma cega: l'usuari **no sap** quin model està avaluant en cada cas, per evitar biaixos.
 
+La pàgina «Com funciona» explica els criteris de vot: «Empat» indica que les dues
+respostes resolen prou bé la tasca amb una qualitat semblant, encara que tinguin
+alguna errada menor; «Cap de les dues» indica que cap la resol prou bé. La gravetat
+i la freqüència dels errors es valoren segons la tasca: en correcció, les errades
+d'ortografia i de puntuació tenen més pes. El tutorial recorda aquesta distinció en explicar el vot.
+
 ---
 
 # 4. Què cal avaluar

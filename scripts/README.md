@@ -88,18 +88,57 @@ la resposta directament, perquè la seva plantilla ignora `enable_thinking=False
 Per regenerar les inferències existents amb aquest canvi, utilitza
 `--model-id muse-glimmer-30b --force`.
 
-Els resultats es desen a `data/inferencies/v1/<model_id>/`.
+Els resultats es desen a `data/inferencies/<version>/<model_id>/`, amb la
+mateixa versió que el prompt d'origen.
 Els YAML conserven la seed i els paràmetres de generació, però no el commit
 del codi ni la data d’execució, per evitar canvis sense diferències de contingut.
 
+#### Selecció de versions
+
+Per defecte, `dir_prompts` apunta a `data/prompts` i `dir_sortida` a
+`data/inferencies`. `scripts/lib/prompt_versions.py` recorre `v<N>` per ordre
+numèric descendent (`v10`, `v9`, …, `v1`) i conserva el primer fitxer de cada
+prompt. Només cal posar a `v2` els prompts modificats; les inferències es
+generen i es reutilitzen dins de la versió corresponent.
+
+Per consultar la versió i el camí seleccionats per a cada prompt:
+
+```bash
+make prompt_latest
+```
+
+Per generar només una versió concreta, configureu `dir_prompts` amb
+`data/prompts/v2` i `dir_sortida` amb `data/inferencies` o `data/inferencies/v2`.
+
+#### Consulta de les dades carregades en remot
+
+El CLI consulta [`GET /api/dataset`](../backend/README.md#get-apidataset) per
+HTTPS i imprimeix les dades en JSON. `make dataset` carrega `API_URL` i
+`ADMIN_API_TOKEN` de `.env`, si existeix; els arguments i les variables
+d'entorn tenen prioritat. Si falta el token, el demana sense mostrar-lo.
+La URL ha d'incloure el prefix complet de l'API.
+
+```bash
+make dataset
+make dataset API_URL=https://servidor.example/api
+make dataset API_URL=https://servidor.example/api SHOW=prompts
+```
+
+Per executar el CLI directament amb `.env`:
+`uv run --env-file .env python -m scripts.dataset`.
+
+`SHOW` accepta `all` (per defecte), `categories`, `prompts` o `inferences`.
+Consulta totes les versions carregades a la base de dades, no els fitxers locals.
+
 ### 6. Mètriques de distància entre sortides
 
-`scripts/metriques.py` calcula com de diferents són les sortides dels diferents
+El mòdul `scripts/lib/inference_metrics.py`, utilitzat per
+`scripts/analitza_inferencies.py`, calcula com de diferents són les sortides dels
 models per a un mateix prompt. Serveix per detectar prompts on els models
 generen respostes massa semblants — i, per tant, on un avaluador humà no podrà
 distingir-les fàcilment.
 
-Per a cada parella de models imprimeix dues mètriques **normalitzades a
+Per a cada parella de models calcula dues mètriques **normalitzades a
 distància** (0 = sortides idèntiques, 1 = totalment diferents) i la seva
 mitjana:
 
@@ -107,13 +146,26 @@ mitjana:
 - **edit**: Levenshtein normalitzat a caràcter.
 - **combinat**: mitjana de les dues anteriors, com a resum d'un cop d'ull.
 
-A més de la mitjana de les parelles, mostra la **parella pitjor** (la més
+A més de la mitjana de les parelles, calcula la **parella pitjor** (la més
 semblant del trio, mínim de les distàncies), que delata si dos models continuen
 sonant igual encara que la mitjana sigui alta.
 
+L’analitzador marca «cal revisar» quan `combinat_worst < 0.40` en totes les
+categories, inclosa traducció. El llindar orienta la revisió humana i no
+invalida automàticament el prompt. `combinat_mean` es conserva com a dada
+complementària i per ordenar el rànquing de diversitat global.
+La taula de resum de `make analyze_inferences` mostra també `worst` i
+`mean_worst`: el mínim i la mitjana de `combinat_worst` dels prompts de cada
+categoria, respectivament.
+
+L'anàlisi usa les últimes revisions, sense barrejar versions, i omet amb un
+avís les que tenen menys de dues respostes. `results.txt` indica la versió de
+cada prompt. `PROMPTS_DIR` i `INFERENCIES_DIR` permeten canviar els directoris.
+
 ```bash
-uv run python scripts/metriques.py
-uv run python scripts/metriques.py --inferencies data/inferencies/hypotheses
+make analyze_inferences
+make analyze_inferences INFERENCIES_DIR=data/inferencies/hypotheses
+make analyze_inferences INFERENCIES_DIR=data/inferencies/v2
 ```
 
 ### 7. Prova local amb un model molt petit
@@ -128,7 +180,7 @@ Aquesta configuració fa servir `hf-internal-testing/tiny-random-gpt2`, un model
 
 ### 8. Carregar prompts i inferències a la base de dades
 
-`scripts/carrega_inferencies.py` sincronitza `data/prompts/categories.yaml`, la font de veritat de les categories, amb la taula `categories` i publica els fitxers disponibles localment a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/v1/*.txt` (text pla, clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/v1/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
+`scripts/carrega_inferencies.py` sincronitza `data/prompts/categories.yaml`, la font de veritat de les categories, amb la taula `categories` i publica els fitxers disponibles localment a les taules `prompts` i `responses`. Llegeix els prompts de `data/prompts/<version>/*.txt` (text pla, clau `(version, code)`, on `code` és el nom del fitxer i la categoria es dedueix del prefix, p. ex. `traduccio_1` -> `traduccio`) i les inferències de `data/inferencies/<version>/<model_id>/*.yaml` (clau `(prompt_id, model)`). El raonament intern es desa a les metadades, no al text visible, perquè l'avaluació és a cegues.
 
 Les inferències de referència es conserven a la branca `dades_inferencia`, separades de les branques de codi. El target `make load_reference_inferences` crea o reutilitza un worktree paral·lel i apunta el carregador a les dades de referència.
 
@@ -155,7 +207,14 @@ Necessita la base de dades en marxa i migrada, i les mateixes variables de conne
 make load_inferences
 ```
 
-Per defecte usa `data/prompts/categories.yaml`, `data/prompts/v1` i `data/inferencies/v1`. Es poden sobreescriure els directoris i la versió amb variables d'entorn:
+Per defecte usa `data/prompts/categories.yaml` i carrega totes les versions
+de `data/prompts` i `data/inferencies`. Per carregar només una versió:
+
+```bash
+make load_inferences VERSION=v2
+```
+
+També es poden indicar els directoris concrets:
 
 ```bash
 PROMPTS_DIR=data/prompts/v2 INFERENCIES_DIR=data/inferencies/v2 make load_inferences
@@ -171,6 +230,6 @@ El target `load_inferences` només és un embolcall d'aquesta comanda, que reapr
 
 ```bash
 uv --project backend run python scripts/carrega_inferencies.py \
-    --prompts-dir data/prompts/v1 \
-    --inferencies-dir data/inferencies/v1
+    --prompts-dir data/prompts \
+    --inferencies-dir data/inferencies
 ```

@@ -12,8 +12,8 @@ WORKDIR /app
 
 COPY backend/app /app/backend/app
 COPY scripts/carrega_inferencies.py /app/scripts/carrega_inferencies.py
-COPY data/prompts/categories.yaml /app/data/prompts/categories.yaml
-COPY data/prompts/v1 /app/data/prompts/v1
-COPY data/inferencies/v1 /app/data/inferencies/v1
+COPY scripts/lib/prompt_versions.py /app/scripts/lib/prompt_versions.py
+COPY data/prompts /app/data/prompts
+COPY data/inferencies /app/data/inferencies
 
-CMD ["uv", "--project", "backend", "run", "python", "scripts/carrega_inferencies.py", "--prompts-dir", "data/prompts/v1", "--inferencies-dir", "data/inferencies/v1", "--version", "v1"]
+CMD ["uv", "--project", "backend", "run", "python", "scripts/carrega_inferencies.py"]

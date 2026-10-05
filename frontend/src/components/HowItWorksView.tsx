@@ -73,12 +73,16 @@ export default function HowItWorksView() {
           <div>
             <dt className="font-semibold">Empat</dt>
             <dd className="text-slate-600">
-              Tenen una qualitat semblant, sense una preferència clara.
+              Les dues respostes resolen prou bé la tasca i tenen una qualitat semblant, encara que
+              continguin alguna errada menor.
             </dd>
           </div>
           <div>
             <dt className="font-semibold">Cap de les dues</dt>
-            <dd className="text-slate-600">Cap resposta resol la tasca de manera acceptable.</dd>
+            <dd className="text-slate-600">
+              Totes dues tenen errors importants o no compleixen les instruccions, de manera que cap
+              resol prou bé la tasca.
+            </dd>
           </div>
           <div>
             <dt className="font-semibold">Omet</dt>
@@ -87,6 +91,11 @@ export default function HowItWorksView() {
             </dd>
           </div>
         </dl>
+        <p className="mt-4 leading-relaxed text-slate-600">
+          Una resposta acceptable no ha de ser perfecta. Valoreu la gravetat i la freqüència dels
+          errors segons la tasca. En una tasca de correcció, les errades d’ortografia i de puntuació
+          tenen més pes.
+        </p>
       </section>
 
       <section className="mb-8 rounded-lg border border-slate-200 bg-white p-5">

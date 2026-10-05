@@ -3,18 +3,14 @@
 `select_next_task` retorna un diccionari amb el prompt, les dues respostes
 i la informació necessària perquè la microservei la mostri a l'usuari.
 
-Estratègia per defecte: **quota-balanced randomization**.
+Prioritat: diversitat de prompts per usuari i equilibri dels vots comunitaris.
 
 - Considera cada combinació (prompt, parella ordenada de models) com una
   cel·la.
-- Tria uniformement entre les cel·les que actualment tenen menys vots.
+- Prioritza els prompts menys vistos per usuari i després les cel·les amb menys vots.
 - Randomitza l'ordre A/B per evitar biaix de posició.
 - Si es passa `user_id`, exclou les cel·les en les quals aquest usuari
   ja ha votat per evitar repeticions.
-
-Aquesta estratègia és preferible a la iid uniform (que genera variància
-Poisson entre cel·les) i no pateix crítica de "Leaderboard Illusion"
-(els pesos no depenen de cap rànquing acumulat).
 
 Vegeu `docs/ranking_design.md` §4 per a la motivació completa.
 """
@@ -33,7 +29,7 @@ from app.prompt_versions import active_prompt_ids
 
 
 def _load_prompts_and_responses(
-    session: Session, category_code: str
+    session: Session, category_code: str | None
 ) -> list[tuple[Prompt, dict[str, Response]]]:
     """Llegeix els prompts de la categoria amb totes les seves respostes.
 
@@ -42,9 +38,10 @@ def _load_prompts_and_responses(
     stmt = (
         select(Prompt)
         .join(Category, Prompt.category_id == Category.id)
-        .where(Category.code == category_code)
         .where(Prompt.id.in_(active_prompt_ids()))
     )
+    if category_code is not None:
+        stmt = stmt.where(Category.code == category_code)
     prompts = session.scalars(stmt).all()
     out = []
     for prompt in prompts:
@@ -122,71 +119,16 @@ def _cells_skipped_by_user(
 
 def select_next_task(
     session: Session,
-    category_code: str,
+    category_code: str | None,
     user_id: int | None = None,
     seed: int | None = None,
 ) -> dict | None:
-    """Tria la propera tasca a mostrar a un avaluador.
+    """Prioritza prompts menys vistos, després cel·les amb menys vots.
 
-    Pensada per ser cridada des de `GET /api/task` a la microservei (tasca #6).
-    Cada crida és independent: només llegeix recomptes de vots a la base de
-    dades; no ajusta cap model i no manté estat. Cost: ~10 ms.
-
-    Decisió: estratègia **quota-balanced randomization**.
-
-        - Una cel·la és un trio (prompt, parella ordenada de models).
-        - A cada crida, busca les cel·les que actualment empaten al recompte
-          mínim de vots i en tria una uniformement a l'atzar.
-        - Quan totes les cel·les igualen recompte, esdevé aleatori uniforme.
-        - Randomitza l'ordre A/B per evitar biaix de posició.
-
-    Si es passa `user_id`, exclou les cel·les on aquest usuari ja ha
-    votat: una mateixa persona no veurà dos cops la mateixa (prompt, parella).
-    Quan un usuari ja ha votat a TOTES les cel·les de la categoria, retorna
-    None — la microservei interpretarà això com "aquest avaluador ja ha
-    completat aquesta categoria, mostra-li una altra cosa o agraeix-li la
-    contribució".
-
-    Per què NO iid uniforme: amb un pressupost petit (133 vots/cel·la a la
-    Fita 1), iid genera variància Poisson que deixa cel·les amb el doble de
-    vots que altres. La validació empírica a `analysis/phase1/04_samplers_comparison.py`
-    mostra que quota-balanced arriba a un rànquing estable amb ~2.5× menys
-    vots. Vegeu `docs/ranking_design.md` §4 per la motivació completa.
-
-    Per què NO depèn del rànquing actual: això la fa robusta a la crítica
-    "Leaderboard Illusion" (Singh et al. 2025) — no hi ha bucle entre vots
-    acumulats i futur sampling.
-
-    Args:
-        session: sessió SQLAlchemy ja oberta.
-        category_code: codi de la categoria (e.g. "correccio", "reformulacio").
-        user_id: identificador de l'usuari autenticat. Si es proporciona,
-            exclou les cel·les en les quals aquest usuari ja ha votat. Si és
-            None, no es filtra per usuari.
-        seed: opcional, per reproduïbilitat als tests.
-
-    Returns:
-        Diccionari amb la forma:
-
-        ```
-        {
-            "category_code": "correccio",
-            "prompt_id": 42,
-            "prompt_text": "Corregeix aquest text...",
-            "response_a_id": 100,
-            "response_a_text": "...",
-            "response_b_id": 101,
-            "response_b_text": "...",
-        }
-        ```
-
-        Retorna None en dos casos:
-            - La categoria no té cap prompt amb almenys dues respostes.
-            - `user_id` ha votat a totes les cel·les disponibles.
-
-        Els identificadors de model (`model_a`, `model_b`) NO es retornen:
-        l'avaluació és cega. La microservei pot recuperar-los des de Response
-        si li cal registrar el mapping al gravar el vot.
+    Els vots i les omissions compten com a lectures per usuari i prompt actiu.
+    Sense categoria, considera conjuntament totes les categories. Sense usuari,
+    només prioritza el recompte comunitari. Els empats i l'ordre A/B són aleatoris.
+    Retorna None quan no queden comparacions disponibles.
     """
     rng = np.random.default_rng(seed)
     prompts_with_responses = _load_prompts_and_responses(session, category_code)
@@ -211,21 +153,22 @@ def select_next_task(
     # Si tenim user_id, excloem les cel·les que aquest usuari ja ha votat.
     # Si l'usuari ja ha votat a totes les cel·les, retornem None per indicar
     # que aquest avaluador ja ha completat la categoria.
+    user_prompt_counts: Counter = Counter()
     if user_id is not None:
         already_voted = _cells_voted_by_user(session, prompt_ids, user_id)
         already_skipped = _cells_skipped_by_user(session, prompt_ids, user_id)
         unavailable = already_voted | already_skipped
+        user_prompt_counts.update(cell[0] for cell in unavailable)
         cells = [c for c in cells if c not in unavailable]
         if not cells:
             return None
 
-    # Busquem el recompte mínim de vots i recollim TOTES les cel·les empatades a aquell mínim.
-    # Després triem una uniformement a l'atzar: la combinació "empatats al mínim + atzar"
-    # és la que evita biaixos d'ordre i fa convergir els recomptes a valors igualats.
+    # Prioritzem menys lectures personals i després menys vots comunitaris.
     counts = _existing_vote_counts(session, prompt_ids)
-    min_count = min(counts.get(c, 0) for c in cells)
-    underfilled = [c for c in cells if counts.get(c, 0) == min_count]
-    chosen = underfilled[int(rng.integers(len(underfilled)))]
+    priorities = {c: (user_prompt_counts[c[0]], counts[c]) for c in cells}
+    min_priority = min(priorities.values())
+    candidates = [c for c in cells if priorities[c] == min_priority]
+    chosen = candidates[int(rng.integers(len(candidates)))]
     prompt, response_a, response_b = cell_to_responses[chosen]
 
     # Randomitzem l'ordre A/B per evitar biaix de posició.
@@ -233,7 +176,7 @@ def select_next_task(
         response_a, response_b = response_b, response_a
 
     return {
-        "category_code": category_code,
+        "category_code": prompt.category.code,
         "prompt_id": prompt.id,
         "prompt_text": prompt.text,
         "response_a_id": response_a.id,

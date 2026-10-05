@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.exceptions import TASK_TOKEN_INVALID, TaskTokenError
-from app.routes import auth, categories, qualification, ranking, task, vote
+from app.routes import activity, auth, categories, dataset, qualification, ranking, task, vote
 from app.telemetry.metrics import http_errors_total, http_requests_duration, http_requests_total
 
 logging.basicConfig(
@@ -38,6 +38,8 @@ app.include_router(vote.router, prefix="/api", tags=["Vote"])
 app.include_router(ranking.router, prefix="/api", tags=["Ranking"])
 app.include_router(auth.router, prefix="/api", tags=["Auth"])
 app.include_router(categories.router, prefix="/api", tags=["Categories"])
+app.include_router(dataset.router, prefix="/api", tags=["Dataset"])
+app.include_router(activity.router, prefix="/api", tags=["Activity"])
 app.include_router(qualification.router, prefix="/api", tags=["Qualification"])
 
 

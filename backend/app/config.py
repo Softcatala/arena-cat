@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     hmac_secret_key: str
     # Secret específic per signar/hashar tokens de sessió.
     session_secret: str
+    # Token d'accés a les dades administratives; buit desactiva l'accés.
+    admin_api_token: SecretStr = SecretStr("")
     # Pepper per derivar email_hash i detectar re-registres.
     email_hash_pepper: str
     # Versió de consentiment acceptada al registre.

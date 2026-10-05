@@ -163,6 +163,35 @@ class Session(Base):
     user: Mapped["User"] = relationship(back_populates="sessions")
 
 
+class QualificationFailure(Base):
+    """Intent complet de qualificació que no ha assolit el llindar."""
+
+    __tablename__ = "qualification_failures"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+
+
+class EmailDelivery(Base):
+    """Correu acceptat pel servidor SMTP, sense dades del destinatari."""
+
+    __tablename__ = "email_deliveries"
+    __table_args__ = (
+        CheckConstraint(
+            "kind IN ('verification', 'password_reset')", name="ck_email_deliveries_kind"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+
+
 class Vote(Base):
     """Vot anònim que compara dues respostes (A i B) d'un mateix prompt."""
 
