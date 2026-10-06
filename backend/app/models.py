@@ -128,6 +128,7 @@ class User(Base):
     reminder_enabled: Mapped[bool] = mapped_column(Boolean, server_default="false")
     reminder_consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     reminder_token: Mapped[str | None] = mapped_column(String(64), unique=True)
+    reminder_invited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     reminder_count: Mapped[int] = mapped_column(Integer, server_default="0")
 

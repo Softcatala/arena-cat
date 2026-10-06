@@ -36,6 +36,7 @@ erDiagram
         boolean reminder_enabled
         timestamptz reminder_consent_at
         varchar(64) reminder_token UK
+        timestamptz reminder_invited_at
         timestamptz reminder_sent_at
         integer reminder_count
         bigint id PK

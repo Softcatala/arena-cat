@@ -254,6 +254,7 @@ class ExportUserResponse(BaseModel):
     consent_at: datetime | None
     reminder_enabled: bool
     reminder_consent_at: datetime | None
+    reminder_invited_at: datetime | None
     reminder_sent_at: datetime | None
     reminder_count: int
     created_at: datetime

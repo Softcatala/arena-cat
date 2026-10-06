@@ -48,6 +48,32 @@ def unsubscribe(db: Session, token: str) -> None:
         db.commit()
 
 
+def claim_invitation(db: Session, user: User, now: datetime | None = None) -> bool:
+    """Reserva una invitació cada deu vots, com a màxim un cop cada trenta dies."""
+    now = now or datetime.now(UTC)
+    user = db.scalar(
+        select(User)
+        .where(User.id == user.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    count, last_vote = db.execute(
+        select(func.count(Vote.id), func.max(Vote.created_at)).where(Vote.user_id == user.id)
+    ).one()
+    previous = user.reminder_invited_at
+    if (
+        user.reminder_enabled
+        or not count
+        or count % 10
+        or (previous is not None and (now - previous < timedelta(days=30) or last_vote <= previous))
+    ):
+        db.rollback()
+        return False
+    user.reminder_invited_at = now
+    db.commit()
+    return True
+
+
 def send_due_reminders(db: Session, now: datetime | None = None) -> int:
     """Envia els recordatoris pendents amb bloqueig per evitar execucions simultànies."""
     now = now or datetime.now(UTC)

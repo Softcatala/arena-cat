@@ -397,7 +397,10 @@ La cookie de sessió que estableix el login té els atributs següents:
 
 Els recordatoris estan desactivats per defecte, també als comptes existents.
 La casella de **Recordatoris** (`/reminders`) permet activar-los o desactivar-los
-amb **Desa**. Després del primer vot es mostra un enllaç a aquesta pantalla.
+amb **Desa**. Als múltiples de deu vots històrics es mostra una invitació, com a màxim cada
+trenta dies, només si els recordatoris no estan activats. La data es desa al
+compte per compartir el límit entre dispositius i recàrregues. El botó **Ara no**
+amaga la invitació sense activar els correus.
 Activar-los registra el consentiment i renova el token de baixa; el consentiment
 del registre no subscriu als correus de participació.
 
@@ -410,10 +413,11 @@ Cada correu inclou el total històric de vots i enllaços a l'avaluació, les
 preferències i la baixa. La baixa funciona sense sessió, amb un token aleatori
 i un botó de confirmació que evita baixes provocades pels escàners de correu.
 L'exportació personal inclou l'activació, el consentiment, l'últim enviament i
-el comptador. Donar de baixa el compte elimina aquestes dades i el token.
+el comptador i la data de l’última invitació. Donar de baixa el compte elimina aquestes dades i el token.
 
 - `GET /api/auth/reminders`: amb sessió, retorna `{"enabled":false}` o `{"enabled":true}`.
 - `PUT /api/auth/reminders`: amb sessió, desa el mateix format.
+- `POST /api/auth/reminders/invitation`: amb sessió, reserva la invitació i retorna `{"show":true}` o `{"show":false}`.
 - `POST /api/auth/reminders/unsubscribe`: sense sessió, rep `{"token":"…"}` i
   retorna `{"status":"unsubscribed"}`, també per a tokens desconeguts.
 

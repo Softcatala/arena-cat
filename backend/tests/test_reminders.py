@@ -184,3 +184,67 @@ def test_next_run_changes_utc_hour_after_daylight_saving():
     assert reminder_service.next_run(datetime(2026, 10, 19, 8, tzinfo=UTC)) == datetime(
         2026, 10, 26, 9, tzinfo=UTC
     )
+
+
+def test_invitation_requires_session(client):
+    assert client.post("/api/auth/reminders/invitation").status_code == 401
+
+
+def test_invitation_every_ten_votes_with_monthly_limit(session, create_user):
+    from itertools import combinations
+
+    now = datetime.now(UTC)
+    user = create_user("invitation@example.cat")
+    seed_vote(session, user, now)
+    prompt = session.query(Prompt).first()
+    session.add_all(
+        [Response(prompt_id=prompt.id, model=str(i), text="Resposta") for i in range(3, 9)]
+    )
+    session.commit()
+    responses = session.query(Response).order_by(Response.id).all()
+    existing = (responses[0].id, responses[1].id)
+    pairs = [(a.id, b.id) for a, b in combinations(responses, 2) if (a.id, b.id) != existing]
+
+    def add_votes(count, when):
+        for _ in range(count):
+            a, b = pairs.pop()
+            session.add(
+                Vote(
+                    user_id=user.id,
+                    prompt_id=prompt.id,
+                    response_a_id=a,
+                    response_b_id=b,
+                    winner=Winner.a,
+                    created_at=when,
+                )
+            )
+        session.commit()
+
+    assert not reminder_service.claim_invitation(session, user, now)
+    add_votes(9, now)
+    assert reminder_service.claim_invitation(session, user, now)
+    assert not reminder_service.claim_invitation(session, user, now)
+    assert not reminder_service.claim_invitation(session, user, now + timedelta(days=31))
+    add_votes(10, now + timedelta(days=5))
+    assert not reminder_service.claim_invitation(session, user, now + timedelta(days=5))
+    assert reminder_service.claim_invitation(session, user, now + timedelta(days=30))
+    reminder_service.set_preferences(session, user, True, now + timedelta(days=30))
+    add_votes(10, now + timedelta(days=61))
+    assert not reminder_service.claim_invitation(session, user, now + timedelta(days=61))
+
+
+def test_only_voted_comparison_does_not_send_or_consume_reminder(session, create_user, monkeypatch):
+    now = datetime.now(UTC)
+    user = create_user("no-active-comparisons@example.cat")
+    reminder_service.set_preferences(session, user, True, now - timedelta(days=9))
+    seed_vote(session, user, now)
+    session.query(Response).filter(Response.model == "2").delete()
+    session.commit()
+    messages = []
+    monkeypatch.setattr(
+        reminder_service.email_service, "send_email", lambda m: messages.append(m) or True
+    )
+    assert reminder_service.send_due_reminders(session, now) == 0
+    assert messages == []
+    assert user.reminder_sent_at is None
+    assert user.reminder_count == 0

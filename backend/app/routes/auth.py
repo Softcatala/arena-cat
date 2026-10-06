@@ -179,3 +179,9 @@ def save_preferences(
 def unsubscribe(payload: ReminderUnsubscribe, db: DbSession) -> dict[str, str]:
     reminder_service.unsubscribe(db, payload.token)
     return {"status": "unsubscribed"}
+
+
+@router.post("/auth/reminders/invitation")
+def reminder_invitation(user: CurrentUser, db: DbSession) -> dict[str, bool]:
+    """Indica si correspon mostrar la invitació i en registra la data."""
+    return {"show": reminder_service.claim_invitation(db, user)}

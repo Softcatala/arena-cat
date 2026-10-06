@@ -24,6 +24,7 @@ const VOTE_OPTIONS: {
 export default function TaskView({ categories }: { categories: Category[] }) {
   const [category, setCategory] = useState<CategoryFilter>("");
   const [task, setTask] = useState<Task | null>(null);
+  const [showReminderInvitation, setShowReminderInvitation] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,6 +41,8 @@ export default function TaskView({ categories }: { categories: Category[] }) {
     // El progrés és informatiu: si falla, no bloquegem l'avaluació.
     try {
       setProgress(await api.progress());
+      const invitation = await api.reminderInvitation().catch(() => ({ show: false }));
+      if (invitation.show) setShowReminderInvitation(true);
     } catch {
       setProgress(null);
     }
@@ -251,12 +254,23 @@ export default function TaskView({ categories }: { categories: Category[] }) {
         {progress && <ProgressBar progress={progress} className="flex-1" />}
       </div>
 
-      {progress?.voted === 1 && (
+      {showReminderInvitation && (
         <p className="rounded-md bg-brand-50 px-4 py-3 text-brand-700">
-          Gràcies pel vostre primer vot! Voleu rebre recordatoris per continuar contribuint?{" "}
-          <Link to="/reminders" className="font-semibold underline">
+          Gràcies per les vostres valoracions! Voleu rebre recordatoris per continuar contribuint?{" "}
+          <Link
+            to="/reminders"
+            className="font-semibold underline"
+            onClick={() => setShowReminderInvitation(false)}
+          >
             Activa els recordatoris
-          </Link>
+          </Link>{" "}
+          <button
+            type="button"
+            className="underline"
+            onClick={() => setShowReminderInvitation(false)}
+          >
+            Ara no
+          </button>
         </p>
       )}
 
