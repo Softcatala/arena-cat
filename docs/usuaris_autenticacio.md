@@ -447,8 +447,6 @@ no redirigeix correus d'altres usuaris. El compte ha d'haver activat els
 recordatoris, estar verificat i acreditat, haver votat i tenir comparacions pendents.
 La prova omet l'espera de set dies i la pausa després de tres correus, però
 manté almenys una hora entre enviaments i no incrementa el comptador de pausa.
-Per a aquest compte, la invitació als múltiples de deu vots també es limita
-a un cop per hora en lloc d’un cop cada trenta dies.
 
 Per tornar al funcionament setmanal, buideu `REMINDER_TEST_EMAIL` i recreeu el
 servei. Aquest ajust només afecta els recordatoris: la verificació del correu i

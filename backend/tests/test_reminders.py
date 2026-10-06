@@ -192,21 +192,13 @@ def test_invitation_requires_session(client):
     assert client.post("/api/auth/reminders/invitation").status_code == 401
 
 
-@pytest.mark.parametrize(
-    ("test_email", "interval"),
-    [
-        ("", timedelta(days=30)),
-        ("jmas@softcatala.org", timedelta(hours=1)),
-        ("other@example.cat", timedelta(days=30)),
-    ],
-)
-def test_invitation_every_ten_votes_with_cooldown(
-    session, create_user, monkeypatch, test_email, interval
-):
+@pytest.mark.parametrize("test_email", ["", "jmas@softcatala.org", "other@example.cat"])
+def test_invitation_keeps_monthly_limit_in_test_mode(session, create_user, monkeypatch, test_email):
     from itertools import combinations
 
     now = datetime.now(UTC)
     user = create_user("jmas@softcatala.org")
+    interval = timedelta(days=30)
     if test_email:
         from app.config import get_settings
 

@@ -61,17 +61,11 @@ def claim_invitation(db: Session, user: User, now: datetime | None = None) -> bo
         select(func.count(Vote.id), func.max(Vote.created_at)).where(Vote.user_id == user.id)
     ).one()
     previous = user.reminder_invited_at
-    test_email = get_settings().reminder_test_email.strip().lower()
-    interval = (
-        timedelta(hours=1)
-        if test_email and user.email and user.email.lower() == test_email
-        else timedelta(days=30)
-    )
     if (
         user.reminder_enabled
         or not count
         or count % 10
-        or (previous is not None and (now - previous < interval or last_vote <= previous))
+        or (previous is not None and (now - previous < timedelta(days=30) or last_vote <= previous))
     ):
         db.rollback()
         return False
