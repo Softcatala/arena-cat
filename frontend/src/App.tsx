@@ -215,17 +215,7 @@ export default function App() {
               element={session.authenticated ? <Navigate to="/" replace /> : <ForgotPasswordView />}
             />
             {/* Obert a tothom, com /verify: qui ha perdut la contrasenya no té sessió. */}
-            <Route
-              path="/reset-password"
-              element={
-                <ResetPasswordView
-                  onReset={async () => {
-                    clearTask();
-                    await refresh();
-                  }}
-                />
-              }
-            />
+            <Route path="/reset-password" element={<ResetPasswordView />} />
             <Route
               path="/qualification"
               element={

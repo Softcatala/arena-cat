@@ -11,10 +11,6 @@ categoria «correcció».
 Totes les pàgines mostren sota la capçalera un avís de fase de proves amb un
 enllaç de correu per comunicar errades i proposar millores.
 
-Després de restablir la contrasenya, la interfície descarta la tasca desada i
-torna a consultar la sessió per reflectir-ne la revocació abans d'oferir l'inici
-de sessió amb la contrasenya nova.
-
 Els usuaris sense acreditar accedeixen a `/qualification`: un sol formulari de
 deu preguntes amb tres opcions, dues per categoria i dues generals. Després de
 lliurar-lo, el formulari se substitueix pel total d'encerts i l'estat de superació,

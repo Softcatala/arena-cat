@@ -7,7 +7,7 @@ import { Field, INPUT } from "./Field";
 import PasswordRules from "./PasswordRules";
 
 /** Destinació de l'enllaç del correu de restabliment: `/reset-password?token=…`. */
-export default function ResetPasswordView({ onReset }: { onReset: () => Promise<void> }) {
+export default function ResetPasswordView() {
   const [params] = useSearchParams();
   const token = params.get("token");
   const [password, setPassword] = useState("");
@@ -34,7 +34,6 @@ export default function ResetPasswordView({ onReset }: { onReset: () => Promise<
     setError(null);
     try {
       await api.resetPassword(token, password);
-      await onReset();
       setDone(true);
     } catch (err) {
       if (err instanceof ApiError && err.status === 400) {
