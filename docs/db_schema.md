@@ -33,7 +33,7 @@ erDiagram
     }
 
     users {
-        varchar(16) reminder_frequency
+        boolean reminder_enabled
         timestamptz reminder_consent_at
         varchar(64) reminder_token UK
         timestamptz reminder_sent_at
@@ -150,7 +150,7 @@ erDiagram
 
 - **`winner`**: `a`, `b`, `tie`, `neither`
 
-Les preferències de recordatoris a `users` tenen una freqüència restringida a
-`never`, `weekly` i `monthly`, amb `never` per defecte. Activar-los exigeix data
-de consentiment i token de baixa únic. El comptador està restringit a 0–3.
+Les preferències de recordatoris a `users` tenen un booleà `reminder_enabled`,
+desactivat per defecte. Activar-los exigeix data de consentiment i token de baixa
+únic. El comptador està restringit a 0–3.
 Vegeu el [funcionament dels recordatoris](recordatoris.md).

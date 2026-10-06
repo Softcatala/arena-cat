@@ -71,11 +71,11 @@ async function request<T>(path: string, init?: RequestInit, notifyUnauthorized =
 }
 
 export const api = {
-  reminders: () => request<{ frequency: string }>("/auth/reminders"),
-  saveReminders: (frequency: string) =>
-    request<{ frequency: string }>("/auth/reminders", {
+  reminders: () => request<{ enabled: boolean }>("/auth/reminders"),
+  saveReminders: (enabled: boolean) =>
+    request<{ enabled: boolean }>("/auth/reminders", {
       method: "PUT",
-      body: JSON.stringify({ frequency }),
+      body: JSON.stringify({ enabled }),
     }),
   unsubscribeReminders: (token: string) =>
     request<{ status: string }>("/auth/reminders/unsubscribe", {

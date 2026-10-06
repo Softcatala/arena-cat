@@ -293,4 +293,4 @@ uv run ruff format .      # formatting
 
 ## Recordatoris
 
-Preferències, API i execució diària: [recordatoris per correu](../docs/recordatoris.md).
+Preferències, API i execució setmanal: [recordatoris per correu](../docs/recordatoris.md).

@@ -252,7 +252,7 @@ class ExportUserResponse(BaseModel):
     qualified_at: datetime | None
     consent_version: str
     consent_at: datetime | None
-    reminder_frequency: str
+    reminder_enabled: bool
     reminder_consent_at: datetime | None
     reminder_sent_at: datetime | None
     reminder_count: int
@@ -312,7 +312,7 @@ class RankingResponse(BaseModel):
 
 
 class ReminderPreferences(BaseModel):
-    frequency: Literal["never", "weekly", "monthly"]
+    enabled: bool
 
 
 class ReminderUnsubscribe(BaseModel):

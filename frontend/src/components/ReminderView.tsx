@@ -4,7 +4,7 @@ import { api } from "../api";
 
 export default function ReminderView({ unsubscribe = false }: { unsubscribe?: boolean }) {
   const [params] = useSearchParams();
-  const [frequency, setFrequency] = useState("never");
+  const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(!unsubscribe);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -14,7 +14,7 @@ export default function ReminderView({ unsubscribe = false }: { unsubscribe?: bo
       api
         .reminders()
         .then((value) => {
-          setFrequency(value.frequency);
+          setEnabled(value.enabled);
           setLoading(false);
         })
         .catch(() => {
@@ -33,7 +33,7 @@ export default function ReminderView({ unsubscribe = false }: { unsubscribe?: bo
         await api.unsubscribeReminders(params.get("token") || "");
         setMessage("Ja no rebreu recordatoris.");
       } else {
-        await api.saveReminders(frequency);
+        await api.saveReminders(enabled);
         setMessage("Preferències desades.");
       }
     } catch {
@@ -50,22 +50,18 @@ export default function ReminderView({ unsubscribe = false }: { unsubscribe?: bo
       ) : (
         <>
           <p>
-            Voleu rebre un recordatori quan faci dies que no voteu? Podeu canviar aquesta
-            preferència en qualsevol moment. Després de tres recordatoris sense votar, pausarem els
-            enviaments.
+            Podeu activar un recordatori setmanal quan faci almenys set dies que no voteu. Podeu
+            canviar aquesta preferència en qualsevol moment. Després de tres recordatoris sense
+            votar, pausarem els enviaments.
           </p>
-          <label className="block">
-            Freqüència
-            <select
-              className="ml-3 rounded border p-2"
-              value={frequency}
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={enabled}
               disabled={loading || busy}
-              onChange={(event) => setFrequency(event.target.value)}
-            >
-              <option value="never">Mai</option>
-              <option value="weekly">Setmanal</option>
-              <option value="monthly">Mensual</option>
-            </select>
+              onChange={(event) => setEnabled(event.target.checked)}
+            />
+            Vull rebre un recordatori setmanal per correu
           </label>
         </>
       )}

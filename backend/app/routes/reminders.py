@@ -11,14 +11,14 @@ router = APIRouter()
 
 @router.get("/auth/reminders")
 def preferences(user: CurrentUser) -> ReminderPreferences:
-    return ReminderPreferences(frequency=user.reminder_frequency)
+    return ReminderPreferences(enabled=user.reminder_enabled)
 
 
 @router.put("/auth/reminders")
 def save_preferences(
     payload: ReminderPreferences, user: CurrentUser, db: DbSession
 ) -> ReminderPreferences:
-    reminder_service.set_preferences(db, user, payload.frequency)
+    reminder_service.set_preferences(db, user, payload.enabled)
     return payload
 
 

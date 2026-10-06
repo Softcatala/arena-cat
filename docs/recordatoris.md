@@ -3,12 +3,12 @@
 Els recordatoris són opcionals i estan desactivats per defecte, també als comptes
 existents. L'usuari els activa a **Recordatoris** de la capçalera (`/reminders`),
 amb sessió iniciada. Després del primer vot, l'avaluació mostra un enllaç a
-les preferències. Les opcions són mai, setmanal (7 dies) i mensual (30 dies).
-La tria es desa amb **Desa** i registra la data del consentiment quan s'activa
-una freqüència nova. El consentiment del registre no activa els recordatoris.
+les preferències. La casella activa o desactiva el recordatori setmanal.
+La tria es desa amb **Desa** i registra la data del consentiment quan s'activen
+els recordatoris. El consentiment del registre no activa els recordatoris.
 
 Només s'envia a comptes actius, amb correu verificat, acreditats, amb almenys
-un vot i comparacions actives pendents. Cal que hagin passat 7 o 30 dies des
+un vot i comparacions actives pendents. Cal que hagin passat 7 dies des
 del més recent entre l'últim vot, el consentiment i l'últim recordatori.
 Després de tres enviaments sense cap vot nou, els recordatoris es pausen;
 un vot posterior permet reprendre'ls després del període d'inactivitat.
@@ -18,19 +18,18 @@ Cada correu inclou el total històric de vots, un enllaç per avaluar, les
 preferències i la baixa. La baixa no requereix sessió: l'enllaç obre una pantalla
 amb un botó de confirmació, perquè els escàners de correu no provoquin baixes.
 El token aleatori només permet desactivar recordatoris, no accedir al compte.
-Activar una freqüència nova renova el token; donar de baixa el compte l'elimina.
-L'exportació personal inclou la freqüència, la data del consentiment, l'últim
+Tornar a activar els recordatoris renova el token; donar de baixa el compte l'elimina.
+L'exportació personal inclou l'activació, la data del consentiment, l'últim
 enviament i el comptador de recordatoris.
 
 ## API
 
-- `GET /api/auth/reminders`: requereix sessió i retorna `{"frequency":"never"}`,
-  `weekly` o `monthly`.
+- `GET /api/auth/reminders`: requereix sessió i retorna `{"enabled":false}` o `{"enabled":true}`.
 - `PUT /api/auth/reminders`: requereix sessió i rep el mateix format.
 - `POST /api/auth/reminders/unsubscribe`: rep `{"token":"…"}` sense sessió;
   retorna `{"status":"unsubscribed"}` també per a tokens desconeguts.
 
-## Execució diària
+## Execució setmanal
 
 Des de `backend/`, amb la configuració habitual de PostgreSQL i SMTP:
 
@@ -38,7 +37,7 @@ Des de `backend/`, amb la configuració habitual de PostgreSQL i SMTP:
 uv run python -m app.services.reminder_service
 ```
 
-En una instal·lació amb Docker Compose, el planificador pot executar diàriament:
+En una instal·lació amb Docker Compose, el planificador pot executar setmanalment (per exemple, cada dilluns a les 10 h):
 
 ```bash
 docker compose exec -T api uv run python -m app.services.reminder_service

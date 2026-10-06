@@ -255,7 +255,7 @@ export default function TaskView({ categories }: { categories: Category[] }) {
         <p className="rounded-md bg-brand-50 px-4 py-3 text-brand-700">
           Gràcies pel vostre primer vot! Voleu rebre recordatoris per continuar contribuint?{" "}
           <Link to="/reminders" className="font-semibold underline">
-            Tria la freqüència
+            Activa els recordatoris
           </Link>
         </p>
       )}

@@ -375,7 +375,7 @@ def anonymize_user_rgpd(user: User, now: datetime) -> None:
     user.qualified_at = None
     user.consent_at = None
     user.deleted_at = now
-    user.reminder_frequency = "never"
+    user.reminder_enabled = False
     user.reminder_consent_at = None
     user.reminder_token = None
     user.reminder_sent_at = None

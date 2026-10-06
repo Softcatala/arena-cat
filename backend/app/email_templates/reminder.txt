@@ -6,7 +6,7 @@ Avalua: {{ link }}
 
 Rebeu aquest correu perquè heu activat els recordatoris d’Arena Cat.
 
-Canvia la freqüència: {{ link }}/reminders
+Gestiona els recordatoris: {{ link }}/reminders
 Dona de baixa els recordatoris: {{ unsubscribe_link }}
 
 {{ notice_headline }}
