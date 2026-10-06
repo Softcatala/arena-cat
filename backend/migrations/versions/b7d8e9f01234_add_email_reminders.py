@@ -17,7 +17,7 @@ def upgrade():
     op.add_column(
         "users", sa.Column("reminder_count", sa.Integer(), nullable=False, server_default="0")
     )
-    for name in ("reminder_consent_at", "reminder_sent_at", "reminder_vote_at"):
+    for name in ("reminder_consent_at", "reminder_sent_at"):
         op.add_column("users", sa.Column(name, sa.DateTime(timezone=True)))
     op.add_column("users", sa.Column("reminder_token", sa.String(64)))
     op.create_unique_constraint("uq_users_reminder_token", "users", ["reminder_token"])
@@ -38,7 +38,6 @@ def downgrade():
         op.drop_constraint(name, "users")
     for name in (
         "reminder_token",
-        "reminder_vote_at",
         "reminder_sent_at",
         "reminder_consent_at",
         "reminder_count",

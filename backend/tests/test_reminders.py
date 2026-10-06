@@ -163,3 +163,24 @@ def test_weekly_send_keeps_local_time_after_daylight_saving(session, create_user
     monkeypatch.setattr(reminder_service.email_service, "send_email", lambda m: True)
     assert reminder_service.send_due_reminders(session, previous_monday) == 1
     assert reminder_service.send_due_reminders(session, datetime(2026, 3, 30, 8, tzinfo=UTC)) == 1
+
+
+def test_next_run_before_monday_morning():
+    assert reminder_service.next_run(datetime(2026, 10, 5, 7, 59, tzinfo=UTC)) == datetime(
+        2026, 10, 5, 8, tzinfo=UTC
+    )
+
+
+def test_next_run_after_monday_morning():
+    assert reminder_service.next_run(datetime(2026, 10, 5, 8, tzinfo=UTC)) == datetime(
+        2026, 10, 12, 8, tzinfo=UTC
+    )
+
+
+def test_next_run_changes_utc_hour_after_daylight_saving():
+    assert reminder_service.next_run(datetime(2026, 3, 23, 9, tzinfo=UTC)) == datetime(
+        2026, 3, 30, 8, tzinfo=UTC
+    )
+    assert reminder_service.next_run(datetime(2026, 10, 19, 8, tzinfo=UTC)) == datetime(
+        2026, 10, 26, 9, tzinfo=UTC
+    )

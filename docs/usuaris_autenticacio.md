@@ -395,4 +395,41 @@ La cookie de sessió que estableix el login té els atributs següents:
 
 ## Recordatoris voluntaris
 
-El consentiment del registre no subscriu als correus de participació. Consulteu els [recordatoris per correu](recordatoris.md) per a les preferències, la baixa i la informació inclosa en l’exportació.
+Els recordatoris estan desactivats per defecte, també als comptes existents.
+La casella de **Recordatoris** (`/reminders`) permet activar-los o desactivar-los
+amb **Desa**. Després del primer vot es mostra un enllaç a aquesta pantalla.
+Activar-los registra el consentiment i renova el token de baixa; el consentiment
+del registre no subscriu als correus de participació.
+
+Només s'envia a comptes actius, verificats i acreditats, amb almenys un vot i
+comparacions actives pendents. Cal que hagin passat set dies, en hora local,
+des del més recent entre l'últim vot, el consentiment i l'últim recordatori.
+Després de tres correus sense vots nous, es pausen fins que l'usuari torna a votar.
+
+Cada correu inclou el total històric de vots i enllaços a l'avaluació, les
+preferències i la baixa. La baixa funciona sense sessió, amb un token aleatori
+i un botó de confirmació que evita baixes provocades pels escàners de correu.
+L'exportació personal inclou l'activació, el consentiment, l'últim enviament i
+el comptador. Donar de baixa el compte elimina aquestes dades i el token.
+
+- `GET /api/auth/reminders`: amb sessió, retorna `{"enabled":false}` o `{"enabled":true}`.
+- `PUT /api/auth/reminders`: amb sessió, desa el mateix format.
+- `POST /api/auth/reminders/unsubscribe`: sense sessió, rep `{"token":"…"}` i
+  retorna `{"status":"unsubscribed"}`, també per a tokens desconeguts.
+
+### Enviament setmanal amb Docker Compose
+
+El servei `reminders` reutilitza la imatge i la configuració PostgreSQL i SMTP
+del backend. S'inicia amb `docker compose up` i envia cada dilluns a les 10 h,
+en el fus `Europe/Madrid`. No cal un cron al servidor. El procés espera entre
+enviaments i s'atura amb SIGTERM; els logs es consulten amb `docker compose logs reminders`.
+En producció, el Compose ha d'incloure aquest servei amb la mateixa imatge del
+backend i la comanda `uv run python -u -m app.services.reminder_service --schedule`.
+Per a un enviament manual, executeu `docker compose exec -T reminders uv run python -m app.services.reminder_service`.
+
+Si el contenidor estava aturat a l'hora programada, espera la setmana següent.
+Sense SMTP configurat, omet l'enviament i deixa un avís. Els errors SMTP no
+consumeixen recordatoris. Els bloquejos de fila eviten enviaments simultanis,
+però una caiguda entre l'acceptació SMTP i el commit pot provocar un duplicat.
+L'acceptació SMTP no acredita el lliurament a la bústia. Aquests correus no
+s'afegeixen als comptadors de verificació i recuperació de la pàgina Activitat.

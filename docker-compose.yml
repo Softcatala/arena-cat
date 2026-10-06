@@ -56,7 +56,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    command: ["uv", "run", "python", "-u", "-m", "app.services.reminder_scheduler"]
+    command: ["uv", "run", "python", "-u", "-m", "app.services.reminder_service", "--schedule"]
     restart: unless-stopped
     init: true
     env_file:

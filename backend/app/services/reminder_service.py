@@ -1,8 +1,11 @@
 """Recordatoris voluntaris després d'un període sense votar."""
 
+import argparse
 import logging
 import secrets
+import signal
 from datetime import UTC, datetime, timedelta
+from threading import Event
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
@@ -74,7 +77,11 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
         if last_vote is None:
             db.rollback()
             continue
-        count = 0 if user.reminder_vote_at != last_vote else user.reminder_count
+        count = (
+            user.reminder_count
+            if user.reminder_sent_at and last_vote <= user.reminder_sent_at
+            else 0
+        )
         baseline = max(last_vote, user.reminder_consent_at, user.reminder_sent_at or last_vote)
         if (
             count >= 3
@@ -94,7 +101,6 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
             accepted = False
         if accepted:
             user.reminder_sent_at = now
-            user.reminder_vote_at = last_vote
             user.reminder_count = count + 1
             db.commit()
             sent += 1
@@ -103,12 +109,51 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
     return sent
 
 
-def main() -> None:
-    """Punt d'entrada per a l'execució setmanal des del planificador."""
+def next_run(now: datetime) -> datetime:
+    """Calcula el proper dilluns a les 10 h, conservant l'hora local a l'estiu."""
+    local = now.astimezone(REMINDER_TIMEZONE)
+    scheduled = local.replace(hour=10, minute=0, second=0, microsecond=0)
+    scheduled += timedelta(days=(7 - local.weekday()) % 7)
+    if scheduled <= local:
+        scheduled += REMINDER_INTERVAL
+    return scheduled.astimezone(UTC)
+
+
+def run_once() -> None:
+    """Envia els correus pendents amb la configuració del desplegament."""
     if not get_settings().smtp_host:
-        raise SystemExit("Cal configurar SMTP_HOST per enviar recordatoris.")
+        logger.warning("SMTP_HOST no configurat; s'omet l'enviament")
+        return
     with get_sessionmaker()() as db:
-        print(f"Recordatoris enviats: {send_due_reminders(db)}")
+        logger.info("Recordatoris enviats: %s", send_due_reminders(db))
+
+
+def main() -> None:
+    """Executa un enviament o el planificador setmanal del contenidor."""
+    parser = argparse.ArgumentParser(description="Recordatoris setmanals d'Arena Cat")
+    parser.add_argument("--schedule", action="store_true", help="Programa cada dilluns a les 10 h")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    if not parser.parse_args().schedule:
+        run_once()
+        return
+    stopped = Event()
+    signal.signal(signal.SIGTERM, lambda *_: stopped.set())
+    signal.signal(signal.SIGINT, lambda *_: stopped.set())
+    while not stopped.is_set():
+        scheduled = next_run(datetime.now(UTC))
+        logger.info("Proper enviament: %s", scheduled.astimezone(REMINDER_TIMEZONE).isoformat())
+        while not stopped.is_set():
+            seconds = (scheduled - datetime.now(UTC)).total_seconds()
+            if seconds <= 0:
+                break
+            stopped.wait(min(seconds, 60))
+        if stopped.is_set():
+            break
+        try:
+            run_once()
+        except Exception as error:
+            # El text dels errors de connexió pot contenir dades personals o credencials.
+            logger.error("Ha fallat l'enviament setmanal: %s", type(error).__name__)
 
 
 if __name__ == "__main__":

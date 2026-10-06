@@ -14,6 +14,8 @@ from app.schemas import (
     LogoutResponse,
     RegisterRequest,
     RegisterResponse,
+    ReminderPreferences,
+    ReminderUnsubscribe,
     ResendVerificationRequest,
     ResendVerificationResponse,
     ResetPasswordRequest,
@@ -22,7 +24,7 @@ from app.schemas import (
     VerifyEmailRequest,
     VerifyEmailResponse,
 )
-from app.services import auth_service, email_service
+from app.services import auth_service, email_service, reminder_service
 from app.services.auth_service import VerificationEmail
 
 router = APIRouter()
@@ -158,3 +160,22 @@ def delete_account(
 def export_data(current_user: CurrentUser, db: DbSession) -> ExportDataResponse:
     """Exporta les dades personals i els vots de l'usuari autenticat."""
     return auth_service.export_user_data(db, current_user)
+
+
+@router.get("/auth/reminders")
+def preferences(user: CurrentUser) -> ReminderPreferences:
+    return ReminderPreferences(enabled=user.reminder_enabled)
+
+
+@router.put("/auth/reminders")
+def save_preferences(
+    payload: ReminderPreferences, user: CurrentUser, db: DbSession
+) -> ReminderPreferences:
+    reminder_service.set_preferences(db, user, payload.enabled)
+    return payload
+
+
+@router.post("/auth/reminders/unsubscribe")
+def unsubscribe(payload: ReminderUnsubscribe, db: DbSession) -> dict[str, str]:
+    reminder_service.unsubscribe(db, payload.token)
+    return {"status": "unsubscribed"}
