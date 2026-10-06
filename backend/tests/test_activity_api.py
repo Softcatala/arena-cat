@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from app.models import EmailDelivery, Prompt, QualificationFailure, Response, Vote
+from app.models import Prompt, QualificationFailure, Response, Vote
 
 
 def test_activity_requires_session(client):
@@ -47,8 +47,6 @@ def test_activity_counts_local_day_and_unique_people(client, session, create_use
     for index, instant in enumerate(
         [start - timedelta(microseconds=1), start, end - timedelta(microseconds=1), end]
     ):
-        session.add(EmailDelivery(kind="verification", created_at=instant))
-        session.add(EmailDelivery(kind="reminder", created_at=instant))
         session.add(QualificationFailure(user_id=first.id, created_at=instant))
         session.add(
             Vote(
@@ -60,7 +58,16 @@ def test_activity_counts_local_day_and_unique_people(client, session, create_use
                 created_at=instant,
             )
         )
-    session.add(EmailDelivery(kind="password_reset", created_at=start))
+    outside = create_user("outside@example.com")
+    inside = create_user("inside@example.com")
+    for user, instant in zip(
+        (outside, first, inside, second),
+        (start - timedelta(microseconds=1), start, end - timedelta(microseconds=1), end),
+        strict=True,
+    ):
+        user.verification_sent_at = instant
+        user.reminder_sent_at = instant
+    first.password_reset_sent_at = start
     session.commit()
     login(first.email)
 
@@ -80,3 +87,14 @@ def test_activity_empty_day_and_invalid_date(client, logged_in_user):
     data = client.get("/api/activity?date=2000-01-01").json()
     assert all(value == 0 for key, value in data.items() if key not in {"date", "updated_at"})
     assert client.get("/api/activity?date=invalid").status_code == 422
+
+
+def test_activity_email_counts_follow_latest_user_timestamp(client, session, logged_in_user):
+    user = logged_in_user("latest@example.com")
+    user.verification_sent_at = datetime(2026, 10, 5, 12, tzinfo=UTC)
+    session.commit()
+    assert client.get("/api/activity?date=2026-10-05").json()["verification_emails"] == 1
+    user.verification_sent_at = datetime(2026, 10, 6, 12, tzinfo=UTC)
+    session.commit()
+    assert client.get("/api/activity?date=2026-10-05").json()["verification_emails"] == 0
+    assert client.get("/api/activity?date=2026-10-06").json()["verification_emails"] == 1

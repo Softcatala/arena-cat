@@ -8,7 +8,7 @@ from fastapi import APIRouter, Query, Response
 from sqlalchemy import distinct, func, select
 
 from app.deps import CurrentUser, DbSession
-from app.models import EmailDelivery, QualificationFailure, User, Vote
+from app.models import QualificationFailure, User, Vote
 from app.schemas import ActivityResponse
 
 router = APIRouter()
@@ -43,17 +43,9 @@ def get_activity(
                 count(
                     distinct(QualificationFailure.user_id), QualificationFailure.created_at
                 ).label("failed_users"),
-                count(
-                    EmailDelivery.id, EmailDelivery.created_at, EmailDelivery.kind == "verification"
-                ).label("verification_emails"),
-                count(
-                    EmailDelivery.id,
-                    EmailDelivery.created_at,
-                    EmailDelivery.kind == "password_reset",
-                ).label("password_reset_emails"),
-                count(
-                    EmailDelivery.id, EmailDelivery.created_at, EmailDelivery.kind == "reminder"
-                ).label("reminder_emails"),
+                count(User.id, User.verification_sent_at).label("verification_emails"),
+                count(User.id, User.password_reset_sent_at).label("password_reset_emails"),
+                count(User.id, User.reminder_sent_at).label("reminder_emails"),
                 count(distinct(Vote.user_id), Vote.created_at).label("voters"),
                 count(Vote.id, Vote.created_at).label("votes"),
             )

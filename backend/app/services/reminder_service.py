@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_sessionmaker
-from app.models import EmailDelivery, User, Vote
+from app.models import User, Vote
 from app.services import email_service
 from app.services.task_service import get_task_progress_for_user
 
@@ -126,7 +126,6 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
             accepted = False
         logger.info("Recordatori a %s: %s", user.email, "acceptat" if accepted else "fallit")
         if accepted:
-            db.add(EmailDelivery(kind="reminder", created_at=now))
             user.reminder_sent_at = now
             user.reminder_count = count + 1
             db.commit()

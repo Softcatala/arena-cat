@@ -22,7 +22,6 @@ TABLES = {
     "sessions",
     "task_skips",
     "qualification_failures",
-    "email_deliveries",
 }
 ENUMS = {"winner"}
 
@@ -83,6 +82,7 @@ def test_initial_migration_is_reversible(ephemeral_db_url):
     try:
         command.upgrade(config, "head")
         assert TABLES.issubset(inspect(engine).get_table_names())
+        assert "email_deliveries" not in inspect(engine).get_table_names()
         assert ENUMS.issubset(_enums(engine))
 
         command.downgrade(config, "base")

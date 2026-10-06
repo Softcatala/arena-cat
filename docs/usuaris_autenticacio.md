@@ -436,5 +436,5 @@ Sense SMTP configurat, omet l'enviament i deixa un avís. Els errors SMTP no
 consumeixen recordatoris. Els bloquejos de fila eviten enviaments simultanis,
 però una caiguda entre l'acceptació SMTP i el commit pot provocar un duplicat.
 Cada intent d'enviament registra a nivell INFO el correu destinatari i el resultat
-SMTP (`acceptat` o `fallit`). L'acceptació SMTP no acredita el lliurament a la bústia. Aquests correus es registren com a recordatoris i s’inclouen al total de correus
-de la pàgina Activitat.
+SMTP (`acceptat` o `fallit`). L'acceptació SMTP no acredita el lliurament a la bústia. La pàgina Activitat compta els comptes amb `reminder_sent_at` dins del dia
+seleccionat, sense historial separat dels enviaments anteriors.

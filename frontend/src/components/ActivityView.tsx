@@ -93,7 +93,7 @@ export default function ActivityView() {
             ))}
           </dl>
           <p className="text-sm text-slate-500">
-            Correus acceptats pel servidor: {activity.verification_emails} de verificació,{" "}
+            Últims enviaments desats als comptes: {activity.verification_emails} de verificació,{" "}
             {activity.password_reset_emails} de recuperació de contrasenya i{" "}
             {activity.reminder_emails} de recordatori.
           </p>
@@ -106,8 +106,10 @@ export default function ActivityView() {
       <p className="text-sm text-slate-500">
         Els recomptes d'usuaris i votants compten cada persona una vegada. Pot haver suspès i
         aprovat el mateix dia; qui encara no ha fet el test no compta com a suspès. Els vots
-        inclouen els empats i «cap de les dues». L'historial de correus i suspensos només està
-        disponible des de l'activació d'aquests recomptes.
+        inclouen els empats i «cap de les dues». Els correus compten l’última data desada per compte
+        i tipus; nous enviaments poden modificar els recomptes de dies anteriors. Les dates de
+        verificació i recuperació es desen abans de contactar amb SMTP i poden incloure intents
+        fallits. L’historial de suspensos només està disponible des de l’activació del seu registre.
       </p>
     </div>
   );

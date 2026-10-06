@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.models import Category, EmailDelivery, Prompt, Response, Vote, Winner
+from app.models import Category, Prompt, Response, Vote, Winner
 from app.services import reminder_service
 
 
@@ -66,7 +66,6 @@ def test_send_cooldown_pause_and_resume(session, create_user, monkeypatch):
     session.commit()
     assert reminder_service.send_due_reminders(session, now + timedelta(days=30)) == 1
     assert "List-Unsubscribe" in messages[0]
-    assert session.query(EmailDelivery).filter_by(kind="reminder").count() == 4
 
 
 def test_no_votes_or_unverified_users_are_not_sent(session, create_user, monkeypatch):
@@ -94,7 +93,6 @@ def test_smtp_failure_does_not_consume_reminder(session, create_user, monkeypatc
     assert reminder_service.send_due_reminders(session, now) == 0
     assert user.reminder_sent_at is None
     assert user.reminder_count == 0
-    assert session.query(EmailDelivery).filter_by(kind="reminder").count() == 0
 
 
 def test_weekly_and_exhausted_tasks(session, create_user, monkeypatch):
@@ -255,7 +253,6 @@ def test_only_voted_comparison_does_not_send_or_consume_reminder(session, create
     assert messages == []
     assert user.reminder_sent_at is None
     assert user.reminder_count == 0
-    assert session.query(EmailDelivery).filter_by(kind="reminder").count() == 0
 
 
 @pytest.mark.parametrize("result", [True, False, OSError("SMTP unavailable")])

@@ -193,8 +193,8 @@ Tots els recomptes s'obtenen exclusivament de PostgreSQL:
 | Indicador | Origen i definició |
 |---|---|
 | Usuaris registrats | Comptes amb `users.created_at` dins del dia |
-| Correus enviats de registre | Files d'`email_deliveries` de verificació i recuperació de contrasenya |
-| Correus de recordatori enviats | Files d'`email_deliveries` de tipus `reminder` |
+| Correus enviats de registre | `users.verification_sent_at` i `users.password_reset_sent_at` dins del dia |
+| Correus de recordatori enviats | `users.reminder_sent_at` dins del dia |
 | Usuaris que han superat el test | Comptes amb `users.qualified_at` dins del dia |
 | Usuaris amb prova suspesa | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |
 | Votants únics | Usuaris diferents amb algun vot durant el dia; s'exclouen els vots sense `user_id` |
@@ -207,16 +207,16 @@ Les baixes conserven el registre del compte, els vots i els suspensos vinculats 
 l'identificador anonimitzat, però buiden `qualified_at`: el recompte d'aprovats
 pot disminuir després d'una baixa.
 
-Els recordatoris es compten des de l’activació del seu registre; els enviaments
-anteriors no es poden reconstruir.
+Els correus es compten amb l’última data desada al compte per tipus. Cada compte
+compta com a màxim una vegada per tipus i dia. Un nou enviament sobreescriu la
+data i pot modificar els recomptes de dies anteriors; no es conserva cap historial
+separat de correus. Les dates de verificació i recuperació es reserven abans de
+l’enviament SMTP i poden incloure intents fallits o sense SMTP configurat.
+La data de recordatori només es desa després de l’acceptació SMTP, que no
+acredita el lliurament a la bústia. Les baixes buiden aquestes dates.
 
-Els correus es registren després que SMTP n'accepti l'enviament; això no acredita
-el lliurament a la bústia. No es desen destinataris ni continguts. Els errors SMTP
-i els missatges de desenvolupament sense SMTP no compten. Si falla el registre
-SQL després de l'enviament, se'n deixa constància al log i el recompte no l'inclou.
 Els suspensos es desen en corregir intents complets, sense respostes ni puntuació.
-L'historial de correus i suspensos comença amb l'activació d'aquest registre;
-els anteriors no es poden reconstruir amb les dades existents.
+L’historial de suspensos comença amb l’activació del registre.
 
 ## Rànquing
 
