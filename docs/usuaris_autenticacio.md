@@ -440,9 +440,11 @@ s'afegeixen als comptadors de verificació i recuperació de la pàgina Activita
 
 ### Prova horària dels recordatoris
 
-Per provar el flux, configureu `REMINDER_TEST_EMAIL=jmas@softcatala.org` al `.env`
-i recreeu el servei amb `docker compose up -d --build reminders`. Amb aquesta
-variable, envia a les hores en punt, només al compte que coincideix amb l'adreça:
+La prova horària està activada per defecte amb
+`REMINDER_TEST_EMAIL=jmas@softcatala.org`. Si el vostre `.env` té aquesta variable
+buida, configureu-hi l'adreça i recreeu el servei amb
+`docker compose up -d --build reminders`. Amb aquesta variable, envia a les hores
+en punt, només al compte que coincideix amb l'adreça:
 no redirigeix correus d'altres usuaris. El compte ha d'haver activat els
 recordatoris, estar verificat i acreditat, haver votat i tenir comparacions pendents.
 La prova omet l'espera de set dies i la pausa després de tres correus, però

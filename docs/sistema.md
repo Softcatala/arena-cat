@@ -295,4 +295,4 @@ frontend. Les comandes locals són als README del
 
 ## Recordatoris opcionals
 
-El servei `reminders` de Docker Compose programa l’enviament cada dilluns a les 10 h. Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](usuaris_autenticacio.md#recordatoris-voluntaris).
+El servei `reminders` de Docker Compose activa per defecte la [prova horària](usuaris_autenticacio.md#prova-horària-dels-recordatoris). Amb `REMINDER_TEST_EMAIL` buit, programa l’enviament cada dilluns a les 10 h. Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](usuaris_autenticacio.md#recordatoris-voluntaris).
