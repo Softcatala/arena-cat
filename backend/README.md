@@ -290,3 +290,7 @@ uv run alembic downgrade base  # undo all migrations
 uv run ruff check .       # linting
 uv run ruff format .      # formatting
 ```
+
+## Recordatoris
+
+Preferències, API i execució diària: [recordatoris per correu](../docs/recordatoris.md).

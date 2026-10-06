@@ -485,3 +485,18 @@ def test_plain_text_notice_is_on_its_own_two_lines(smtp_env, kind):
         "Aquest és un correu automàtic.\n"
         "Si us plau, no respongueu a aquest missatge: les respostes no es processen."
     )
+
+
+def test_reminder_contains_contribution_and_preference_links():
+    message = email_service.build_reminder_message(
+        "usuari@example.cat",
+        12,
+        "https://arena.example.cat",
+        "https://arena.example.cat/reminders/unsubscribe?token=abc",
+    )
+    assert message["To"] == "usuari@example.cat"
+    assert "12 valoracions" in plain(message)
+    assert "12 valoracions" in html(message)
+    assert "https://arena.example.cat/reminders" in plain(message)
+    assert 'href="https://arena.example.cat/reminders/unsubscribe?token=abc"' in html(message)
+    assert "© Softcatalà" in html(message)

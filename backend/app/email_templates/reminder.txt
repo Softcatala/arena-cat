@@ -1,0 +1,15 @@
+Ja heu contribuït amb {{ votes }} valoracions. Gràcies!
+
+Podeu continuar comparant respostes i ajudar-nos a construir un rànquing més fiable per al català.
+
+Avalua: {{ link }}
+
+Rebeu aquest correu perquè heu activat els recordatoris d’Arena Cat.
+
+Canvia la freqüència: {{ link }}/reminders
+Dona de baixa els recordatoris: {{ unsubscribe_link }}
+
+{{ notice_headline }}
+{{ notice_detail }}
+
+© Softcatalà

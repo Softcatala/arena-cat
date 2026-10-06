@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { Link } from "react-router-dom";
+
 import { api, ApiError } from "../api";
 import { splitPrompt } from "../diff";
 import { clearTask, loadSavedTask, saveTask, secondsUntilVote } from "../taskStore";
@@ -248,6 +250,15 @@ export default function TaskView({ categories }: { categories: Category[] }) {
 
         {progress && <ProgressBar progress={progress} className="flex-1" />}
       </div>
+
+      {progress?.voted === 1 && (
+        <p className="rounded-md bg-brand-50 px-4 py-3 text-brand-700">
+          Gràcies pel vostre primer vot! Voleu rebre recordatoris per continuar contribuint?{" "}
+          <Link to="/reminders" className="font-semibold underline">
+            Tria la freqüència
+          </Link>
+        </p>
+      )}
 
       {message && (
         <p role="status" className="rounded-md bg-amber-50 px-4 py-3 text-amber-900">

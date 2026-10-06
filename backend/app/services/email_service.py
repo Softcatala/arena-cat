@@ -188,3 +188,13 @@ def send_password_reset_email(to_email: str, token: str) -> None:
     """Envia el correu de restabliment de contrasenya."""
     link = build_password_reset_link(token)
     _send_quietly(build_password_reset_message(to_email, link), "password_reset")
+
+
+def build_reminder_message(
+    to_email: str, votes: int, link: str, unsubscribe_link: str
+) -> EmailMessage:
+    """Compon un recordatori amb progrés i enllaços de preferències i baixa."""
+    message = _new_message(to_email, "Cinc minuts per ajudar la IA en català?")
+    _set_body(message, "reminder", votes=votes, link=link, unsubscribe_link=unsubscribe_link)
+    message["List-Unsubscribe"] = f"<{unsubscribe_link}>"
+    return message

@@ -71,6 +71,17 @@ async function request<T>(path: string, init?: RequestInit, notifyUnauthorized =
 }
 
 export const api = {
+  reminders: () => request<{ frequency: string }>("/auth/reminders"),
+  saveReminders: (frequency: string) =>
+    request<{ frequency: string }>("/auth/reminders", {
+      method: "PUT",
+      body: JSON.stringify({ frequency }),
+    }),
+  unsubscribeReminders: (token: string) =>
+    request<{ status: string }>("/auth/reminders/unsubscribe", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
   activity: (date: string) =>
     request<Activity>(date ? `/activity?date=${encodeURIComponent(date)}` : "/activity"),
 

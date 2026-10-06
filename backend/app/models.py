@@ -116,7 +116,24 @@ class User(Base):
             "password_hash IS NOT NULL AND consent_at IS NOT NULL)",
             name="ck_users_active_have_credentials",
         ),
+        CheckConstraint(
+            "reminder_frequency IN ('never', 'weekly', 'monthly')",
+            name="ck_users_reminder_frequency",
+        ),
+        CheckConstraint("reminder_count BETWEEN 0 AND 3", name="ck_users_reminder_count"),
+        CheckConstraint(
+            "reminder_frequency = 'never' OR "
+            "(reminder_consent_at IS NOT NULL AND reminder_token IS NOT NULL)",
+            name="ck_users_reminder_consent",
+        ),
     )
+
+    reminder_frequency: Mapped[str] = mapped_column(String(16), server_default="never")
+    reminder_consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reminder_token: Mapped[str | None] = mapped_column(String(64), unique=True)
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reminder_vote_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reminder_count: Mapped[int] = mapped_column(Integer, server_default="0")
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)

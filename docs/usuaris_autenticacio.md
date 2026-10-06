@@ -392,3 +392,7 @@ La cookie de sessió que estableix el login té els atributs següents:
 - **Secrets:** `hmac_secret_key`, `session_secret` i `email_hash_pepper` han de ser valors
   forts i secrets; canviar-los invalida, respectivament, els tokens signats, les sessions
   actives i la correspondència d'`email_hash`.
+
+## Recordatoris voluntaris
+
+El consentiment del registre no subscriu als correus de participació. Consulteu els [recordatoris per correu](recordatoris.md) per a les preferències, la baixa i la informació inclosa en l’exportació.

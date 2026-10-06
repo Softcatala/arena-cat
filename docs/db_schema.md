@@ -33,6 +33,12 @@ erDiagram
     }
 
     users {
+        varchar(16) reminder_frequency
+        timestamptz reminder_consent_at
+        varchar(64) reminder_token UK
+        timestamptz reminder_sent_at
+        timestamptz reminder_vote_at
+        integer reminder_count
         bigint id PK
         varchar(255) email
         varchar(64) email_hash
@@ -143,3 +149,8 @@ erDiagram
 ## Enums
 
 - **`winner`**: `a`, `b`, `tie`, `neither`
+
+Les preferències de recordatoris a `users` tenen una freqüència restringida a
+`never`, `weekly` i `monthly`, amb `never` per defecte. Activar-los exigeix data
+de consentiment i token de baixa únic. El comptador està restringit a 0–3.
+Vegeu el [funcionament dels recordatoris](recordatoris.md).

@@ -9,6 +9,7 @@ import ForgotPasswordView from "./components/ForgotPasswordView";
 import HowItWorksView from "./components/HowItWorksView";
 import Login from "./components/Login";
 import QualificationView from "./components/QualificationView";
+import ReminderView from "./components/ReminderView";
 import RankingView from "./components/RankingView";
 import ResetPasswordView from "./components/ResetPasswordView";
 import TaskView from "./components/TaskView";
@@ -91,13 +92,16 @@ export default function App() {
     // mòbil és fixada, tapa el final del document — i el final del document és el peu.
     <div className="min-h-screen bg-slate-50 pb-44 text-slate-900 md:pb-0">
       <header className="border-b-4 border-brand-500 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
           <div>
             <h1 className="text-lg font-bold text-brand-600">Arena Cat</h1>
             <p className="text-sm text-slate-500">Avaluació humana de models d'IA en català</p>
           </div>
           {session?.authenticated && (
             <div className="flex items-center gap-2">
+              <Link to="/reminders" className="text-sm text-brand-600 hover:underline">
+                Recordatoris
+              </Link>
               <Link to="/activitat" className="text-sm text-brand-600 hover:underline">
                 Activitat
               </Link>
@@ -192,6 +196,20 @@ export default function App() {
           <p className="px-4 py-10 text-center text-slate-500">Carregant…</p>
         ) : (
           <Routes>
+            <Route
+              path="/reminders"
+              element={
+                session.authenticated ? (
+                  <ReminderView key="preferences" />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+            <Route
+              path="/reminders/unsubscribe"
+              element={<ReminderView key="unsubscribe" unsubscribe />}
+            />
             <Route
               path="/activitat"
               element={session.authenticated ? <ActivityView /> : <Navigate to="/login" replace />}

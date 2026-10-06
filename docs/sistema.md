@@ -292,3 +292,7 @@ i Ruff al backend, i la comprovació de tipus, el format i la compilació del
 frontend. Les comandes locals són als README del
 [backend](../backend/README.md), del [frontend](../frontend/README.md) i de la
 [canonada](../scripts/README.md).
+
+## Recordatoris opcionals
+
+Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](recordatoris.md).

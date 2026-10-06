@@ -146,3 +146,5 @@ s'hagi decidit.
   (el backend ja la implementa, però no és accessible des de la interfície).
   Si acaben necessitant URL pròpia (compartir enllaç, botó «enrere»), caldrà
   `react-router-dom`; si no, es poden fer igual que ara, amb estat de React.
+
+La capçalera ofereix **Recordatoris** (`/reminders`) amb sessió iniciada. Després del primer vot es mostra una invitació per triar-ne la freqüència. Consulteu els [recordatoris per correu](../docs/recordatoris.md) per a les preferències i la baixa sense sessió.
