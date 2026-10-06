@@ -4,6 +4,8 @@
 
 La plataforma és a [arena.softcatala.org](https://arena.softcatala.org/).
 
+Estem en fase de proves. Si hi trobeu errades o voleu proposar millores, podeu fer-les arribar a [info@softcatala.org](mailto:info@softcatala.org).
+
 Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/), centrada exclusivament a mesurar la **competència en llengua catalana** dels models de llenguatge gran (LLMs). A diferència de les avaluacions automàtiques, aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor. Si l'experiència té èxit, la plataforma es podria **generalitzar a altres llengües** que també necessitin una avaluació humana pròpia.
 
 🧮 **Dimensionament**: estimem els vots, les hores humanes i els usuaris necessaris si cadascun ho avalua tot amb un [simulador](https://softcatala.github.io/arena-cat/simulador/). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
