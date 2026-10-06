@@ -4,6 +4,9 @@
 [Garbellaveus](https://github.com/Softcatala/garbellaveus), amb els colors
 corporatius de Softcatalà.
 
+El favicon i la icona d'Apple són els de [Softcatalà](https://www.softcatala.org/).
+Es desen a `public/` i s'inclouen al desplegament com a fitxers estàtics.
+
 Cobreix el camí complet **inici de sessió → prova de competència → càrrega de tasca → vot**, amb el
 progrés de l'avaluador, l'omissió de tasques i el ressaltat de diferències de la
 categoria «correcció».
