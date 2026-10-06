@@ -1,5 +1,6 @@
 """Reversibilitat de la migració inicial contra una base de dades efímera."""
 
+import logging
 import uuid
 from io import StringIO
 from pathlib import Path
@@ -121,3 +122,13 @@ def test_qualification_migration_preserves_existing_users(ephemeral_db_url):
         command.check(config)
     finally:
         engine.dispose()
+
+
+def test_migrations_keep_application_loggers_enabled():
+    """La configuració d’Alembic conserva els logs de l’aplicació."""
+    logger = logging.getLogger("app.services.reminder_service")
+    logger.disabled = False
+    config = _alembic_config(make_url(get_settings().database_admin_url))
+    config.output_buffer = StringIO()
+    command.upgrade(config, "base", sql=True)
+    assert not logger.disabled

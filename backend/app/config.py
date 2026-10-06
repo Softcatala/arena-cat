@@ -52,7 +52,6 @@ class Settings(BaseSettings):
     smtp_password: SecretStr = SecretStr("")
     email_from_address: str = "arena@softcatala.org"
     email_from_name: str = "Arena Cat"
-    # Buit manté l'enviament setmanal; una adreça activa la prova horària només per a aquest compte.
     # URL pública del frontend, per construir els enllaços dels correus.
     frontend_base_url: str = "http://localhost:5173"
     # Configuració de la cookie i la sessió d'autenticació.
