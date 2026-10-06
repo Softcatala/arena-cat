@@ -2,6 +2,8 @@
 
 **Avaluació humana de models d'IA en català.**
 
+La plataforma és a [arena.softcatala.org](https://arena.softcatala.org/).
+
 Plataforma participativa, inspirada en [LMSYS Chatbot Arena](https://lmarena.ai/), centrada exclusivament a mesurar la **competència en llengua catalana** dels models de llenguatge gran (LLMs). A diferència de les avaluacions automàtiques, aquí són persones les que comparen, a cegues, les respostes de dos models davant d'una mateixa tasca i decideixen quina és millor. Si l'experiència té èxit, la plataforma es podria **generalitzar a altres llengües** que també necessitin una avaluació humana pròpia.
 
 🧮 **Dimensionament**: estimem els vots, les hores humanes i els usuaris necessaris si cadascun ho avalua tot amb un [simulador](https://softcatala.github.io/arena-cat/simulador/). Vegeu els detalls a [avaluadors](docs/avaluadors.md).
@@ -73,11 +75,11 @@ Busquem persones per mantenir i ampliar la plataforma i per participar en les av
 - ⚙️ **Python**: per millorar la canonada d'inferència i el *backend* (FastAPI + PostgreSQL).
 - 📚 **Lingüística**: per definir els *prompts* d'avaluació de manera que cobreixin bé les dificultats reals del català (ortografia, registre, varietats dialectals, referències culturals) i fixar criteris clars per als avaluadors.
 
-No cal que dominis totes les àrees: si t'hi veus en alguna, **escriu-nos**.
+No cal que domineu totes les àrees: si us hi veieu en alguna, **uniu-vos al grup de Telegram**.
 
 **Avaluadors voluntaris.** Necessitem persones catalanoparlants per comparar respostes a cegues i votar quina és millor. Cada vot dura aproximadament 2 minuts; vegeu les estimacions al [dimensionament d'avaluadors](docs/avaluadors.md). Si tens criteri lingüístic en català i vols ajudar-nos amb una estoneta, també et volem.
 
-Per a ajudar, envia un correu a **Jordi Mas** <jmas@softcatala.org> explicant **com pots col·laborar** i el teu **identificador de Telegram**.
+Per entrar al projecte i col·laborar-hi, només cal que us uniu al [grup de Telegram](https://t.me/+dAgCZcRS2R82OGI0).
 
 ## Full de ruta
 
