@@ -435,20 +435,22 @@ Si el contenidor estava aturat a l'hora programada, espera la setmana següent.
 Sense SMTP configurat, omet l'enviament i deixa un avís. Els errors SMTP no
 consumeixen recordatoris. Els bloquejos de fila eviten enviaments simultanis,
 però una caiguda entre l'acceptació SMTP i el commit pot provocar un duplicat.
-L'acceptació SMTP no acredita el lliurament a la bústia. Aquests correus no
+Cada intent d'enviament registra a nivell INFO el correu destinatari i el resultat
+SMTP (`acceptat` o `fallit`). L'acceptació SMTP no acredita el lliurament a la bústia. Aquests correus no
 s'afegeixen als comptadors de verificació i recuperació de la pàgina Activitat.
 
-### Prova horària dels recordatoris
+### Prova cada 30 minuts dels recordatoris
 
-La prova horària està activada per defecte amb
+La prova cada 30 minuts està activada per defecte amb
 `REMINDER_TEST_EMAIL=jmas@softcatala.org`. Si el vostre `.env` té aquesta variable
 buida, configureu-hi l'adreça i recreeu el servei amb
 `docker compose up -d --build reminders`. Amb aquesta variable, envia a les hores
-en punt, només al compte que coincideix amb l'adreça:
+en punt i a dos quarts, només al compte que coincideix amb l'adreça:
 no redirigeix correus d'altres usuaris. El compte ha d'haver activat els
 recordatoris, estar verificat i acreditat, haver votat i tenir comparacions pendents.
-La prova omet l'espera de set dies i la pausa després de tres correus, però
-manté almenys una hora entre enviaments i no incrementa el comptador de pausa.
+La prova omet l'espera de set dies i la pausa després de tres correus, i no
+incrementa el comptador de pausa. Cada comprovació pot enviar un correu encara
+que hagin passat menys de 30 minuts des de l'últim enviament.
 
 Per tornar al funcionament setmanal, buideu `REMINDER_TEST_EMAIL` i recreeu el
 servei. Aquest ajust només afecta els recordatoris: la verificació del correu i

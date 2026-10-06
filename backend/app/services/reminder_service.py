@@ -113,9 +113,8 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
         )
         baseline = max(last_vote, user.reminder_consent_at, user.reminder_sent_at or last_vote)
         too_recent = (
-            user.reminder_sent_at is not None and now - user.reminder_sent_at < timedelta(hours=1)
-            if test_email
-            else now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
+            not test_email
+            and now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
             < REMINDER_INTERVAL
         )
         if (
@@ -133,6 +132,7 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
         except OSError as error:
             logger.error("No s’ha pogut enviar el recordatori: %s", type(error).__name__)
             accepted = False
+        logger.info("Recordatori a %s: %s", user.email, "acceptat" if accepted else "fallit")
         if accepted:
             user.reminder_sent_at = now
             if not test_email:
@@ -145,9 +145,12 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
 
 
 def next_run(now: datetime) -> datetime:
-    """Calcula el proper enviament setmanal o horari en mode de prova."""
+    """Calcula el proper enviament setmanal o cada mitja hora en mode de prova."""
     if get_settings().reminder_test_email.strip():
-        return now.astimezone(UTC).replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        current = now.astimezone(UTC)
+        return current.replace(
+            minute=(current.minute // 30) * 30, second=0, microsecond=0
+        ) + timedelta(minutes=30)
     local = now.astimezone(REMINDER_TIMEZONE)
     scheduled = local.replace(hour=10, minute=0, second=0, microsecond=0)
     scheduled += timedelta(days=(7 - local.weekday()) % 7)

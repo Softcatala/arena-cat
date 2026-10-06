@@ -261,7 +261,7 @@ def test_only_voted_comparison_does_not_send_or_consume_reminder(session, create
     assert user.reminder_count == 0
 
 
-def test_hourly_test_mode_only_sends_to_allowed_address(session, create_user, monkeypatch):
+def test_half_hourly_test_mode_only_sends_to_allowed_address(session, create_user, monkeypatch):
     from app.config import get_settings
 
     now = datetime.now(UTC)
@@ -288,9 +288,9 @@ def test_hourly_test_mode_only_sends_to_allowed_address(session, create_user, mo
         reminder_service.email_service, "send_email", lambda m: messages.append(m) or True
     )
     assert reminder_service.send_due_reminders(session, now) == 1
-    assert reminder_service.send_due_reminders(session, now + timedelta(minutes=59)) == 0
-    for hour in (1, 2, 3, 4):
-        assert reminder_service.send_due_reminders(session, now + timedelta(hours=hour)) == 1
+    assert reminder_service.send_due_reminders(session, now + timedelta(minutes=29)) == 1
+    for minutes in (30, 60, 90, 120):
+        assert reminder_service.send_due_reminders(session, now + timedelta(minutes=minutes)) == 1
     assert all(m["To"] == "jmas@softcatala.org" for m in messages)
     assert target.reminder_count == 0
     assert other.reminder_sent_at is None
@@ -299,7 +299,7 @@ def test_hourly_test_mode_only_sends_to_allowed_address(session, create_user, mo
     assert reminder_service.send_due_reminders(session, now + timedelta(hours=5)) == 0
 
 
-def test_hourly_test_mode_still_requires_pending_tasks(session, create_user, monkeypatch):
+def test_half_hourly_test_mode_still_requires_pending_tasks(session, create_user, monkeypatch):
     from app.config import get_settings
 
     now = datetime.now(UTC)
@@ -318,7 +318,7 @@ def test_hourly_test_mode_still_requires_pending_tasks(session, create_user, mon
     assert messages == []
 
 
-def test_test_mode_schedules_next_hour(monkeypatch):
+def test_test_mode_schedules_next_half_hour(monkeypatch):
     from app.config import get_settings
 
     monkeypatch.setenv("REMINDER_TEST_EMAIL", "jmas@softcatala.org")
@@ -327,5 +327,24 @@ def test_test_mode_schedules_next_hour(monkeypatch):
         2026, 10, 6, 16, tzinfo=UTC
     )
     assert reminder_service.next_run(datetime(2026, 10, 6, 16, tzinfo=UTC)) == datetime(
-        2026, 10, 6, 17, tzinfo=UTC
+        2026, 10, 6, 16, 30, tzinfo=UTC
     )
+
+
+@pytest.mark.parametrize("result", [True, False, OSError("SMTP unavailable")])
+def test_reminder_logs_recipient_and_result(session, create_user, monkeypatch, caplog, result):
+    now = datetime.now(UTC)
+    user = create_user("logging@example.cat")
+    reminder_service.set_preferences(session, user, True, now - timedelta(days=9))
+    seed_vote(session, user, now)
+
+    def send(message):
+        if isinstance(result, OSError):
+            raise result
+        return result
+
+    monkeypatch.setattr(reminder_service.email_service, "send_email", send)
+    with caplog.at_level("INFO", logger=reminder_service.__name__):
+        reminder_service.send_due_reminders(session, now)
+    status = "acceptat" if result is True else "fallit"
+    assert f"Recordatori a logging@example.cat: {status}" in caplog.messages
