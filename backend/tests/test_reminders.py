@@ -153,3 +153,13 @@ def test_account_deletion_clears_preferences(client, logged_in_user, session):
     assert user.reminder_enabled is False
     assert user.reminder_token is None
     assert user.reminder_consent_at is None
+
+
+def test_weekly_send_keeps_local_time_after_daylight_saving(session, create_user, monkeypatch):
+    previous_monday = datetime(2026, 3, 23, 9, tzinfo=UTC)
+    user = create_user("summer@example.cat")
+    reminder_service.set_preferences(session, user, True, previous_monday - timedelta(days=9))
+    seed_vote(session, user, previous_monday)
+    monkeypatch.setattr(reminder_service.email_service, "send_email", lambda m: True)
+    assert reminder_service.send_due_reminders(session, previous_monday) == 1
+    assert reminder_service.send_due_reminders(session, datetime(2026, 3, 30, 8, tzinfo=UTC)) == 1

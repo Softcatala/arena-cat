@@ -31,21 +31,33 @@ enviament i el comptador de recordatoris.
 
 ## Execució setmanal
 
-Des de `backend/`, amb la configuració habitual de PostgreSQL i SMTP:
+Docker Compose inclou el servei `reminders`, que reutilitza la imatge del backend
+amb un planificador propi. S'inicia amb `docker compose up` i envia cada dilluns
+a les 10 h del fus `Europe/Madrid`, inclosos els canvis d'horari d'estiu.
+No cal configurar cron al servidor ni instal·lar serveis de correu addicionals.
+El contenidor utilitza la mateixa configuració PostgreSQL i SMTP del `.env`.
+
+Per arrencar-lo o consultar-ne els logs:
 
 ```bash
-uv run python -m app.services.reminder_service
+docker compose up -d --build reminders
+docker compose logs reminders
 ```
 
-En una instal·lació amb Docker Compose, el planificador pot executar setmanalment (per exemple, cada dilluns a les 10 h):
+En producció, cal incloure aquest servei al Compose del desplegament amb la
+mateixa imatge del backend i la comanda
+`uv run python -u -m app.services.reminder_scheduler`.
+El planificador espera la propera execució: si el contenidor estava aturat
+el dilluns a les 10 h, no recupera aquell enviament en tornar a arrencar.
+Sense `SMTP_HOST`, omet l'enviament i deixa un avís al log. Els errors SMTP
+no consumeixen recordatoris; es tornen a considerar a la propera execució setmanal.
+
+Per executar l'enviament manualment:
 
 ```bash
-docker compose exec -T api uv run python -m app.services.reminder_service
+docker compose exec -T reminders uv run python -m app.services.reminder_service
 ```
 
-El desplegament ha de configurar aquesta execució al seu planificador; l'API
-no inicia cap planificador intern. Sense `SMTP_HOST`, la comanda falla sense
-enviar ni consumir recordatoris. Els errors SMTP tampoc consumeixen enviaments.
 Els bloquejos de fila eviten que dos processos enviïn al mateix compte alhora.
 SMTP i PostgreSQL no comparteixen transacció: si el procés cau després que SMTP
 accepti el missatge i abans del commit, un reintent pot duplicar aquell correu.

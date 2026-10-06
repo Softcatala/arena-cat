@@ -4,6 +4,7 @@ import logging
 import secrets
 from datetime import UTC, datetime, timedelta
 from urllib.parse import quote
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -16,6 +17,7 @@ from app.services.task_service import get_task_progress_for_user
 
 logger = logging.getLogger(__name__)
 REMINDER_INTERVAL = timedelta(days=7)
+REMINDER_TIMEZONE = ZoneInfo("Europe/Madrid")
 
 
 def set_preferences(db: Session, user: User, enabled: bool, now: datetime | None = None) -> None:
@@ -76,7 +78,8 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
         baseline = max(last_vote, user.reminder_consent_at, user.reminder_sent_at or last_vote)
         if (
             count >= 3
-            or now - baseline < REMINDER_INTERVAL
+            or now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
+            < REMINDER_INTERVAL
             or not get_task_progress_for_user(user, db).remaining
         ):
             db.rollback()

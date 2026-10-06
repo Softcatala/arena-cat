@@ -295,4 +295,4 @@ frontend. Les comandes locals són als README del
 
 ## Recordatoris opcionals
 
-Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](recordatoris.md).
+El servei `reminders` de Docker Compose programa l’enviament cada dilluns a les 10 h. Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](recordatoris.md).

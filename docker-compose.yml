@@ -52,6 +52,23 @@ services:
       postgres:
         condition: service_healthy
 
+  reminders:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["uv", "run", "python", "-u", "-m", "app.services.reminder_scheduler"]
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+
   frontend:
     image: node:22-alpine
     working_dir: /app

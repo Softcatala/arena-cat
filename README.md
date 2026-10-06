@@ -183,4 +183,4 @@ Ampliarem l'abast incorporant **més models** a l'avaluació, mantenint la matei
 
 Vegeu [LICENSE](LICENSE).
 
-Els usuaris poden activar [recordatoris opcionals per correu](docs/recordatoris.md) per continuar contribuint.
+Els usuaris poden activar [recordatoris opcionals per correu](docs/recordatoris.md) per continuar contribuint. El servei `reminders` de Docker Compose en programa l’enviament setmanal.
