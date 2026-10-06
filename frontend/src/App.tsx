@@ -138,6 +138,37 @@ export default function App() {
         </div>
       </header>
 
+      <div className="border-b border-amber-300 bg-amber-100 text-slate-900">
+        <div className="mx-auto flex max-w-5xl items-start gap-3 px-4 py-3">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-0.5 h-5 w-5 shrink-0 text-amber-700"
+            aria-hidden="true"
+          >
+            <path d="M12 3 2 21h20L12 3Z" />
+            <path d="M12 9v5M12 17h.01" />
+          </svg>
+          <div>
+            <p className="text-base font-semibold">Estem en fase de proves</p>
+            <p className="mt-1 text-sm">
+              Si hi trobeu errades o voleu proposar millores, podeu fer-les arribar a{" "}
+              <a
+                href="mailto:info@softcatala.org"
+                className="font-semibold underline underline-offset-2 hover:no-underline"
+              >
+                info@softcatala.org
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+
       {session?.authenticated && showDeleteAccount && (
         <DeleteAccountDialog
           onClose={() => setShowDeleteAccount(false)}

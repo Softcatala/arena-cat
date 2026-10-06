@@ -8,6 +8,9 @@ Cobreix el camí complet **inici de sessió → prova de competència → càrre
 progrés de l'avaluador, l'omissió de tasques i el ressaltat de diferències de la
 categoria «correcció».
 
+Totes les pàgines mostren sota la capçalera un avís de fase de proves amb un
+enllaç de correu per comunicar errades i proposar millores.
+
 Els usuaris sense acreditar accedeixen a `/qualification`: un sol formulari de
 deu preguntes amb tres opcions, dues per categoria i dues generals. Després de
 lliurar-lo, el formulari se substitueix pel total d'encerts i l'estat de superació,
