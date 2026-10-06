@@ -13,6 +13,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     DateTime,
     Enum,
@@ -116,7 +117,20 @@ class User(Base):
             "password_hash IS NOT NULL AND consent_at IS NOT NULL)",
             name="ck_users_active_have_credentials",
         ),
+        CheckConstraint("reminder_count BETWEEN 0 AND 3", name="ck_users_reminder_count"),
+        CheckConstraint(
+            "NOT reminder_enabled OR "
+            "(reminder_consent_at IS NOT NULL AND reminder_token IS NOT NULL)",
+            name="ck_users_reminder_consent",
+        ),
     )
+
+    reminder_enabled: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    reminder_consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reminder_token: Mapped[str | None] = mapped_column(String(64), unique=True)
+    reminder_invited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reminder_count: Mapped[int] = mapped_column(Integer, server_default="0")
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
@@ -170,23 +184,6 @@ class QualificationFailure(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
-    )
-
-
-class EmailDelivery(Base):
-    """Correu acceptat pel servidor SMTP, sense dades del destinatari."""
-
-    __tablename__ = "email_deliveries"
-    __table_args__ = (
-        CheckConstraint(
-            "kind IN ('verification', 'password_reset')", name="ck_email_deliveries_kind"
-        ),
-    )
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    kind: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )

@@ -183,19 +183,30 @@ de seguretat es detallen a [gestió i autenticació d'usuaris](usuaris_autentica
 ## Activitat diària
 
 La pàgina **Activitat** (`/activitat`) i `GET /api/activity` requereixen sessió
-iniciada, sense exigir haver superat la prova. Mostren l'activitat de tota la
+iniciada, sense exigir haver superat la prova. La pàgina és accessible directament
+per la URL i no apareix al menú. Mostren l'activitat de tota la
 plataforma, amb avui seleccionat per defecte, selector de data, botó
 d'actualització i hora de consulta. El dia va de mitjanit a mitjanit en el fus
 `Europe/Madrid`, inclosos els canvis d'horari d'estiu.
+
+La secció **Comptadors globals**, situada abans d’Activitat, mostra el total actual
+de comptes que no s’han donat de baixa, el total amb recordatoris activats,
+els usuaris diferents que han votat i tots els vots acumulats. Aquests recomptes
+són independents de la data seleccionada.
 
 Tots els recomptes s'obtenen exclusivament de PostgreSQL:
 
 | Indicador | Origen i definició |
 |---|---|
-| Usuaris registrats | Comptes amb `users.created_at` dins del dia |
-| Correus enviats | Files d'`email_deliveries`, separades entre verificació i recuperació de contrasenya |
+| Usuaris que han votat (global) | Usuaris diferents amb algun vot de qualsevol data; s’exclouen els vots sense `user_id` i es conserven els comptes anonimitzats |
+| Vots totals (global) | Tots els vots, inclosos empats i «cap de les dues», de totes les versions i dates |
+| Usuaris registrats (global) | Comptes amb `users.deleted_at` nul |
+| Usuaris registrats (diari) | Comptes amb `users.created_at` dins del dia |
+| Correus enviats de registre | `users.verification_sent_at` i `users.password_reset_sent_at` dins del dia |
+| Usuaris amb recordatoris activats | Total actual de comptes actius amb `users.reminder_enabled`, independent de la data seleccionada |
+| Correus de recordatori enviats | `users.reminder_sent_at` dins del dia |
 | Usuaris que han superat el test | Comptes amb `users.qualified_at` dins del dia |
-| Usuaris amb intents suspesos | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |
+| Usuaris amb prova suspesa | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |
 | Votants únics | Usuaris diferents amb algun vot durant el dia; s'exclouen els vots sense `user_id` |
 | Vots emesos | Vots amb `votes.created_at` dins del dia, inclosos empats i «cap de les dues», de totes les versions |
 
@@ -206,13 +217,16 @@ Les baixes conserven el registre del compte, els vots i els suspensos vinculats 
 l'identificador anonimitzat, però buiden `qualified_at`: el recompte d'aprovats
 pot disminuir després d'una baixa.
 
-Els correus es registren després que SMTP n'accepti l'enviament; això no acredita
-el lliurament a la bústia. No es desen destinataris ni continguts. Els errors SMTP
-i els missatges de desenvolupament sense SMTP no compten. Si falla el registre
-SQL després de l'enviament, se'n deixa constància al log i el recompte no l'inclou.
+Els correus es compten amb l’última data desada al compte per tipus. Cada compte
+compta com a màxim una vegada per tipus i dia. Un nou enviament sobreescriu la
+data i pot modificar els recomptes de dies anteriors; no es conserva cap historial
+separat de correus. Les dates de verificació i recuperació es reserven abans de
+l’enviament SMTP i poden incloure intents fallits o sense SMTP configurat.
+La data de recordatori només es desa després de l’acceptació SMTP, que no
+acredita el lliurament a la bústia. Les baixes buiden aquestes dates.
+
 Els suspensos es desen en corregir intents complets, sense respostes ni puntuació.
-L'historial de correus i suspensos comença amb l'activació d'aquest registre;
-els anteriors no es poden reconstruir amb les dades existents.
+L’historial de suspensos comença amb l’activació del registre.
 
 ## Rànquing
 
@@ -292,3 +306,7 @@ i Ruff al backend, i la comprovació de tipus, el format i la compilació del
 frontend. Les comandes locals són als README del
 [backend](../backend/README.md), del [frontend](../frontend/README.md) i de la
 [canonada](../scripts/README.md).
+
+## Recordatoris opcionals
+
+El servei `reminders` de Docker Compose programa l’enviament cada dilluns a les 10 h. Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](usuaris_autenticacio.md#recordatoris-voluntaris).

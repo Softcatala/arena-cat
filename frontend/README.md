@@ -22,8 +22,9 @@ fallits i començar a avaluar quan se supera.
 Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
-La pàgina **Activitat** (`/activitat`), accessible des de la capçalera amb sessió
-iniciada, mostra els [recomptes diaris](../docs/sistema.md#activitat-diària).
+La pàgina **Activitat** (`/activitat`) requereix sessió iniciada i s’hi accedeix
+directament per la URL, sense enllaç al menú. Mostra els
+[comptadors globals i recomptes diaris](../docs/sistema.md#activitat-diària).
 Permet triar una data, tornar a avui i actualitzar els recomptes.
 
 ## Execució amb Docker
@@ -146,3 +147,5 @@ s'hagi decidit.
   (el backend ja la implementa, però no és accessible des de la interfície).
   Si acaben necessitant URL pròpia (compartir enllaç, botó «enrere»), caldrà
   `react-router-dom`; si no, es poden fer igual que ara, amb estat de React.
+
+La capçalera ofereix **Recordatoris** (`/reminders`) amb sessió iniciada. Als múltiples de deu vots es mostra una invitació per activar els recordatoris setmanals, com a màxim un cop cada trenta dies i només si no estan activats. Consulteu els [recordatoris per correu](../docs/usuaris_autenticacio.md#recordatoris-voluntaris) per a les preferències i la baixa sense sessió.

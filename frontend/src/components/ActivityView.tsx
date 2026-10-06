@@ -31,6 +31,38 @@ export default function ActivityView() {
       <Link to="/" className="text-sm text-brand-600 hover:underline">
         Torna a l'inici
       </Link>
+      <section aria-labelledby="global-counters" className="space-y-4">
+        <div>
+          <h2 id="global-counters" className="text-2xl font-bold">
+            Comptadors globals
+          </h2>
+          <p className="mt-2 text-slate-600">
+            Totals de tota la plataforma, independentment de la data seleccionada. Els comptes
+            registrats i subscrits exclouen les baixes.
+          </p>
+        </div>
+        {activity ? (
+          <dl className="grid gap-4 sm:grid-cols-2">
+            {[
+              ["Usuaris registrats", activity.total_registered_users],
+              ["Usuaris amb recordatoris activats", activity.reminder_subscribers],
+              ["Usuaris que han votat", activity.total_voters],
+              ["Vots totals", activity.total_votes],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg border border-slate-200 bg-white p-5">
+                <dt className="font-medium text-slate-600">{label}</dt>
+                <dd className="mt-2 text-3xl font-bold">{value.toLocaleString("ca-ES")}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="text-slate-500">
+            {error
+              ? "No s’han pogut carregar els comptadors globals."
+              : "Carregant comptadors globals…"}
+          </p>
+        )}
+      </section>
       <div>
         <h2 className="text-2xl font-bold">Activitat</h2>
         <p className="mt-2 text-slate-600">
@@ -76,9 +108,13 @@ export default function ActivityView() {
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Usuaris registrats", activity.registered_users],
-              ["Correus enviats", activity.verification_emails + activity.password_reset_emails],
+              [
+                "Correus enviats de registre",
+                activity.verification_emails + activity.password_reset_emails,
+              ],
+              ["Correus de recordatori enviats", activity.reminder_emails],
               ["Usuaris que han superat el test", activity.qualified_users],
-              ["Usuaris amb intents suspesos", activity.failed_users],
+              ["Usuaris amb prova suspesa", activity.failed_users],
               ["Votants únics", activity.voters],
               ["Vots emesos", activity.votes],
             ].map(([label, value]) => (
@@ -89,8 +125,9 @@ export default function ActivityView() {
             ))}
           </dl>
           <p className="text-sm text-slate-500">
-            Correus acceptats pel servidor: {activity.verification_emails} de verificació i{" "}
-            {activity.password_reset_emails} de recuperació de contrasenya.
+            Últims enviaments desats als comptes: {activity.verification_emails} de verificació,{" "}
+            {activity.password_reset_emails} de recuperació de contrasenya i{" "}
+            {activity.reminder_emails} de recordatori.
           </p>
           <p className="text-sm text-slate-500">
             Última actualització:{" "}
@@ -99,10 +136,12 @@ export default function ActivityView() {
         </>
       )}
       <p className="text-sm text-slate-500">
-        Els recomptes d'usuaris i votants compten cada persona una vegada. Pot haver suspès i
+        Els recomptes d’usuaris i votants compten cada persona una vegada. Pot haver suspès i
         aprovat el mateix dia; qui encara no ha fet el test no compta com a suspès. Els vots
-        inclouen els empats i «cap de les dues». L'historial de correus i suspensos només està
-        disponible des de l'activació d'aquests recomptes.
+        inclouen els empats i «cap de les dues». Els correus compten l’última data desada per compte
+        i tipus; nous enviaments poden modificar els recomptes de dies anteriors. Les dates de
+        verificació i recuperació es desen abans de contactar amb SMTP i poden incloure intents
+        fallits. L’historial de suspensos només està disponible des de l’activació del seu registre.
       </p>
     </div>
   );

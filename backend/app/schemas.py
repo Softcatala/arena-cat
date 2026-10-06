@@ -75,8 +75,13 @@ class ActivityResponse(BaseModel):
     date: date
     updated_at: datetime
     registered_users: int
+    total_registered_users: int
+    total_voters: int
+    total_votes: int
     verification_emails: int
     password_reset_emails: int
+    reminder_emails: int
+    reminder_subscribers: int
     qualified_users: int
     failed_users: int
     voters: int
@@ -252,6 +257,11 @@ class ExportUserResponse(BaseModel):
     qualified_at: datetime | None
     consent_version: str
     consent_at: datetime | None
+    reminder_enabled: bool
+    reminder_consent_at: datetime | None
+    reminder_invited_at: datetime | None
+    reminder_sent_at: datetime | None
+    reminder_count: int
     created_at: datetime
     deleted_at: datetime | None
 
@@ -305,3 +315,11 @@ class RankingResponse(BaseModel):
     best_model: str | None
     ranked_models: list[RankedModel]
     confidence: RankingConfidence
+
+
+class ReminderPreferences(BaseModel):
+    enabled: bool
+
+
+class ReminderUnsubscribe(BaseModel):
+    token: str = Field(min_length=1, max_length=64)

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { Link } from "react-router-dom";
+
 import { api, ApiError } from "../api";
 import { splitPrompt } from "../diff";
 import { clearTask, loadSavedTask, saveTask, secondsUntilVote } from "../taskStore";
@@ -22,6 +24,7 @@ const VOTE_OPTIONS: {
 export default function TaskView({ categories }: { categories: Category[] }) {
   const [category, setCategory] = useState<CategoryFilter>("");
   const [task, setTask] = useState<Task | null>(null);
+  const [showReminderInvitation, setShowReminderInvitation] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -38,6 +41,8 @@ export default function TaskView({ categories }: { categories: Category[] }) {
     // El progrés és informatiu: si falla, no bloquegem l'avaluació.
     try {
       setProgress(await api.progress());
+      const invitation = await api.reminderInvitation().catch(() => ({ show: false }));
+      if (invitation.show) setShowReminderInvitation(true);
     } catch {
       setProgress(null);
     }
@@ -248,6 +253,26 @@ export default function TaskView({ categories }: { categories: Category[] }) {
 
         {progress && <ProgressBar progress={progress} className="flex-1" />}
       </div>
+
+      {showReminderInvitation && (
+        <p className="rounded-md bg-brand-50 px-4 py-3 text-brand-700">
+          Gràcies per les vostres valoracions! Voleu rebre recordatoris per continuar contribuint?{" "}
+          <Link
+            to="/reminders"
+            className="font-semibold underline"
+            onClick={() => setShowReminderInvitation(false)}
+          >
+            Activa els recordatoris
+          </Link>{" "}
+          <button
+            type="button"
+            className="underline"
+            onClick={() => setShowReminderInvitation(false)}
+          >
+            Ara no
+          </button>
+        </p>
+      )}
 
       {message && (
         <p role="status" className="rounded-md bg-amber-50 px-4 py-3 text-amber-900">

@@ -33,6 +33,12 @@ erDiagram
     }
 
     users {
+        boolean reminder_enabled
+        timestamptz reminder_consent_at
+        varchar(64) reminder_token UK
+        timestamptz reminder_invited_at
+        timestamptz reminder_sent_at
+        integer reminder_count
         bigint id PK
         varchar(255) email
         varchar(64) email_hash
@@ -50,12 +56,6 @@ erDiagram
     qualification_failures {
         bigint id PK
         bigint user_id FK
-        timestamptz created_at
-    }
-
-    email_deliveries {
-        bigint id PK
-        varchar(32) kind
         timestamptz created_at
     }
 
@@ -117,8 +117,6 @@ erDiagram
 | users | UNIQUE | — | `(email_hash)` |
 | qualification_failures | FK | — | `user_id → users.id` `ON DELETE CASCADE` |
 | qualification_failures | INDEX | `ix_qualification_failures_created_at` | `created_at` |
-| email_deliveries | CHECK | `ck_email_deliveries_kind` | `kind IN ('verification', 'password_reset')` |
-| email_deliveries | INDEX | `ix_email_deliveries_created_at` | `created_at` |
 | users | CHECK | `ck_users_active_have_credentials` | `deleted_at IS NOT NULL OR (email IS NOT NULL AND email_hash IS NOT NULL AND password_hash IS NOT NULL AND consent_at IS NOT NULL)` |
 | sessions | FK | — | `user_id → users.id` |
 | sessions | UNIQUE | — | `(token_hash)` |
@@ -143,3 +141,8 @@ erDiagram
 ## Enums
 
 - **`winner`**: `a`, `b`, `tie`, `neither`
+
+Les preferències de recordatoris a `users` tenen un booleà `reminder_enabled`,
+desactivat per defecte. Activar-los exigeix data de consentiment i token de baixa
+únic. El comptador està restringit a 0–3.
+Vegeu el [funcionament dels recordatoris](usuaris_autenticacio.md#recordatoris-voluntaris).

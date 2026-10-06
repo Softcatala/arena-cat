@@ -10,11 +10,8 @@ from pathlib import Path
 from urllib.parse import quote
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
-from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import get_settings
-from app.db import get_sessionmaker
-from app.models import EmailDelivery
 from app.security import EMAIL_VERIFICATION_TTL_HOURS, PASSWORD_RESET_TTL_MINUTES
 from app.telemetry.metrics import email_errors_total
 
@@ -167,15 +164,10 @@ def _send_quietly(message: EmailMessage, kind: str) -> None:
     per no deixar dades personals als logs.
     """
     try:
-        if send_email(message):
-            with get_sessionmaker()() as db:
-                db.add(EmailDelivery(kind=kind))
-                db.commit()
+        send_email(message)
     except OSError as error:  # Inclou smtplib.SMTPException, errors de connexió i temps d'espera.
         logger.error("No s'ha pogut enviar el correu (%s): %s", kind, _describe(error))
         email_errors_total.add(1, {"description": kind})
-    except SQLAlchemyError:
-        logger.error("No s'ha pogut registrar l'enviament del correu (%s)", kind)
 
 
 def send_verification_email(to_email: str, token: str) -> None:
@@ -188,3 +180,13 @@ def send_password_reset_email(to_email: str, token: str) -> None:
     """Envia el correu de restabliment de contrasenya."""
     link = build_password_reset_link(token)
     _send_quietly(build_password_reset_message(to_email, link), "password_reset")
+
+
+def build_reminder_message(
+    to_email: str, votes: int, link: str, unsubscribe_link: str
+) -> EmailMessage:
+    """Compon un recordatori amb progrés i enllaços de preferències i baixa."""
+    message = _new_message(to_email, "Cinc minuts per ajudar la IA en català?")
+    _set_body(message, "reminder", votes=votes, link=link, unsubscribe_link=unsubscribe_link)
+    message["List-Unsubscribe"] = f"<{unsubscribe_link}>"
+    return message

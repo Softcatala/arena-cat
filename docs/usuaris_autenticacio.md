@@ -392,3 +392,49 @@ La cookie de sessió que estableix el login té els atributs següents:
 - **Secrets:** `hmac_secret_key`, `session_secret` i `email_hash_pepper` han de ser valors
   forts i secrets; canviar-los invalida, respectivament, els tokens signats, les sessions
   actives i la correspondència d'`email_hash`.
+
+## Recordatoris voluntaris
+
+Els recordatoris estan desactivats per defecte, també als comptes existents.
+La casella de **Recordatoris** (`/reminders`) permet activar-los o desactivar-los
+amb **Desa**. Als múltiples de deu vots històrics es mostra una invitació, com a màxim cada
+trenta dies, només si els recordatoris no estan activats. La data es desa al
+compte per compartir el límit entre dispositius i recàrregues. El botó **Ara no**
+amaga la invitació sense activar els correus.
+Activar-los registra el consentiment i renova el token de baixa; el consentiment
+del registre no subscriu als correus de participació.
+
+Només s'envia a comptes actius, verificats i acreditats, amb almenys un vot i
+comparacions actives pendents. Cal que hagin passat set dies, en hora local,
+des del més recent entre l'últim vot, el consentiment i l'últim recordatori.
+Després de tres correus sense vots nous, es pausen fins que l'usuari torna a votar.
+
+Cada correu inclou el total històric de vots i enllaços a l'avaluació, les
+preferències i la baixa. La baixa funciona sense sessió, amb un token aleatori
+i un botó de confirmació que evita baixes provocades pels escàners de correu.
+L'exportació personal inclou l'activació, el consentiment, l'últim enviament i
+el comptador i la data de l’última invitació. Donar de baixa el compte elimina aquestes dades i el token.
+
+- `GET /api/auth/reminders`: amb sessió, retorna `{"enabled":false}` o `{"enabled":true}`.
+- `PUT /api/auth/reminders`: amb sessió, desa el mateix format.
+- `POST /api/auth/reminders/invitation`: amb sessió, reserva la invitació i retorna `{"show":true}` o `{"show":false}`.
+- `POST /api/auth/reminders/unsubscribe`: sense sessió, rep `{"token":"…"}` i
+  retorna `{"status":"unsubscribed"}`, també per a tokens desconeguts.
+
+### Enviament setmanal amb Docker Compose
+
+El servei `reminders` reutilitza la imatge i la configuració PostgreSQL i SMTP
+del backend. S'inicia amb `docker compose up` i envia cada dilluns a les 10 h,
+en el fus `Europe/Madrid`. No cal un cron al servidor. El procés espera entre
+enviaments i s'atura amb SIGTERM; els logs es consulten amb `docker compose logs reminders`.
+En producció, el Compose ha d'incloure aquest servei amb la mateixa imatge del
+backend i la comanda `uv run python -u -m app.services.reminder_service --schedule`.
+Per a un enviament manual, executeu `docker compose exec -T reminders uv run python -m app.services.reminder_service`.
+
+Si el contenidor estava aturat a l'hora programada, espera la setmana següent.
+Sense SMTP configurat, omet l'enviament i deixa un avís. Els errors SMTP no
+consumeixen recordatoris. Els bloquejos de fila eviten enviaments simultanis,
+però una caiguda entre l'acceptació SMTP i el commit pot provocar un duplicat.
+Cada intent d'enviament registra a nivell INFO el correu destinatari i el resultat
+SMTP (`acceptat` o `fallit`). L'acceptació SMTP no acredita el lliurament a la bústia. La pàgina Activitat compta els comptes amb `reminder_sent_at` dins del dia
+seleccionat, sense historial separat dels enviaments anteriors.

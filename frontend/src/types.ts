@@ -94,8 +94,13 @@ export interface Activity {
   date: string;
   updated_at: string;
   registered_users: number;
+  total_registered_users: number;
+  total_voters: number;
+  total_votes: number;
   verification_emails: number;
   password_reset_emails: number;
+  reminder_emails: number;
+  reminder_subscribers: number;
   qualified_users: number;
   failed_users: number;
   voters: number;
