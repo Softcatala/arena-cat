@@ -85,7 +85,11 @@ def test_activity_counts_local_day_and_unique_people(client, session, create_use
 def test_activity_empty_day_and_invalid_date(client, logged_in_user):
     logged_in_user("activity@example.com")
     data = client.get("/api/activity?date=2000-01-01").json()
-    assert all(value == 0 for key, value in data.items() if key not in {"date", "updated_at"})
+    assert all(
+        value == 0
+        for key, value in data.items()
+        if key not in {"date", "updated_at", "total_registered_users"}
+    )
     assert client.get("/api/activity?date=invalid").status_code == 422
 
 
@@ -98,3 +102,32 @@ def test_activity_email_counts_follow_latest_user_timestamp(client, session, log
     session.commit()
     assert client.get("/api/activity?date=2026-10-05").json()["verification_emails"] == 0
     assert client.get("/api/activity?date=2026-10-06").json()["verification_emails"] == 1
+
+
+def test_activity_counts_current_reminder_subscribers(client, session, logged_in_user, create_user):
+    from app.services.reminder_service import set_preferences
+
+    user = logged_in_user("subscriber@example.com")
+    other = create_user("disabled@example.com")
+    set_preferences(session, user, True)
+    for day in ("2000-01-01", "2026-10-06"):
+        assert client.get(f"/api/activity?date={day}").json()["reminder_subscribers"] == 1
+    set_preferences(session, other, True)
+    assert client.get("/api/activity").json()["reminder_subscribers"] == 2
+    set_preferences(session, user, False)
+    assert client.get("/api/activity").json()["reminder_subscribers"] == 1
+    other.deleted_at = datetime.now(UTC)
+    session.commit()
+    assert client.get("/api/activity").json()["reminder_subscribers"] == 0
+
+
+def test_activity_counts_total_registered_users_independently_of_date(
+    client, session, logged_in_user, create_user
+):
+    logged_in_user("global@example.com")
+    user = create_user("second-global@example.com")
+    for day in ("2000-01-01", "2026-10-06"):
+        assert client.get(f"/api/activity?date={day}").json()["total_registered_users"] == 2
+    user.deleted_at = datetime.now(UTC)
+    session.commit()
+    assert client.get("/api/activity").json()["total_registered_users"] == 1

@@ -113,8 +113,8 @@ amb `docker compose build api` o `docker build -f backend/Dockerfile .`.
 ### `GET /api/activity`
 
 Requereix sessió iniciada. Accepta `date=YYYY-MM-DD`; sense data, consulta avui.
-Retorna `date`, `updated_at`, `registered_users`, `verification_emails`,
-`password_reset_emails`, `reminder_emails`, `qualified_users`, `failed_users`, `voters` i `votes`.
+Retorna `date`, `updated_at`, `registered_users`, `total_registered_users`, `verification_emails`,
+`password_reset_emails`, `reminder_emails`, `reminder_subscribers`, `qualified_users`, `failed_users`, `voters` i `votes`.
 Els recomptes provenen exclusivament de PostgreSQL; els correus es compten amb
 les dates de l’últim enviament desades al compte d’usuari. Les definicions, el fus horari
 i els límits de l'historial són a [activitat diària](../docs/sistema.md#activitat-diària).

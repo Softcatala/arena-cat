@@ -38,6 +38,14 @@ def get_activity(
     counts = (
         db.execute(
             select(
+                select(func.count(User.id))
+                .where(User.deleted_at.is_(None))
+                .scalar_subquery()
+                .label("total_registered_users"),
+                select(func.count(User.id))
+                .where(User.reminder_enabled.is_(True), User.deleted_at.is_(None))
+                .scalar_subquery()
+                .label("reminder_subscribers"),
                 count(User.id, User.created_at).label("registered_users"),
                 count(User.id, User.qualified_at).label("qualified_users"),
                 count(

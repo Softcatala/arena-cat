@@ -31,6 +31,36 @@ export default function ActivityView() {
       <Link to="/" className="text-sm text-brand-600 hover:underline">
         Torna a l'inici
       </Link>
+      <section aria-labelledby="global-counters" className="space-y-4">
+        <div>
+          <h2 id="global-counters" className="text-2xl font-bold">
+            Comptadors globals
+          </h2>
+          <p className="mt-2 text-slate-600">
+            Totals actuals de comptes que no s’han donat de baixa, independentment de la data
+            seleccionada.
+          </p>
+        </div>
+        {activity ? (
+          <dl className="grid gap-4 sm:grid-cols-2">
+            {[
+              ["Usuaris registrats", activity.total_registered_users],
+              ["Usuaris amb recordatoris activats", activity.reminder_subscribers],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg border border-slate-200 bg-white p-5">
+                <dt className="font-medium text-slate-600">{label}</dt>
+                <dd className="mt-2 text-3xl font-bold">{value.toLocaleString("ca-ES")}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="text-slate-500">
+            {error
+              ? "No s’han pogut carregar els comptadors globals."
+              : "Carregant comptadors globals…"}
+          </p>
+        )}
+      </section>
       <div>
         <h2 className="text-2xl font-bold">Activitat</h2>
         <p className="mt-2 text-slate-600">
@@ -104,7 +134,7 @@ export default function ActivityView() {
         </>
       )}
       <p className="text-sm text-slate-500">
-        Els recomptes d'usuaris i votants compten cada persona una vegada. Pot haver suspès i
+        Els recomptes d’usuaris i votants compten cada persona una vegada. Pot haver suspès i
         aprovat el mateix dia; qui encara no ha fet el test no compta com a suspès. Els vots
         inclouen els empats i «cap de les dues». Els correus compten l’última data desada per compte
         i tipus; nous enviaments poden modificar els recomptes de dies anteriors. Les dates de

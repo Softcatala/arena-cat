@@ -188,12 +188,18 @@ plataforma, amb avui seleccionat per defecte, selector de data, botó
 d'actualització i hora de consulta. El dia va de mitjanit a mitjanit en el fus
 `Europe/Madrid`, inclosos els canvis d'horari d'estiu.
 
+La secció **Comptadors globals**, situada abans d’Activitat, mostra el total actual
+de comptes que no s’han donat de baixa i el total amb recordatoris activats.
+Aquests dos recomptes són independents de la data seleccionada.
+
 Tots els recomptes s'obtenen exclusivament de PostgreSQL:
 
 | Indicador | Origen i definició |
 |---|---|
-| Usuaris registrats | Comptes amb `users.created_at` dins del dia |
+| Usuaris registrats (global) | Comptes amb `users.deleted_at` nul |
+| Usuaris registrats (diari) | Comptes amb `users.created_at` dins del dia |
 | Correus enviats de registre | `users.verification_sent_at` i `users.password_reset_sent_at` dins del dia |
+| Usuaris amb recordatoris activats | Total actual de comptes actius amb `users.reminder_enabled`, independent de la data seleccionada |
 | Correus de recordatori enviats | `users.reminder_sent_at` dins del dia |
 | Usuaris que han superat el test | Comptes amb `users.qualified_at` dins del dia |
 | Usuaris amb prova suspesa | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |

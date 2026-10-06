@@ -75,9 +75,11 @@ class ActivityResponse(BaseModel):
     date: date
     updated_at: datetime
     registered_users: int
+    total_registered_users: int
     verification_emails: int
     password_reset_emails: int
     reminder_emails: int
+    reminder_subscribers: int
     qualified_users: int
     failed_users: int
     voters: int
