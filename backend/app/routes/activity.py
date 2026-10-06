@@ -46,6 +46,8 @@ def get_activity(
                 .where(User.reminder_enabled.is_(True), User.deleted_at.is_(None))
                 .scalar_subquery()
                 .label("reminder_subscribers"),
+                select(func.count(distinct(Vote.user_id))).scalar_subquery().label("total_voters"),
+                select(func.count(Vote.id)).scalar_subquery().label("total_votes"),
                 count(User.id, User.created_at).label("registered_users"),
                 count(User.id, User.qualified_at).label("qualified_users"),
                 count(

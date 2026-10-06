@@ -183,19 +183,23 @@ de seguretat es detallen a [gestió i autenticació d'usuaris](usuaris_autentica
 ## Activitat diària
 
 La pàgina **Activitat** (`/activitat`) i `GET /api/activity` requereixen sessió
-iniciada, sense exigir haver superat la prova. Mostren l'activitat de tota la
+iniciada, sense exigir haver superat la prova. La pàgina és accessible directament
+per la URL i no apareix al menú. Mostren l'activitat de tota la
 plataforma, amb avui seleccionat per defecte, selector de data, botó
 d'actualització i hora de consulta. El dia va de mitjanit a mitjanit en el fus
 `Europe/Madrid`, inclosos els canvis d'horari d'estiu.
 
 La secció **Comptadors globals**, situada abans d’Activitat, mostra el total actual
-de comptes que no s’han donat de baixa i el total amb recordatoris activats.
-Aquests dos recomptes són independents de la data seleccionada.
+de comptes que no s’han donat de baixa, el total amb recordatoris activats,
+els usuaris diferents que han votat i tots els vots acumulats. Aquests recomptes
+són independents de la data seleccionada.
 
 Tots els recomptes s'obtenen exclusivament de PostgreSQL:
 
 | Indicador | Origen i definició |
 |---|---|
+| Usuaris que han votat (global) | Usuaris diferents amb algun vot de qualsevol data; s’exclouen els vots sense `user_id` i es conserven els comptes anonimitzats |
+| Vots totals (global) | Tots els vots, inclosos empats i «cap de les dues», de totes les versions i dates |
 | Usuaris registrats (global) | Comptes amb `users.deleted_at` nul |
 | Usuaris registrats (diari) | Comptes amb `users.created_at` dins del dia |
 | Correus enviats de registre | `users.verification_sent_at` i `users.password_reset_sent_at` dins del dia |

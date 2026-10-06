@@ -102,9 +102,6 @@ export default function App() {
               <Link to="/reminders" className="text-sm text-brand-600 hover:underline">
                 Recordatoris
               </Link>
-              <Link to="/activitat" className="text-sm text-brand-600 hover:underline">
-                Activitat
-              </Link>
               <span className="hidden text-sm text-slate-500 sm:inline">{session.email}</span>
               <button
                 type="button"

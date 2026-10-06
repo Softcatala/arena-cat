@@ -37,8 +37,8 @@ export default function ActivityView() {
             Comptadors globals
           </h2>
           <p className="mt-2 text-slate-600">
-            Totals actuals de comptes que no s’han donat de baixa, independentment de la data
-            seleccionada.
+            Totals de tota la plataforma, independentment de la data seleccionada. Els comptes
+            registrats i subscrits exclouen les baixes.
           </p>
         </div>
         {activity ? (
@@ -46,6 +46,8 @@ export default function ActivityView() {
             {[
               ["Usuaris registrats", activity.total_registered_users],
               ["Usuaris amb recordatoris activats", activity.reminder_subscribers],
+              ["Usuaris que han votat", activity.total_voters],
+              ["Vots totals", activity.total_votes],
             ].map(([label, value]) => (
               <div key={label} className="rounded-lg border border-slate-200 bg-white p-5">
                 <dt className="font-medium text-slate-600">{label}</dt>

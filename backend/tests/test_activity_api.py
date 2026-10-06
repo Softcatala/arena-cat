@@ -80,6 +80,12 @@ def test_activity_counts_local_day_and_unique_people(client, session, create_use
     assert data["votes"] == data["verification_emails"] == 2
     assert data["password_reset_emails"] == 1
     assert data["reminder_emails"] == 2
+    assert data["total_voters"] == 1
+    assert data["total_votes"] == 4
+    other_day = client.get("/api/activity?date=2000-01-01").json()
+    assert other_day["total_voters"] == 1
+    assert other_day["total_votes"] == 4
+    assert other_day["votes"] == 0
 
 
 def test_activity_empty_day_and_invalid_date(client, logged_in_user):
@@ -88,7 +94,8 @@ def test_activity_empty_day_and_invalid_date(client, logged_in_user):
     assert all(
         value == 0
         for key, value in data.items()
-        if key not in {"date", "updated_at", "total_registered_users"}
+        if key
+        not in {"date", "updated_at", "total_registered_users", "total_voters", "total_votes"}
     )
     assert client.get("/api/activity?date=invalid").status_code == 422
 
