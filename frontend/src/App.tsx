@@ -97,45 +97,50 @@ export default function App() {
             <h1 className="text-lg font-bold text-brand-600">Arena Cat</h1>
             <p className="text-sm text-slate-500">Avaluació humana de models d'IA en català</p>
           </div>
-          {session?.authenticated && (
-            <div className="flex items-center gap-2">
-              <Link to="/reminders" className="text-sm text-brand-600 hover:underline">
-                Recordatoris
-              </Link>
-              <span className="hidden text-sm text-slate-500 sm:inline">{session.email}</span>
-              <button
-                type="button"
-                onClick={() => setShowDeleteAccount(true)}
-                title="Dona de baixa el compte"
-                aria-label="Dona de baixa el compte"
-                className="rounded-md p-2 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.75}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                  aria-hidden="true"
+          <div className="flex items-center gap-2">
+            <Link to="/ranking" className="text-sm text-brand-600 hover:underline">
+              Rànquing
+            </Link>
+            {session?.authenticated && (
+              <>
+                <Link to="/reminders" className="text-sm text-brand-600 hover:underline">
+                  Recordatoris
+                </Link>
+                <span className="hidden text-sm text-slate-500 sm:inline">{session.email}</span>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteAccount(true)}
+                  title="Dona de baixa el compte"
+                  aria-label="Dona de baixa el compte"
+                  className="rounded-md p-2 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
                 >
-                  <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />
-                </svg>
-              </button>
-              {/* Icona sola: `title` per al ratolí i `aria-label` per al lector de
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.75}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />
+                  </svg>
+                </button>
+                {/* Icona sola: `title` per al ratolí i `aria-label` per al lector de
                   pantalla, que altrament només trobaria un botó sense nom. */}
-              <button
-                type="button"
-                onClick={logout}
-                title="Tanca la sessió"
-                aria-label="Tanca la sessió"
-                className="rounded-md p-2 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
-              >
-                <LogoutIcon />
-              </button>
-            </div>
-          )}
+                <button
+                  type="button"
+                  onClick={logout}
+                  title="Tanca la sessió"
+                  aria-label="Tanca la sessió"
+                  className="rounded-md p-2 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+                >
+                  <LogoutIcon />
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -208,6 +213,20 @@ export default function App() {
               element={<ReminderView key="unsubscribe" unsubscribe />}
             />
             <Route
+              path="/ranking"
+              element={
+                categories ? (
+                  <RankingView
+                    categories={categories}
+                    authenticated={session.authenticated}
+                    onEvaluate={() => navigate(session.authenticated ? "/" : `/login${debugQuery}`)}
+                  />
+                ) : (
+                  <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />
+                )
+              }
+            />
+            <Route
               path="/activitat"
               element={session.authenticated ? <ActivityView /> : <Navigate to="/login" replace />}
             />
@@ -259,7 +278,7 @@ export default function App() {
                 ) : categories ? (
                   <RankingView
                     categories={categories}
-                    onLogin={() => navigate(`/login${debugQuery}`)}
+                    onEvaluate={() => navigate(`/login${debugQuery}`)}
                   />
                 ) : (
                   <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />

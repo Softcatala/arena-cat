@@ -19,10 +19,12 @@ function formatScore(item: RankedModel): string {
 
 export default function RankingView({
   categories,
-  onLogin,
+  onEvaluate,
+  authenticated = false,
 }: {
   categories: Category[];
-  onLogin: () => void;
+  onEvaluate: () => void;
+  authenticated?: boolean;
 }) {
   const [category, setCategory] = useState<CategoryFilter>("");
   const [ranking, setRanking] = useState<Ranking | null>(null);
@@ -188,10 +190,10 @@ export default function RankingView({
             </p>
             <button
               type="button"
-              onClick={onLogin}
+              onClick={onEvaluate}
               className="rounded-md bg-brand-500 px-5 py-2 font-medium text-white hover:bg-brand-600"
             >
-              Entra o crea un compte per avaluar
+              {authenticated ? "Avalua" : "Entra o crea un compte per avaluar"}
             </button>
           </section>
         </>

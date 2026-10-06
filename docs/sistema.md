@@ -143,7 +143,8 @@ següent, també després d'una recàrrega. Canviar el guanyador d'un vot ja des
 continua retornant un conflicte i conserva el vot original.
 En tancar la sessió es descarta la tasca. El frontend també ofereix
 verificació del correu, recuperació de contrasenya, un tutorial i una pàgina
-explicativa del projecte. La portada sense sessió mostra el rànquing públic.
+explicativa del projecte. La portada sense sessió mostra el rànquing públic. La ruta `/ranking`, accessible
+des de la capçalera, permet consultar-lo també amb sessió iniciada.
 
 Els detalls de les pantalles i del comportament del client són al
 [README del frontend](../frontend/README.md).
