@@ -22,6 +22,9 @@ fallits i començar a avaluar quan se supera.
 Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
+El **Rànquing** (`/ranking`) és accessible des de la capçalera amb sessió o sense.
+Amb sessió, el botó **Avalua** permet tornar a l’avaluació.
+
 La pàgina **Activitat** (`/activitat`) requereix sessió iniciada i s’hi accedeix
 directament per la URL, sense enllaç al menú. Mostra els
 [comptadors globals i recomptes diaris](../docs/sistema.md#activitat-diària).
