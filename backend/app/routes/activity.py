@@ -51,6 +51,9 @@ def get_activity(
                     EmailDelivery.created_at,
                     EmailDelivery.kind == "password_reset",
                 ).label("password_reset_emails"),
+                count(
+                    EmailDelivery.id, EmailDelivery.created_at, EmailDelivery.kind == "reminder"
+                ).label("reminder_emails"),
                 count(distinct(Vote.user_id), Vote.created_at).label("voters"),
                 count(Vote.id, Vote.created_at).label("votes"),
             )

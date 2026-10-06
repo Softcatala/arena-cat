@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_sessionmaker
-from app.models import User, Vote
+from app.models import EmailDelivery, User, Vote
 from app.services import email_service
 from app.services.task_service import get_task_progress_for_user
 
@@ -78,10 +78,7 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
     """Envia els recordatoris pendents amb bloqueig per evitar execucions simultànies."""
     now = now or datetime.now(UTC)
     sent = 0
-    test_email = get_settings().reminder_test_email.strip().lower()
     recipients = select(User).where(User.reminder_enabled.is_(True))
-    if test_email:
-        recipients = recipients.where(func.lower(User.email) == test_email)
     ids = db.scalars(recipients.with_only_columns(User.id)).all()
     for user_id in ids:
         user = db.scalar(
@@ -113,15 +110,10 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
         )
         baseline = max(last_vote, user.reminder_consent_at, user.reminder_sent_at or last_vote)
         too_recent = (
-            not test_email
-            and now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
+            now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
             < REMINDER_INTERVAL
         )
-        if (
-            too_recent
-            or (not test_email and count >= 3)
-            or not get_task_progress_for_user(user, db).remaining
-        ):
+        if too_recent or count >= 3 or not get_task_progress_for_user(user, db).remaining:
             db.rollback()
             continue
         base = get_settings().frontend_base_url.rstrip("/")
@@ -134,9 +126,9 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
             accepted = False
         logger.info("Recordatori a %s: %s", user.email, "acceptat" if accepted else "fallit")
         if accepted:
+            db.add(EmailDelivery(kind="reminder", created_at=now))
             user.reminder_sent_at = now
-            if not test_email:
-                user.reminder_count = count + 1
+            user.reminder_count = count + 1
             db.commit()
             sent += 1
         else:
@@ -145,12 +137,7 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
 
 
 def next_run(now: datetime) -> datetime:
-    """Calcula el proper enviament setmanal o cada mitja hora en mode de prova."""
-    if get_settings().reminder_test_email.strip():
-        current = now.astimezone(UTC)
-        return current.replace(
-            minute=(current.minute // 30) * 30, second=0, microsecond=0
-        ) + timedelta(minutes=30)
+    """Calcula el proper enviament setmanal."""
     local = now.astimezone(REMINDER_TIMEZONE)
     scheduled = local.replace(hour=10, minute=0, second=0, microsecond=0)
     scheduled += timedelta(days=(7 - local.weekday()) % 7)

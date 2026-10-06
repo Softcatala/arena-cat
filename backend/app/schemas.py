@@ -77,6 +77,7 @@ class ActivityResponse(BaseModel):
     registered_users: int
     verification_emails: int
     password_reset_emails: int
+    reminder_emails: int
     qualified_users: int
     failed_users: int
     voters: int

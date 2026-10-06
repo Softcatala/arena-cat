@@ -195,7 +195,8 @@ class EmailDelivery(Base):
     __tablename__ = "email_deliveries"
     __table_args__ = (
         CheckConstraint(
-            "kind IN ('verification', 'password_reset')", name="ck_email_deliveries_kind"
+            "kind IN ('verification', 'password_reset', 'reminder')",
+            name="ck_email_deliveries_kind",
         ),
     )
 

@@ -96,6 +96,7 @@ export interface Activity {
   registered_users: number;
   verification_emails: number;
   password_reset_emails: number;
+  reminder_emails: number;
   qualified_users: number;
   failed_users: number;
   voters: number;

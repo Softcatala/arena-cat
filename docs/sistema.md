@@ -193,9 +193,10 @@ Tots els recomptes s'obtenen exclusivament de PostgreSQL:
 | Indicador | Origen i definició |
 |---|---|
 | Usuaris registrats | Comptes amb `users.created_at` dins del dia |
-| Correus enviats | Files d'`email_deliveries`, separades entre verificació i recuperació de contrasenya |
+| Correus enviats de registre | Files d'`email_deliveries` de verificació i recuperació de contrasenya |
+| Correus de recordatori enviats | Files d'`email_deliveries` de tipus `reminder` |
 | Usuaris que han superat el test | Comptes amb `users.qualified_at` dins del dia |
-| Usuaris amb intents suspesos | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |
+| Usuaris amb prova suspesa | Usuaris diferents amb algun registre a `qualification_failures` dins del dia |
 | Votants únics | Usuaris diferents amb algun vot durant el dia; s'exclouen els vots sense `user_id` |
 | Vots emesos | Vots amb `votes.created_at` dins del dia, inclosos empats i «cap de les dues», de totes les versions |
 
@@ -205,6 +206,9 @@ corresponen als esdeveniments del dia, encara que el compte s'hagi creat abans.
 Les baixes conserven el registre del compte, els vots i els suspensos vinculats a
 l'identificador anonimitzat, però buiden `qualified_at`: el recompte d'aprovats
 pot disminuir després d'una baixa.
+
+Els recordatoris es compten des de l’activació del seu registre; els enviaments
+anteriors no es poden reconstruir.
 
 Els correus es registren després que SMTP n'accepti l'enviament; això no acredita
 el lliurament a la bústia. No es desen destinataris ni continguts. Els errors SMTP
@@ -295,4 +299,4 @@ frontend. Les comandes locals són als README del
 
 ## Recordatoris opcionals
 
-El servei `reminders` de Docker Compose activa per defecte la [prova cada 30 minuts](usuaris_autenticacio.md#prova-cada-30-minuts-dels-recordatoris). Amb `REMINDER_TEST_EMAIL` buit, programa l’enviament cada dilluns a les 10 h. Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](usuaris_autenticacio.md#recordatoris-voluntaris).
+El servei `reminders` de Docker Compose programa l’enviament cada dilluns a les 10 h. Les preferències, els criteris d’enviament i l’execució programada es descriuen als [recordatoris per correu](usuaris_autenticacio.md#recordatoris-voluntaris).

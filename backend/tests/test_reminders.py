@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.models import Category, Prompt, Response, Vote, Winner
+from app.models import Category, EmailDelivery, Prompt, Response, Vote, Winner
 from app.services import reminder_service
 
 
@@ -66,6 +66,7 @@ def test_send_cooldown_pause_and_resume(session, create_user, monkeypatch):
     session.commit()
     assert reminder_service.send_due_reminders(session, now + timedelta(days=30)) == 1
     assert "List-Unsubscribe" in messages[0]
+    assert session.query(EmailDelivery).filter_by(kind="reminder").count() == 4
 
 
 def test_no_votes_or_unverified_users_are_not_sent(session, create_user, monkeypatch):
@@ -93,6 +94,7 @@ def test_smtp_failure_does_not_consume_reminder(session, create_user, monkeypatc
     assert reminder_service.send_due_reminders(session, now) == 0
     assert user.reminder_sent_at is None
     assert user.reminder_count == 0
+    assert session.query(EmailDelivery).filter_by(kind="reminder").count() == 0
 
 
 def test_weekly_and_exhausted_tasks(session, create_user, monkeypatch):
@@ -192,18 +194,12 @@ def test_invitation_requires_session(client):
     assert client.post("/api/auth/reminders/invitation").status_code == 401
 
 
-@pytest.mark.parametrize("test_email", ["", "jmas@softcatala.org", "other@example.cat"])
-def test_invitation_keeps_monthly_limit_in_test_mode(session, create_user, monkeypatch, test_email):
+def test_invitation_keeps_monthly_limit(session, create_user):
     from itertools import combinations
 
     now = datetime.now(UTC)
     user = create_user("jmas@softcatala.org")
     interval = timedelta(days=30)
-    if test_email:
-        from app.config import get_settings
-
-        monkeypatch.setenv("REMINDER_TEST_EMAIL", test_email)
-        get_settings.cache_clear()
     seed_vote(session, user, now)
     prompt = session.query(Prompt).first()
     session.add_all(
@@ -259,76 +255,7 @@ def test_only_voted_comparison_does_not_send_or_consume_reminder(session, create
     assert messages == []
     assert user.reminder_sent_at is None
     assert user.reminder_count == 0
-
-
-def test_half_hourly_test_mode_only_sends_to_allowed_address(session, create_user, monkeypatch):
-    from app.config import get_settings
-
-    now = datetime.now(UTC)
-    target = create_user("jmas@softcatala.org")
-    other = create_user("other@example.cat")
-    reminder_service.set_preferences(session, target, True, now)
-    reminder_service.set_preferences(session, other, True, now - timedelta(days=9))
-    vote = seed_vote(session, target, now)
-    vote.created_at = now
-    vote_other = Vote(
-        user_id=other.id,
-        prompt_id=vote.prompt_id,
-        response_a_id=vote.response_a_id,
-        response_b_id=vote.response_b_id,
-        winner=Winner.a,
-        created_at=now - timedelta(days=8),
-    )
-    session.add(vote_other)
-    session.commit()
-    monkeypatch.setenv("REMINDER_TEST_EMAIL", "jmas@softcatala.org")
-    get_settings.cache_clear()
-    messages = []
-    monkeypatch.setattr(
-        reminder_service.email_service, "send_email", lambda m: messages.append(m) or True
-    )
-    assert reminder_service.send_due_reminders(session, now) == 1
-    assert reminder_service.send_due_reminders(session, now + timedelta(minutes=29)) == 1
-    for minutes in (30, 60, 90, 120):
-        assert reminder_service.send_due_reminders(session, now + timedelta(minutes=minutes)) == 1
-    assert all(m["To"] == "jmas@softcatala.org" for m in messages)
-    assert target.reminder_count == 0
-    assert other.reminder_sent_at is None
-    target.reminder_enabled = False
-    session.commit()
-    assert reminder_service.send_due_reminders(session, now + timedelta(hours=5)) == 0
-
-
-def test_half_hourly_test_mode_still_requires_pending_tasks(session, create_user, monkeypatch):
-    from app.config import get_settings
-
-    now = datetime.now(UTC)
-    user = create_user("jmas@softcatala.org")
-    reminder_service.set_preferences(session, user, True, now)
-    seed_vote(session, user, now)
-    session.query(Response).filter(Response.model == "2").delete()
-    session.commit()
-    monkeypatch.setenv("REMINDER_TEST_EMAIL", "jmas@softcatala.org")
-    get_settings.cache_clear()
-    messages = []
-    monkeypatch.setattr(
-        reminder_service.email_service, "send_email", lambda m: messages.append(m) or True
-    )
-    assert reminder_service.send_due_reminders(session, now) == 0
-    assert messages == []
-
-
-def test_test_mode_schedules_next_half_hour(monkeypatch):
-    from app.config import get_settings
-
-    monkeypatch.setenv("REMINDER_TEST_EMAIL", "jmas@softcatala.org")
-    get_settings.cache_clear()
-    assert reminder_service.next_run(datetime(2026, 10, 6, 15, 40, tzinfo=UTC)) == datetime(
-        2026, 10, 6, 16, tzinfo=UTC
-    )
-    assert reminder_service.next_run(datetime(2026, 10, 6, 16, tzinfo=UTC)) == datetime(
-        2026, 10, 6, 16, 30, tzinfo=UTC
-    )
+    assert session.query(EmailDelivery).filter_by(kind="reminder").count() == 0
 
 
 @pytest.mark.parametrize("result", [True, False, OSError("SMTP unavailable")])

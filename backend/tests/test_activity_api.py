@@ -21,7 +21,9 @@ def test_activity_defaults_to_today(client, logged_in_user):
     assert data["registered_users"] == 1
     assert data["qualified_users"] == 1
     assert data["failed_users"] == data["votes"] == data["voters"] == 0
-    assert data["verification_emails"] == data["password_reset_emails"] == 0
+    assert (
+        data["verification_emails"] == data["password_reset_emails"] == data["reminder_emails"] == 0
+    )
     assert datetime.fromisoformat(data["updated_at"]).tzinfo is not None
 
 
@@ -46,6 +48,7 @@ def test_activity_counts_local_day_and_unique_people(client, session, create_use
         [start - timedelta(microseconds=1), start, end - timedelta(microseconds=1), end]
     ):
         session.add(EmailDelivery(kind="verification", created_at=instant))
+        session.add(EmailDelivery(kind="reminder", created_at=instant))
         session.add(QualificationFailure(user_id=first.id, created_at=instant))
         session.add(
             Vote(
@@ -69,6 +72,7 @@ def test_activity_counts_local_day_and_unique_people(client, session, create_use
     assert data["failed_users"] == data["voters"] == 1
     assert data["votes"] == data["verification_emails"] == 2
     assert data["password_reset_emails"] == 1
+    assert data["reminder_emails"] == 2
 
 
 def test_activity_empty_day_and_invalid_date(client, logged_in_user):

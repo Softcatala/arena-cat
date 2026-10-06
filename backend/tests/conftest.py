@@ -30,7 +30,6 @@ DEFAULT_PASSWORD = "ContrasenyaSegura123!"
 def _no_real_smtp(monkeypatch):
     """Impedeix que cap test enviï correu de veritat, encara que el `.env` local tingui SMTP."""
     monkeypatch.setenv("SMTP_HOST", "")
-    monkeypatch.setenv("REMINDER_TEST_EMAIL", "")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

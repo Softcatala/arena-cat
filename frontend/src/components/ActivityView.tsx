@@ -76,9 +76,13 @@ export default function ActivityView() {
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Usuaris registrats", activity.registered_users],
-              ["Correus enviats", activity.verification_emails + activity.password_reset_emails],
+              [
+                "Correus enviats de registre",
+                activity.verification_emails + activity.password_reset_emails,
+              ],
+              ["Correus de recordatori enviats", activity.reminder_emails],
               ["Usuaris que han superat el test", activity.qualified_users],
-              ["Usuaris amb intents suspesos", activity.failed_users],
+              ["Usuaris amb prova suspesa", activity.failed_users],
               ["Votants únics", activity.voters],
               ["Vots emesos", activity.votes],
             ].map(([label, value]) => (
@@ -89,8 +93,9 @@ export default function ActivityView() {
             ))}
           </dl>
           <p className="text-sm text-slate-500">
-            Correus acceptats pel servidor: {activity.verification_emails} de verificació i{" "}
-            {activity.password_reset_emails} de recuperació de contrasenya.
+            Correus acceptats pel servidor: {activity.verification_emails} de verificació,{" "}
+            {activity.password_reset_emails} de recuperació de contrasenya i{" "}
+            {activity.reminder_emails} de recordatori.
           </p>
           <p className="text-sm text-slate-500">
             Última actualització:{" "}

@@ -123,7 +123,7 @@ erDiagram
 | users | UNIQUE | — | `(email_hash)` |
 | qualification_failures | FK | — | `user_id → users.id` `ON DELETE CASCADE` |
 | qualification_failures | INDEX | `ix_qualification_failures_created_at` | `created_at` |
-| email_deliveries | CHECK | `ck_email_deliveries_kind` | `kind IN ('verification', 'password_reset')` |
+| email_deliveries | CHECK | `ck_email_deliveries_kind` | `kind IN ('verification', 'password_reset', 'reminder')` |
 | email_deliveries | INDEX | `ix_email_deliveries_created_at` | `created_at` |
 | users | CHECK | `ck_users_active_have_credentials` | `deleted_at IS NOT NULL OR (email IS NOT NULL AND email_hash IS NOT NULL AND password_hash IS NOT NULL AND consent_at IS NOT NULL)` |
 | sessions | FK | — | `user_id → users.id` |
