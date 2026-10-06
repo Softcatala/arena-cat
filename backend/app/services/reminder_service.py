@@ -61,11 +61,17 @@ def claim_invitation(db: Session, user: User, now: datetime | None = None) -> bo
         select(func.count(Vote.id), func.max(Vote.created_at)).where(Vote.user_id == user.id)
     ).one()
     previous = user.reminder_invited_at
+    test_email = get_settings().reminder_test_email.strip().lower()
+    interval = (
+        timedelta(hours=1)
+        if test_email and user.email and user.email.lower() == test_email
+        else timedelta(days=30)
+    )
     if (
         user.reminder_enabled
         or not count
         or count % 10
-        or (previous is not None and (now - previous < timedelta(days=30) or last_vote <= previous))
+        or (previous is not None and (now - previous < interval or last_vote <= previous))
     ):
         db.rollback()
         return False
@@ -78,11 +84,14 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
     """Envia els recordatoris pendents amb bloqueig per evitar execucions simultànies."""
     now = now or datetime.now(UTC)
     sent = 0
-    ids = db.scalars(select(User.id).where(User.reminder_enabled.is_(True))).all()
+    test_email = get_settings().reminder_test_email.strip().lower()
+    recipients = select(User).where(User.reminder_enabled.is_(True))
+    if test_email:
+        recipients = recipients.where(func.lower(User.email) == test_email)
+    ids = db.scalars(recipients.with_only_columns(User.id)).all()
     for user_id in ids:
         user = db.scalar(
-            select(User)
-            .where(User.id == user_id)
+            recipients.where(User.id == user_id)
             .with_for_update(skip_locked=True)
             .execution_options(populate_existing=True)
         )
@@ -109,10 +118,15 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
             else 0
         )
         baseline = max(last_vote, user.reminder_consent_at, user.reminder_sent_at or last_vote)
-        if (
-            count >= 3
-            or now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
+        too_recent = (
+            user.reminder_sent_at is not None and now - user.reminder_sent_at < timedelta(hours=1)
+            if test_email
+            else now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
             < REMINDER_INTERVAL
+        )
+        if (
+            too_recent
+            or (not test_email and count >= 3)
             or not get_task_progress_for_user(user, db).remaining
         ):
             db.rollback()
@@ -127,7 +141,8 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
             accepted = False
         if accepted:
             user.reminder_sent_at = now
-            user.reminder_count = count + 1
+            if not test_email:
+                user.reminder_count = count + 1
             db.commit()
             sent += 1
         else:
@@ -136,7 +151,9 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
 
 
 def next_run(now: datetime) -> datetime:
-    """Calcula el proper dilluns a les 10 h, conservant l'hora local a l'estiu."""
+    """Calcula el proper enviament setmanal o horari en mode de prova."""
+    if get_settings().reminder_test_email.strip():
+        return now.astimezone(UTC).replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
     local = now.astimezone(REMINDER_TIMEZONE)
     scheduled = local.replace(hour=10, minute=0, second=0, microsecond=0)
     scheduled += timedelta(days=(7 - local.weekday()) % 7)

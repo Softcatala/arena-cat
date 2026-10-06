@@ -2,6 +2,8 @@
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
+
 from app.models import Category, Prompt, Response, Vote, Winner
 from app.services import reminder_service
 
@@ -190,11 +192,26 @@ def test_invitation_requires_session(client):
     assert client.post("/api/auth/reminders/invitation").status_code == 401
 
 
-def test_invitation_every_ten_votes_with_monthly_limit(session, create_user):
+@pytest.mark.parametrize(
+    ("test_email", "interval"),
+    [
+        ("", timedelta(days=30)),
+        ("jmas@softcatala.org", timedelta(hours=1)),
+        ("other@example.cat", timedelta(days=30)),
+    ],
+)
+def test_invitation_every_ten_votes_with_cooldown(
+    session, create_user, monkeypatch, test_email, interval
+):
     from itertools import combinations
 
     now = datetime.now(UTC)
-    user = create_user("invitation@example.cat")
+    user = create_user("jmas@softcatala.org")
+    if test_email:
+        from app.config import get_settings
+
+        monkeypatch.setenv("REMINDER_TEST_EMAIL", test_email)
+        get_settings.cache_clear()
     seed_vote(session, user, now)
     prompt = session.query(Prompt).first()
     session.add_all(
@@ -224,13 +241,15 @@ def test_invitation_every_ten_votes_with_monthly_limit(session, create_user):
     add_votes(9, now)
     assert reminder_service.claim_invitation(session, user, now)
     assert not reminder_service.claim_invitation(session, user, now)
-    assert not reminder_service.claim_invitation(session, user, now + timedelta(days=31))
-    add_votes(10, now + timedelta(days=5))
-    assert not reminder_service.claim_invitation(session, user, now + timedelta(days=5))
-    assert reminder_service.claim_invitation(session, user, now + timedelta(days=30))
-    reminder_service.set_preferences(session, user, True, now + timedelta(days=30))
-    add_votes(10, now + timedelta(days=61))
-    assert not reminder_service.claim_invitation(session, user, now + timedelta(days=61))
+    assert not reminder_service.claim_invitation(session, user, now + interval + timedelta(hours=1))
+    add_votes(10, now + interval / 6)
+    assert not reminder_service.claim_invitation(session, user, now + interval / 6)
+    assert reminder_service.claim_invitation(session, user, now + interval)
+    reminder_service.set_preferences(session, user, True, now + interval)
+    add_votes(10, now + interval * 2 + timedelta(hours=1))
+    assert not reminder_service.claim_invitation(
+        session, user, now + interval * 2 + timedelta(hours=1)
+    )
 
 
 def test_only_voted_comparison_does_not_send_or_consume_reminder(session, create_user, monkeypatch):
@@ -248,3 +267,73 @@ def test_only_voted_comparison_does_not_send_or_consume_reminder(session, create
     assert messages == []
     assert user.reminder_sent_at is None
     assert user.reminder_count == 0
+
+
+def test_hourly_test_mode_only_sends_to_allowed_address(session, create_user, monkeypatch):
+    from app.config import get_settings
+
+    now = datetime.now(UTC)
+    target = create_user("jmas@softcatala.org")
+    other = create_user("other@example.cat")
+    reminder_service.set_preferences(session, target, True, now)
+    reminder_service.set_preferences(session, other, True, now - timedelta(days=9))
+    vote = seed_vote(session, target, now)
+    vote.created_at = now
+    vote_other = Vote(
+        user_id=other.id,
+        prompt_id=vote.prompt_id,
+        response_a_id=vote.response_a_id,
+        response_b_id=vote.response_b_id,
+        winner=Winner.a,
+        created_at=now - timedelta(days=8),
+    )
+    session.add(vote_other)
+    session.commit()
+    monkeypatch.setenv("REMINDER_TEST_EMAIL", "jmas@softcatala.org")
+    get_settings.cache_clear()
+    messages = []
+    monkeypatch.setattr(
+        reminder_service.email_service, "send_email", lambda m: messages.append(m) or True
+    )
+    assert reminder_service.send_due_reminders(session, now) == 1
+    assert reminder_service.send_due_reminders(session, now + timedelta(minutes=59)) == 0
+    for hour in (1, 2, 3, 4):
+        assert reminder_service.send_due_reminders(session, now + timedelta(hours=hour)) == 1
+    assert all(m["To"] == "jmas@softcatala.org" for m in messages)
+    assert target.reminder_count == 0
+    assert other.reminder_sent_at is None
+    target.reminder_enabled = False
+    session.commit()
+    assert reminder_service.send_due_reminders(session, now + timedelta(hours=5)) == 0
+
+
+def test_hourly_test_mode_still_requires_pending_tasks(session, create_user, monkeypatch):
+    from app.config import get_settings
+
+    now = datetime.now(UTC)
+    user = create_user("jmas@softcatala.org")
+    reminder_service.set_preferences(session, user, True, now)
+    seed_vote(session, user, now)
+    session.query(Response).filter(Response.model == "2").delete()
+    session.commit()
+    monkeypatch.setenv("REMINDER_TEST_EMAIL", "jmas@softcatala.org")
+    get_settings.cache_clear()
+    messages = []
+    monkeypatch.setattr(
+        reminder_service.email_service, "send_email", lambda m: messages.append(m) or True
+    )
+    assert reminder_service.send_due_reminders(session, now) == 0
+    assert messages == []
+
+
+def test_test_mode_schedules_next_hour(monkeypatch):
+    from app.config import get_settings
+
+    monkeypatch.setenv("REMINDER_TEST_EMAIL", "jmas@softcatala.org")
+    get_settings.cache_clear()
+    assert reminder_service.next_run(datetime(2026, 10, 6, 15, 40, tzinfo=UTC)) == datetime(
+        2026, 10, 6, 16, tzinfo=UTC
+    )
+    assert reminder_service.next_run(datetime(2026, 10, 6, 16, tzinfo=UTC)) == datetime(
+        2026, 10, 6, 17, tzinfo=UTC
+    )
