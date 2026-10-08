@@ -192,7 +192,7 @@ fitxer `.env` (mai s'ha de versionar):
 ### 4. Login (`login_user`)
 
 1. Es busca l'usuari pel correu normalitzat; si no existeix o està de baixa → HTTP 401
-   (missatge genèric «Email o contrasenya incorrectes» per no revelar l'existència del
+   (missatge genèric «Correu electrònic o contrasenya incorrectes.» per no revelar l'existència del
    compte).
 2. Es verifica la contrasenya amb Argon2id; si falla → HTTP 401 (mateix missatge genèric).
 3. Si la verificació és obligatòria i el correu no està verificat → HTTP 403. Es comprova **després** de la contrasenya:
