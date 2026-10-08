@@ -165,6 +165,18 @@ export default function QualificationView({
             <p className="mt-1 mb-4">
               {result.score} encerts de {result.total}. Calen {result.min_correct} encerts.
             </p>
+            {!result.passed && (
+              <p className="mb-4">
+                També podeu col·laborar amb Softcatalà en altres projectes que requereixen menys
+                coneixements lingüístics, com ara{" "}
+                <a href="https://garbellaveus.softcatala.org/" className="text-brand-700 underline">
+                  GarbellaVeus
+                </a>
+                . Hi escolteu fragments curts d’àudio en català i valoreu si les transcripcions
+                reflecteixen el que s’hi diu. Les vostres valoracions ajuden a millorar la qualitat
+                de les dades per als sistemes de reconeixement de veu en català.
+              </p>
+            )}
             <button
               type="button"
               disabled={busy}

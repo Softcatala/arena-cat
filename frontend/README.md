@@ -18,7 +18,9 @@ Els usuaris sense acreditar accedeixen a `/qualification`: un sol formulari de
 deu preguntes amb tres opcions, dues per categoria i dues generals. Després de
 lliurar-lo, el formulari se substitueix pel total d'encerts i l'estat de superació,
 sense correccions ni desglossament per categoria. Permet repetir els intents
-fallits i començar a avaluar quan se supera.
+fallits i començar a avaluar quan se supera. Si no se supera, també ofereix
+col·laborar a [GarbellaVeus](https://garbellaveus.softcatala.org/), escoltant
+fragments d'àudio en català i valorant les transcripcions.
 Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 

@@ -370,7 +370,7 @@ La cookie de sessió que estableix el login té els atributs següents:
 
 - `HttpOnly` — inaccessible des de JavaScript, mitiga l'exfiltració via XSS.
 - `SameSite` — configurable amb `cookie_samesite` (`lax` per defecte).
-- `max_age` — `session_ttl_hours × 3600`; a `.env.example` són 24 h.
+- `max_age` — `session_ttl_hours × 3600`; a `.env.example` són 168 h (7 dies).
 - `Secure` — depèn de `cookie_secure`; a `.env.example` és `false` per a HTTP local.
 
 > ⚠️ **Producció:** cal establir `cookie_secure=true` perquè la cookie només viatgi per HTTPS.
