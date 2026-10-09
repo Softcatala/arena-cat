@@ -54,13 +54,6 @@ Abans d'executar-la, revisa `config/inferencia/inferencia_config.yaml` i comprov
 Si la resposta no arriba a `min_token_len`, es reintenta amb les mateixes
 instruccions i paràmetres, fins a tres intents en total; després es retorna un error.
 
-La configuració principal exigeix un mínim de 50 tokens. Amb el llindar anterior
-de 25 tokens, Qwen3.8-27B va retornar, per a `correccio_9` de v1, un comentari de
-30 tokens indicant que el text no contenia faltes, en lloc de retornar el passatge.
-El nou mínim rebutja aquesta resposta curta; comprova la longitud, però no garanteix
-que la resposta contingui el text demanat. Les inferències ja desades conserven els
-paràmetres originals i no es regeneren automàticament.
-
 ```bash
 uv run --group inference python scripts/inferencia.py
 ```
