@@ -108,7 +108,9 @@ def resolve_session_user(
         and get_settings().require_email_verification
         and user.email_verified_at is None
     ):
-        raise HTTPException(status_code=403, detail="Cal verificar l'email per continuar")
+        raise HTTPException(
+            status_code=403, detail="Cal verificar el correu electrònic per continuar."
+        )
 
     return user
 
@@ -315,17 +317,17 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
 
     user = db.scalar(select(User).where(User.email == email))
     if user is None or user.deleted_at is not None:
-        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
+        raise HTTPException(status_code=401, detail="Correu electrònic o contrasenya incorrectes.")
 
     verified_hash = user.password_hash
     if not verify_password(payload.password, verified_hash):
-        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
+        raise HTTPException(status_code=401, detail="Correu electrònic o contrasenya incorrectes.")
 
     # Després de la contrasenya: així només el propietari del compte veu que li cal verificar.
     if get_settings().require_email_verification and user.email_verified_at is None:
         raise HTTPException(
             status_code=403,
-            detail="Email no verificat. Verifiqueu el vostre email primer.",
+            detail="El correu electrònic no està verificat. Verifiqueu-lo abans de continuar.",
         )
 
     # Un restabliment de contrasenya pot haver acabat des que s'ha validat: la sessió nova no
@@ -334,7 +336,7 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     # coincideix) o bé espera i, en revocar, ja veu aquesta sessió.
     current_hash = db.scalar(select(User.password_hash).where(User.id == user.id).with_for_update())
     if current_hash != verified_hash:
-        raise HTTPException(status_code=401, detail="Email o contrasenya incorrectes")
+        raise HTTPException(status_code=401, detail="Correu electrònic o contrasenya incorrectes.")
 
     # Crea la sessió
     raw_token = new_session_token()

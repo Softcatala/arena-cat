@@ -2,8 +2,7 @@ min_correct: 8
 questions:
 - id: q1
   category_code: correccio
-  prompt: Corregiu «No sé perquè han ajornat la reunió» per expressar que desconeixem el motiu de
-    l’ajornament.
+  prompt: Quina frase és correcta per expressar que desconeixem el motiu de l’ajornament de la reunió?
   options:
     A: No sé perquè han ajornat la reunió.
     B: No sé per què han ajornat la reunió.
@@ -13,7 +12,7 @@ questions:
     i C omet l’accent.'
 - id: q2
   category_code: correccio
-  prompt: Corregiu «L’universitat ha publicat el calendari provisional» sense canviar-ne el significat.
+  prompt: Quina frase és correcta per indicar que el calendari publicat per la universitat és provisional?
   options:
     A: La universitat ha publicat el calendari definitiu.
     B: L’universitat ha publicat el calendari provisional.
