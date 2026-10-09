@@ -108,7 +108,9 @@ def resolve_session_user(
         and get_settings().require_email_verification
         and user.email_verified_at is None
     ):
-        raise HTTPException(status_code=403, detail="Cal verificar el correu electrònic per continuar.")
+        raise HTTPException(
+            status_code=403, detail="Cal verificar el correu electrònic per continuar."
+        )
 
     return user
 
