@@ -4,15 +4,15 @@
 [Garbellaveus](https://github.com/Softcatala/garbellaveus), amb els colors
 corporatius de Softcatalà.
 
-El favicon i la icona d'Apple són els de [Softcatalà](https://www.softcatala.org/).
+El favicon i la icona d'Apple utilitzen el logotip d'Arena Cat.
 Es desen a `public/` i s'inclouen al desplegament com a fitxers estàtics.
 
 Cobreix el camí complet **inici de sessió → prova de competència → càrrega de tasca → vot**, amb el
 progrés de l'avaluador, l'omissió de tasques i el ressaltat de diferències de la
 categoria «correcció».
 
-Totes les pàgines mostren sota la capçalera un avís de fase de proves amb un
-enllaç de correu per comunicar errades i proposar millores.
+Totes les pàgines mostren sota la capçalera un enllaç al grup de Telegram
+per demanar ajuda, comunicar errades i proposar millores.
 
 Els usuaris sense acreditar accedeixen a `/qualification`: un sol formulari de
 deu preguntes amb tres opcions, dues per categoria i dues generals. Després de
