@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
+import arenaLogo from "./assets/arena-cat-logo.svg";
 import logotip from "./assets/softcatala-logotip.png";
+import AccountMenu from "./components/AccountMenu";
 import ActivityView from "./components/ActivityView";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
 import ForgotPasswordView from "./components/ForgotPasswordView";
@@ -93,52 +95,28 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 pb-44 text-slate-900 md:pb-0">
       <header className="border-b-4 border-brand-500 bg-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <div>
-            <h1 className="text-lg font-bold text-brand-600">Arena Cat</h1>
-            <p className="text-sm text-slate-500">Avaluació humana de models d'IA en català</p>
-          </div>
-          <div className="flex items-center gap-2">
+          <Link
+            to="/"
+            className="flex items-center gap-3 rounded focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+          >
+            <img src={arenaLogo} alt="" width={44} height={44} className="h-11 w-11" />
+            <span>
+              <span className="block text-lg font-bold text-brand-600">Arena Cat</span>
+              <span className="block text-sm text-slate-500">
+                Avaluació humana de models d'IA en català
+              </span>
+            </span>
+          </Link>
+          <div className="ml-auto flex items-center gap-2">
             <Link to="/ranking" className="text-sm text-brand-600 hover:underline">
               Rànquing
             </Link>
             {session?.authenticated && (
-              <>
-                <Link to="/reminders" className="text-sm text-brand-600 hover:underline">
-                  Recordatoris
-                </Link>
-                <span className="hidden text-sm text-slate-500 sm:inline">{session.email}</span>
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteAccount(true)}
-                  title="Dona de baixa el compte"
-                  aria-label="Dona de baixa el compte"
-                  className="rounded-md p-2 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.75}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
-                    aria-hidden="true"
-                  >
-                    <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />
-                  </svg>
-                </button>
-                {/* Icona sola: `title` per al ratolí i `aria-label` per al lector de
-                  pantalla, que altrament només trobaria un botó sense nom. */}
-                <button
-                  type="button"
-                  onClick={logout}
-                  title="Tanca la sessió"
-                  aria-label="Tanca la sessió"
-                  className="rounded-md p-2 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
-                >
-                  <LogoutIcon />
-                </button>
-              </>
+              <AccountMenu
+                email={session.email}
+                onLogout={logout}
+                onDeleteAccount={() => setShowDeleteAccount(true)}
+              />
             )}
           </div>
         </div>
@@ -324,25 +302,5 @@ function CategoriesStatus({ error, onRetry }: { error: boolean; onRetry: () => v
         <p>Carregant categories…</p>
       )}
     </div>
-  );
-}
-
-/** Porta amb una fletxa cap enfora: el gest habitual per a «surt». */
-function LogoutIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-5 w-5"
-      aria-hidden="true"
-    >
-      <path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3" />
-      <path d="M16 17l5-5-5-5" />
-      <path d="M21 12H9" />
-    </svg>
   );
 }

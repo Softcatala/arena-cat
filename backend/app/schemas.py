@@ -248,6 +248,16 @@ class ExportVoteResponse(BaseModel):
     created_at: datetime
 
 
+class ExportSkipResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    prompt_id: int
+    response_a_id: int
+    response_b_id: int
+    created_at: datetime
+
+
 class ExportUserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -269,6 +279,7 @@ class ExportUserResponse(BaseModel):
 class ExportDataResponse(BaseModel):
     user: ExportUserResponse
     votes: list[ExportVoteResponse]
+    skips: list[ExportSkipResponse]
 
 
 class PairwiseStat(BaseModel):

@@ -273,7 +273,7 @@ com l'omissió retornen `410`: cal obtenir una tasca nova.
 curl -s -b "$COOKIES" "$BASE_URL/api/auth/export"
 ```
 
-Resposta esperada (`200`): objecte amb `user` i la llista de `votes`.
+Resposta esperada (`200`): objecte amb `user` i les llistes de `votes` i `skips`.
 
 ---
 

@@ -8,10 +8,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as OrmSession
 
 from app.config import get_settings
-from app.models import Session, User, Vote
+from app.models import Session, TaskSkip, User, Vote
 from app.schemas import (
     DeleteAccountResponse,
     ExportDataResponse,
+    ExportSkipResponse,
     ExportUserResponse,
     ExportVoteResponse,
     ForgotPasswordRequest,
@@ -414,12 +415,16 @@ def delete_account(
 
 
 def export_user_data(db: OrmSession, user: User) -> ExportDataResponse:
-    """Exporta les dades personals i els vots de l'usuari autenticat."""
+    """Exporta les dades personals de l'usuari autenticat: el compte, els vots i les omissions."""
     votes = db.scalars(
         select(Vote).where(Vote.user_id == user.id).order_by(Vote.created_at.asc())
+    ).all()
+    skips = db.scalars(
+        select(TaskSkip).where(TaskSkip.user_id == user.id).order_by(TaskSkip.created_at.asc())
     ).all()
 
     return ExportDataResponse(
         user=ExportUserResponse.model_validate(user),
         votes=[ExportVoteResponse.model_validate(vote) for vote in votes],
+        skips=[ExportSkipResponse.model_validate(skip) for skip in skips],
     )
