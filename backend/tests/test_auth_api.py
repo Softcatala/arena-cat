@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 
 from app.config import get_settings
-from app.models import Category, Prompt, Response, Session, User, Vote, Winner
+from app.models import Category, Prompt, Response, Session, TaskSkip, User, Vote, Winner
 from app.security import (
     compute_email_hash,
     create_email_verification_token,
@@ -307,6 +307,62 @@ def test_export_data_returns_user_and_votes(client, session, logged_in_user):
     assert data["votes"][0]["response_a_id"] == response_a.id
     assert data["votes"][0]["response_b_id"] == response_b.id
     assert data["votes"][0]["winner"] == "a"
+
+
+def test_export_data_includes_skipped_tasks_in_chronological_order(
+    client, session, logged_in_user, create_user
+):
+    user = logged_in_user("export_skips@example.com")
+    other = create_user("export_other@example.com")
+    category = Category(code="export_skips_cat", name="Categoria omissions")
+    session.add(category)
+    session.flush()
+    prompt = Prompt(
+        version="v1", code="export_skips", category_id=category.id, text="Text omissions"
+    )
+    session.add(prompt)
+    session.flush()
+    first = Response(prompt_id=prompt.id, model="model_A", text="Resposta A")
+    second = Response(prompt_id=prompt.id, model="model_B", text="Resposta B")
+    third = Response(prompt_id=prompt.id, model="model_C", text="Resposta C")
+    session.add_all([first, second, third])
+    session.flush()
+    base = datetime(2026, 1, 1, tzinfo=UTC)
+    late = TaskSkip(
+        prompt_id=prompt.id,
+        user_id=user.id,
+        response_a_id=first.id,
+        response_b_id=third.id,
+        created_at=base + timedelta(days=1),
+    )
+    early = TaskSkip(
+        prompt_id=prompt.id,
+        user_id=user.id,
+        response_a_id=first.id,
+        response_b_id=second.id,
+        created_at=base,
+    )
+    foreign = TaskSkip(
+        prompt_id=prompt.id,
+        user_id=other.id,
+        response_a_id=second.id,
+        response_b_id=third.id,
+    )
+    session.add_all([late, early, foreign])
+    session.commit()
+
+    data = client.get("/api/auth/export").json()
+
+    assert [skip["id"] for skip in data["skips"]] == [early.id, late.id]
+    assert data["skips"][0]["prompt_id"] == prompt.id
+    assert data["skips"][0]["response_a_id"] == first.id
+    assert data["skips"][0]["response_b_id"] == second.id
+
+
+def test_export_data_without_skips_returns_an_empty_list(client, logged_in_user):
+    logged_in_user("export_noskips@example.com")
+
+    assert client.get("/api/auth/export").json()["skips"] == []
 
 
 def test_export_data_requires_session(client):

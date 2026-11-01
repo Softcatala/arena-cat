@@ -327,7 +327,7 @@ Les rutes de la taula són les definides a
 | `GET` | `/auth/session` | *(cookie opcional)* | `{ authenticated, email, email_verified, qualified }` | — |
 | `POST` | `/auth/logout` | *(cookie)* | `{ status: "logged_out" }` | — |
 | `POST` | `/auth/delete-account` | `{ current_password }` + cookie | `{ status: "deleted" }` | 401 (sessió/contrasenya) |
-| `GET` | `/auth/export` | *(cookie)* | `{ user, votes }` | 401 (sessió) |
+| `GET` | `/auth/export` | *(cookie)* | `{ user, votes, skips }` | 401 (sessió) |
 
 Els esquemes de petició i resposta són a [`backend/app/schemas.py`](../backend/app/schemas.py).
 
@@ -340,6 +340,7 @@ L'endpoint `GET /auth/export` requereix una sessió activa i retorna:
 - Les dades del compte (`ExportUserResponse`): `id`, `email`, `email_verified_at`, `qualified_at`,
   `consent_version`, `consent_at`, `created_at`, `deleted_at`.
 - Tots els vots de l'usuari (`ExportVoteResponse`), ordenats cronològicament.
+- Totes les tasques que ha omès (`ExportSkipResponse`), també per ordre cronològic.
 
 L'exportació inclou també els vots de versions antigues dels prompts.
 

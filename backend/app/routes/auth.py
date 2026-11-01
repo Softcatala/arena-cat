@@ -158,7 +158,7 @@ def delete_account(
 
 @router.get("/auth/export")
 def export_data(current_user: CurrentUser, db: DbSession) -> ExportDataResponse:
-    """Exporta les dades personals i els vots de l'usuari autenticat."""
+    """Exporta les dades personals, els vots i les omissions de l'usuari autenticat."""
     return auth_service.export_user_data(db, current_user)
 
 
