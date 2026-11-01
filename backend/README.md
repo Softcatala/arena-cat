@@ -129,6 +129,14 @@ Les inferències (`responses`) tenen dos indicadors independents:
   inferències per ordre d'`id`, amb `vote_count`.
 - `POST /api/admin/responses` amb `{ prompt_id, model, text, inference_metadata? }`: la crea
   activa i inclosa (201). 404 si el prompt no existeix; 409 si el model ja hi té resposta.
+- `POST /api/admin/responses/import` amb `{ version, files: [{ name, content }] }` (1 a 200
+  fitxers de fins a 200.000 caràcters): importa els YAML que genera `scripts/inferencia.py`,
+  amb les mateixes regles que `make load_inferences`. Cada fitxer és independent: la resposta
+  porta `inserted`, `skipped` i `errors` i, per fitxer, `status` (`inserted`, `skipped` o
+  `error`) i `detail`. El prompt es busca per `version` i `prompt.id` (el codi), i si el
+  fitxer duu `prompt.sha256` s'ha de correspondre amb el text del prompt (error altrament). Una
+  resposta que ja existeix idèntica s'omet; si té un contingut diferent és un error i no es
+  modifica. Els fitxers van dins del JSON perquè el navegador els llegeix amb `file.text()`.
 - `PATCH /api/admin/responses/{id}` amb `{ active?, included_in_ranking? }`: canvia els
   indicadors; cal indicar-ne almenys un (422 altrament).
 - `DELETE /api/admin/responses/{id}`: esborra una inferència (204). 409 si té vots o omissions.
