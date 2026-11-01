@@ -6,6 +6,7 @@ d'ordres doni el mateix resultat.
 """
 
 import hashlib
+import itertools
 from dataclasses import dataclass
 from typing import Any
 
@@ -16,6 +17,9 @@ from sqlalchemy.orm import Session as OrmSession
 
 from app.models import Prompt, Response
 from app.schemas import ImportFileResult, ImportResponsesRequest, ImportResponsesResponse
+
+# Màxim d'espais i salts de línia finals que es toleren en comparar el hash del prompt.
+MAX_TRAILING = 6
 
 
 class ImportFileError(Exception):
@@ -84,12 +88,15 @@ def _prompt_hash_matches(prompt: Prompt, expected: str) -> bool:
     """Compara amb el hash del text del prompt, tal com el calcula la canonada.
 
     La canonada el calcula sobre el contingut del fitxer `.txt` llegit en mode text, que
-    converteix `\r\n` en `\n` i conserva les línies en blanc finals. La base de dades en desa
-    el text sense espais als extrems, així que s'accepten fins a tres salts de línia finals.
+    converteix `\r\n` en `\n` i conserva els espais i les línies en blanc finals. La base de
+    dades en desa el text sense espais als extrems, així que s'accepta qualsevol combinació
+    d'espais i salts de línia de fins a `MAX_TRAILING` caràcters al final.
     """
+    expected = expected.lower()
     return any(
-        hashlib.sha256((prompt.text + ending).encode("utf-8")).hexdigest() == expected.lower()
-        for ending in ("", "\n", "\n\n", "\n\n\n")
+        hashlib.sha256((prompt.text + "".join(ending)).encode("utf-8")).hexdigest() == expected
+        for length in range(MAX_TRAILING + 1)
+        for ending in itertools.product(" \n", repeat=length)
     )
 
 

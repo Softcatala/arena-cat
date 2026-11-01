@@ -116,11 +116,17 @@ def test_prompt_is_looked_up_in_the_requested_version(client, admin, session, pr
     assert session.scalars(select(Response)).all() == []
 
 
-@pytest.mark.parametrize("suffix", ["", "\n", "\n\n"])
+@pytest.mark.parametrize("suffix", ["", "\n", "\n\n", "   \n", "  \n\n"])
 def test_prompt_hash_accepts_the_raw_file_endings(client, admin, session, prompt, suffix):
     content = make_yaml(prompt_sha=sha(PROMPT_TEXT + suffix))
 
     assert upload(client, [("a.yaml", content)]).json()["inserted"] == 1
+
+
+def test_prompt_hash_rejects_other_trailing_characters(client, admin, session, prompt):
+    content = make_yaml(prompt_sha=sha(PROMPT_TEXT + " x\n"))
+
+    assert upload(client, [("a.yaml", content)]).json()["errors"] == 1
 
 
 def test_prompt_hash_mismatch_is_an_error(client, admin, session, prompt):
