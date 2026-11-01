@@ -21,7 +21,8 @@ def _cache_by_max_ids(
     les seqüències de Postgres no retrocedeixen, així que qualsevol inserció
     a qualsevol d'aquestes taules força el recàlcul. Cal incloure prompts i
     respostes perquè `active_prompt_ids` en depèn. A això s'hi afegeix la data de
-    darrera modificació de les respostes, que canvia en exclourer-ne una del rànquing.
+    darrera modificació de les respostes i dels prompts, que canvia en exclourer una
+    resposta del rànquing o en desactivar un prompt.
     """
     cache: dict[str | None, tuple[tuple, dict]] = {}
 
@@ -33,6 +34,7 @@ def _cache_by_max_ids(
             db.scalar(select(func.max(Response.id))) or 0,
             # Activar o excloure una resposta no canvia cap id: es detecta per la data.
             db.scalar(select(func.max(Response.updated_at))),
+            db.scalar(select(func.max(Prompt.updated_at))),
         )
         entry = cache.get(category_code)
         if entry is not None and entry[0] == invalidator:

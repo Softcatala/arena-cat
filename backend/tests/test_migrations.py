@@ -216,3 +216,28 @@ def test_response_flags_migration_keeps_existing_responses_active(ephemeral_db_u
         assert {"active", "included_in_ranking", "updated_at"}.isdisjoint(columns)
     finally:
         engine.dispose()
+
+
+def test_prompt_active_migration_keeps_existing_prompts_active(ephemeral_db_url):
+    """Els prompts existents queden actius i la migració és reversible."""
+    config = _alembic_config(ephemeral_db_url)
+    engine = create_engine(ephemeral_db_url)
+    try:
+        command.upgrade(config, "c3d4e5f6a7b8")
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO categories (code, name) VALUES ('correccio', 'Correcció');"
+                    "INSERT INTO prompts (version, code, category_id, text, content_sha256) "
+                    f"SELECT 'v1', 'correccio_1', id, 'Hola', '{'a' * 64}' FROM categories"
+                )
+            )
+        command.upgrade(config, "head")
+        with engine.connect() as connection:
+            assert connection.scalar(text("SELECT active FROM prompts")) is True
+        command.check(config)
+        command.downgrade(config, "c3d4e5f6a7b8")
+        columns = {column["name"] for column in inspect(engine).get_columns("prompts")}
+        assert {"active", "updated_at"}.isdisjoint(columns)
+    finally:
+        engine.dispose()

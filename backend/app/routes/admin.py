@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query, Response, status
 from app.deps import CurrentAdmin, DbSession
 from app.schemas import (
     AdminPromptCreate,
+    AdminPromptPatch,
     AdminPromptResponse,
     AdminPromptsResponse,
     AdminResponseCreate,
@@ -55,11 +56,17 @@ def list_prompts(
     offset: Annotated[int, Query(ge=0)] = 0,
     version: str | None = None,
     category_code: str | None = None,
+    active: bool | None = None,
 ) -> AdminPromptsResponse:
     """Llista els prompts per pàgines, amb el nombre d'inferències de cadascun."""
     response.headers["Cache-Control"] = "no-store"
     return admin_prompt_service.list_prompts(
-        db, limit=limit, offset=offset, version=version, category_code=category_code
+        db,
+        limit=limit,
+        offset=offset,
+        version=version,
+        category_code=category_code,
+        active=active,
     )
 
 
@@ -69,6 +76,14 @@ def create_prompt(
 ) -> AdminPromptResponse:
     """Crea un prompt; el seu contingut no es pot repetir."""
     return admin_prompt_service.create_prompt(db, payload)
+
+
+@router.patch("/prompts/{prompt_id}")
+def update_prompt(
+    prompt_id: int, payload: AdminPromptPatch, db: DbSession, _admin: CurrentAdmin
+) -> AdminPromptResponse:
+    """Activa o desactiva un prompt, sense esborrar-ne res."""
+    return admin_prompt_service.update_prompt(db, prompt_id, payload)
 
 
 @router.delete("/prompts/{prompt_id}", status_code=status.HTTP_204_NO_CONTENT)

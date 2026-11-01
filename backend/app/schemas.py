@@ -380,6 +380,10 @@ class AdminPromptCreate(BaseModel):
         return value
 
 
+class AdminPromptPatch(BaseModel):
+    active: bool
+
+
 class AdminPromptResponse(BaseModel):
     id: int
     version: str
@@ -387,6 +391,7 @@ class AdminPromptResponse(BaseModel):
     category_code: str
     text: str
     content_sha256: str
+    active: bool
     created_at: datetime
     response_count: int
 

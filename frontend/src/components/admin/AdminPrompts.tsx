@@ -3,7 +3,18 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../../api";
 import type { AdminPrompt, Category } from "../../types";
 import { Field, INPUT } from "../Field";
-import { ConfirmDelete, ErrorNote, messageOf, PAGE_SIZE, Pager, TABLE, TD, TH } from "./shared";
+import {
+  ActionButton,
+  Badge,
+  ConfirmDelete,
+  ErrorNote,
+  messageOf,
+  PAGE_SIZE,
+  Pager,
+  TABLE,
+  TD,
+  TH,
+} from "./shared";
 
 const EMPTY = { version: "v1", code: "", category_code: "", text: "" };
 
@@ -13,6 +24,7 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
   const [offset, setOffset] = useState(0);
   const [version, setVersion] = useState("");
   const [category, setCategory] = useState("");
+  const [activeFilter, setActiveFilter] = useState<"" | "true" | "false">("");
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<number | null>(null);
   const [form, setForm] = useState(EMPTY);
@@ -23,6 +35,7 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
       const page = await api.admin.prompts(PAGE_SIZE, offset, {
         version: version.trim(),
         category_code: category,
+        active: activeFilter === "" ? "" : activeFilter === "true",
       });
       setPrompts(page.items);
       setTotal(page.total);
@@ -30,7 +43,7 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
     } catch (err) {
       setError(messageOf(err));
     }
-  }, [offset, version, category]);
+  }, [offset, version, category, activeFilter]);
 
   useEffect(() => {
     void load();
@@ -55,6 +68,18 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
     }
   }
 
+  async function toggleActive(prompt: AdminPrompt) {
+    try {
+      const updated = await api.admin.updatePrompt(prompt.id, { active: !prompt.active });
+      setPrompts(
+        (current) => current?.map((item) => (item.id === updated.id ? updated : item)) ?? null,
+      );
+      setError(null);
+    } catch (err) {
+      setError(messageOf(err));
+    }
+  }
+
   async function remove(prompt: AdminPrompt) {
     try {
       await api.admin.deletePrompt(prompt.id);
@@ -73,8 +98,9 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
           Prompts
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          El contingut no es pot repetir dins d'una versió. Només s'esborren els prompts sense
-          inferències.
+          El contingut no es pot repetir dins d'una versió. Un prompt desactivat no es serveix i el
+          rànquing deixa de comptar-lo; si n'hi ha una versió anterior, hi torna. Només s'esborren
+          els prompts sense inferències.
         </p>
       </div>
 
@@ -163,6 +189,21 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
             ))}
           </select>
         </label>
+        <label className="text-sm font-medium">
+          Estat
+          <select
+            value={activeFilter}
+            onChange={(event) => {
+              setActiveFilter(event.target.value as "" | "true" | "false");
+              setOffset(0);
+            }}
+            className="mt-1 block rounded-md border border-slate-300 bg-white px-3 py-2"
+          >
+            <option value="">Tots</option>
+            <option value="true">Actius</option>
+            <option value="false">Inactius</option>
+          </select>
+        </label>
       </div>
 
       <ErrorNote message={error} />
@@ -178,6 +219,7 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
                 <th className={TH}>Codi</th>
                 <th className={TH}>Text</th>
                 <th className={TH}>Inferències</th>
+                <th className={TH}>Estat</th>
                 <th className={TH}>
                   <span className="sr-only">Accions</span>
                 </th>
@@ -200,7 +242,15 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
                     </span>
                   </td>
                   <td className={TD}>{prompt.response_count}</td>
-                  <td className={`${TD} text-right`}>
+                  <td className={TD}>
+                    <Badge tone={prompt.active ? "ok" : "off"}>
+                      {prompt.active ? "Actiu" : "Inactiu"}
+                    </Badge>
+                  </td>
+                  <td className={`${TD} space-x-1 text-right`}>
+                    <ActionButton onClick={() => void toggleActive(prompt)}>
+                      {prompt.active ? "Desactiva" : "Activa"}
+                    </ActionButton>
                     <ConfirmDelete
                       disabled={prompt.response_count > 0}
                       title={prompt.response_count > 0 ? "Té inferències associades" : undefined}

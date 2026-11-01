@@ -102,7 +102,7 @@ const admin = {
   prompts: async (
     limit: number,
     offset: number,
-    filters: { version?: string; category_code?: string },
+    filters: { version?: string; category_code?: string; active?: boolean | "" },
   ): Promise<Page<AdminPrompt>> => {
     const data = await request<{ total: number; prompts: AdminPrompt[] }>(
       `/admin/prompts${query({ limit, offset, ...filters })}`,
@@ -111,6 +111,11 @@ const admin = {
   },
   createPrompt: (prompt: { version: string; code: string; category_code: string; text: string }) =>
     request<AdminPrompt>("/admin/prompts", post(prompt)),
+  updatePrompt: (id: number, changes: { active: boolean }) =>
+    request<AdminPrompt>(`/admin/prompts/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(changes),
+    }),
   deletePrompt: (id: number) => request<void>(`/admin/prompts/${id}`, { method: "DELETE" }),
 
   responses: async (
