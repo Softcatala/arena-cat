@@ -2,7 +2,15 @@ import unicodedata
 from datetime import date, datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 from pydantic_core import PydanticCustomError
 
 from app.models import Winner
@@ -383,3 +391,46 @@ class AdminPromptResponse(BaseModel):
 class AdminPromptsResponse(BaseModel):
     total: int
     prompts: list[AdminPromptResponse]
+
+
+class AdminResponseCreate(BaseModel):
+    prompt_id: int
+    model: str = Field(min_length=1, max_length=128)
+    text: str = Field(min_length=1, max_length=50_000)
+    inference_metadata: dict | None = None
+
+    @field_validator("text")
+    @classmethod
+    def strip_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("El text no pot ser buit")
+        return value
+
+
+class AdminResponsePatch(BaseModel):
+    active: bool | None = None
+    included_in_ranking: bool | None = None
+
+    @model_validator(mode="after")
+    def require_a_change(self) -> "AdminResponsePatch":
+        if self.active is None and self.included_in_ranking is None:
+            raise ValueError("Cal indicar almenys un camp a canviar")
+        return self
+
+
+class AdminResponseItem(BaseModel):
+    id: int
+    prompt_id: int
+    model: str
+    text: str
+    inference_metadata: dict | None
+    active: bool
+    included_in_ranking: bool
+    created_at: datetime
+    vote_count: int
+
+
+class AdminResponsesResponse(BaseModel):
+    total: int
+    responses: list[AdminResponseItem]

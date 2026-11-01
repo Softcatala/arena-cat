@@ -9,10 +9,14 @@ from app.schemas import (
     AdminPromptCreate,
     AdminPromptResponse,
     AdminPromptsResponse,
+    AdminResponseCreate,
+    AdminResponseItem,
+    AdminResponsePatch,
+    AdminResponsesResponse,
     AdminUserResponse,
     AdminUsersResponse,
 )
-from app.services import admin_prompt_service, admin_service
+from app.services import admin_prompt_service, admin_response_service, admin_service
 
 router = APIRouter()
 
@@ -71,3 +75,50 @@ def create_prompt(
 def delete_prompt(prompt_id: int, db: DbSession, _admin: CurrentAdmin) -> None:
     """Esborra un prompt sense inferències associades."""
     admin_prompt_service.delete_prompt(db, prompt_id)
+
+
+@router.get("/responses")
+def list_responses(
+    db: DbSession,
+    _admin: CurrentAdmin,
+    response: Response,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    prompt_id: int | None = None,
+    model: str | None = None,
+    active: bool | None = None,
+    included_in_ranking: bool | None = None,
+) -> AdminResponsesResponse:
+    """Llista les inferències per pàgines, amb el nombre de vots de cadascuna."""
+    response.headers["Cache-Control"] = "no-store"
+    return admin_response_service.list_responses(
+        db,
+        limit=limit,
+        offset=offset,
+        prompt_id=prompt_id,
+        model=model,
+        active=active,
+        included_in_ranking=included_in_ranking,
+    )
+
+
+@router.post("/responses", status_code=status.HTTP_201_CREATED)
+def create_response(
+    payload: AdminResponseCreate, db: DbSession, _admin: CurrentAdmin
+) -> AdminResponseItem:
+    """Afegeix la inferència d'un model a un prompt, activa i inclosa al rànquing."""
+    return admin_response_service.create_response(db, payload)
+
+
+@router.patch("/responses/{response_id}")
+def update_response(
+    response_id: int, payload: AdminResponsePatch, db: DbSession, _admin: CurrentAdmin
+) -> AdminResponseItem:
+    """Activa o desactiva una inferència, o la inclou o exclou del rànquing."""
+    return admin_response_service.update_response(db, response_id, payload)
+
+
+@router.delete("/responses/{response_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_response(response_id: int, db: DbSession, _admin: CurrentAdmin) -> None:
+    """Esborra una inferència sense vots ni omissions."""
+    admin_response_service.delete_response(db, response_id)

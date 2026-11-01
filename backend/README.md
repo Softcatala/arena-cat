@@ -113,6 +113,21 @@ Un usuari bloquejat que encerta la contrasenya rep 403 en iniciar sessió.
 - `DELETE /api/admin/prompts/{id}`: esborra un prompt (204). 409 si té inferències associades;
   404 si no existeix.
 
+Les inferències (`responses`) tenen dos indicadors independents:
+
+- `active`: si és fals, no es mostra als avaluadors ni compta per al progrés, però conserva
+  els vots. Un prompt amb menys de dues respostes actives deixa de servir-se.
+- `included_in_ranking`: si és fals, els vots que la inclouen (com a A o B) no compten al
+  rànquing ni a la confiança.
+
+- `GET /api/admin/responses?prompt_id=&model=&active=&included_in_ranking=&limit=&offset=`:
+  inferències per ordre d'`id`, amb `vote_count`.
+- `POST /api/admin/responses` amb `{ prompt_id, model, text, inference_metadata? }`: la crea
+  activa i inclosa (201). 404 si el prompt no existeix; 409 si el model ja hi té resposta.
+- `PATCH /api/admin/responses/{id}` amb `{ active?, included_in_ranking? }`: canvia els
+  indicadors; cal indicar-ne almenys un (422 altrament).
+- `DELETE /api/admin/responses/{id}`: esborra una inferència (204). 409 si té vots o omissions.
+
 ### `GET /api/qualification` i `POST /api/qualification`
 
 Requereixen una sessió vàlida i la verificació del correu, si està activada.

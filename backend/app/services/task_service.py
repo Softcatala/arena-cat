@@ -95,7 +95,9 @@ def get_task_progress_for_user(user: User, db: Session) -> TaskProgressResponse:
     """Retorna el progrés global de tasques d'un usuari."""
     responses_by_prompt = defaultdict(list)
     for prompt_id, response_id in db.execute(
-        select(Response.prompt_id, Response.id).where(Response.prompt_id.in_(active_prompt_ids()))
+        select(Response.prompt_id, Response.id).where(
+            Response.prompt_id.in_(active_prompt_ids()), Response.active
+        )
     ).all():
         responses_by_prompt[prompt_id].append(response_id)
 

@@ -30,7 +30,10 @@ erDiagram
         varchar(128) model
         text text
         jsonb inference_metadata
+        boolean active
+        boolean included_in_ranking
         timestamptz created_at
+        timestamptz updated_at
     }
 
     users {
