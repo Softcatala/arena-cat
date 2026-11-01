@@ -55,6 +55,7 @@ defineix els models i les opcions d'execució. Actualment inclou:
 | Mistral Small 3.2 24B Instruct | `mistralai/Mistral-Small-3.2-24B-Instruct-2506` |
 | Gemma 4 26B A4B Instruct | `google/gemma-4-26B-A4B-it` |
 | Muse Glimmer 30B | `meta-models/Muse-Glimmer-30B` |
+| Salamandra 7B Instruct 2606 | `BSC-LT/salamandra-7b-instruct-2606` |
 
 L'analitzador de prompts llegeix aquesta mateixa configuració per obtenir la
 llista de models. Les opcions inclouen la revisió, el tipus numèric, la

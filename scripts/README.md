@@ -76,6 +76,15 @@ uv run --group inference python scripts/inferencia.py --config config/inferencia
 Els missatges de progrés fan servir `logging` i es poden reduir ajustant el
 nivell de logging.
 
+Per generar només les inferències de Salamandra 7B Instruct 2606:
+
+```bash
+uv run --group inference python scripts/inferencia.py --model-id salamandra-7b-instruct-2606
+```
+
+El model d'origen és
+[`BSC-LT/salamandra-7b-instruct-2606`](https://huggingface.co/BSC-LT/salamandra-7b-instruct-2606).
+
 
 Per veure només avisos i errors:
 

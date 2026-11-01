@@ -52,3 +52,12 @@ models:
     quantization: "none"
     model_class: "auto_multimodal_lm"
     es_reasoning_model: true
+
+  # 5. Salamandra 7B Instruct 2606
+  - id: "salamandra-7b-instruct-2606"
+    model_name: "BSC-LT/salamandra-7b-instruct-2606"
+    revision: "main"
+    torch_dtype: "bfloat16"
+    device_map: "auto"
+    quantization: "none"
+    es_reasoning_model: false
