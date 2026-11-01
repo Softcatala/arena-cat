@@ -96,12 +96,7 @@ export default function AccountMenu({ email, isAdmin, onLogout, onDeleteAccount 
             Recordatoris
           </Link>
           {isAdmin && (
-            <Link
-              to="/admin"
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className={`${ITEM} text-slate-700`}
-            >
+            <Link to="/admin" onClick={() => setOpen(false)} className={`${ITEM} text-slate-700`}>
               <ShieldIcon />
               Administració
             </Link>
