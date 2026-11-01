@@ -84,7 +84,8 @@ export function ConfirmDelete({
     );
   }
   return (
-    <span className="inline-flex gap-1">
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+      <span className="text-xs text-slate-600">Segur?</span>
       <ActionButton danger onClick={onConfirm}>
         Confirma
       </ActionButton>
