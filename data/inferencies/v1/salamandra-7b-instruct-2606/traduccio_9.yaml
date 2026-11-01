@@ -1,0 +1,44 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: 'Quan arriba sa nit, sa nina plega sa roba damunt sa cadira, se posa es
+    seu pijama favorit i se fica dins es llit amb es osset de peluix que ja té una
+    orella torta. Sa mare deixa sa porta entreoberta perquè hi entri un raig de llum
+    des passadís, i sa casa comença a xerrar fluixet: grinyola sa fusta, sospira sa
+    finestra, s''apaga es darrer grif.
+
+
+    Des de sa cambra es veu es cel ple d''estels. Un d''ells, es més petit, li canta
+    una nana amb sa veu ben fluixeta, tan fluixeta que només la senten qui ja estan
+    a punt de somiar.'
+prompt:
+  id: traduccio_9
+  path: data/prompts/v1/traduccio_9.txt
+  sha256: 11788666b977ceb87beb847841499c9a770a348f3291a366fd7990ca4bfc837d
+reasoning:
+  content: null
+run:
+  seed: 42

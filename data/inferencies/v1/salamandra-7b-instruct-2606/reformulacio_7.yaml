@@ -1,0 +1,40 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: b5117c5a7c7b9b56aa0750a29f46ddfdea71fae64696ba8f02e0ebd6436cd902
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "Avui el tren ha arribat tard, amb vint minuts de retard, i la pluja suau\
+    \ m'ha fet esperar a l'estació. La Laia, amb una maleta vermella i una carpeta\
+    \ plena de papers, semblava nerviosa. Abans d'agafar l'autobús, ha trucat a la\
+    \ seva mare per tranquil·litzar-la. Demà em toca la primera reunió d'acollida\
+    \ a la facultat, i el barri de Sant Narcís sembla tranquil, amb el seu pis compartit\
+    \ a prop.  \n\n(97 paraules)"
+prompt:
+  id: reformulacio_7
+  path: data/prompts/v1/reformulacio_7.txt
+  sha256: b5117c5a7c7b9b56aa0750a29f46ddfdea71fae64696ba8f02e0ebd6436cd902
+reasoning:
+  content: null
+run:
+  seed: 42

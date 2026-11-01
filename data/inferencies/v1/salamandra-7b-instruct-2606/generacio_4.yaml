@@ -1,0 +1,80 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 6ae72498618f77ea97f13f2478ca204fac34b7f9e5d7dbd1bea6f907d1bb578c
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: 'Pla d''estudi en català central:
+
+
+    | Dia | Activitat | Duració |
+
+    |-----|-----------|---------|
+
+    | 1 | Comprensió: Llegeix 30 minuts/dia sobre context històric (1939-1975). Esbossa
+    cronologia bàsica. | 30 min |
+
+    | 2 | Esquemes: Fes 2 esquemes per tema (autonomia, franquisme, transició). Repassa
+    20 minuts/dia. | 40 min |
+
+    | 3 | Repàs: Revisa esquemes i memoritza 10 dates clau. Fes 10 preguntes tipus
+    test. | 40 min |
+
+    | 4 | Repàs intensiu: Compara esquemes i uneix conceptes. Repassa 2 hores/dia.
+    | 2 h |
+
+    | 5 | Comprovació: Fes examen complet i corregeix errors. | 1 h |
+
+
+    Consells: 1. Utilitza colors per destacar informació clau. 2. Dorm bé abans de
+    l''examen.
+
+
+    Pla d''estudi en català central:
+
+
+    | Dia | Activitat | Duració |
+
+    |-----|-----------|---------|
+
+    | 1 | Llegeix 30 min/dia sobre context. Fes esbós cronologia. | 30 min |
+
+    | 2 | Fes 2 esquemes per tema. Repassa 20 min/dia. | 40 min |
+
+    | 3 | Fes 10 preguntes tipus test i revisa errors. | 40 min |
+
+    | 4 | Compara esquemes i uneix conceptes. Repassa 2 hores. | 2 h |
+
+    | 5 | Fes examen complet i comprova respostes. | 1 h |
+
+
+    Consells: 1. Organitza el temps per cada tema. 2. Descansa 20 minuts després de
+    cada bloc.'
+prompt:
+  id: generacio_4
+  path: data/prompts/v1/generacio_4.txt
+  sha256: 6ae72498618f77ea97f13f2478ca204fac34b7f9e5d7dbd1bea6f907d1bb578c
+reasoning:
+  content: null
+run:
+  seed: 42

@@ -1,0 +1,44 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 03b96945b4a2e85f25248115c78ed48faeb7a6b127e9f677959f4a2cd7bcc69c
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: 'Hola, gent! Com que el divendres fem pont, he pensat que podríem anar a
+    la platja prompte, abans que es faça impossible. Si algú du els xiquets, hi ha
+    una zona de jocs al costat del xiringuito, però convé arribar abans que no quede
+    ni una ombra.
+
+
+    Jo duc la sombrilla gran, una nevera amb begudes i unes cartes per si s''aixeca
+    vent. El que no controle és el menjar: entrepans, amanida, truita, el que vegeu.
+    Qui s''anima i qui pot passar a buscar Clara sense embolicar-la com l''última
+    vegada?'
+prompt:
+  id: traduccio_4
+  path: data/prompts/v1/traduccio_4.txt
+  sha256: 03b96945b4a2e85f25248115c78ed48faeb7a6b127e9f677959f4a2cd7bcc69c
+reasoning:
+  content: null
+run:
+  seed: 42

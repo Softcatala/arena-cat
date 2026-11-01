@@ -1,0 +1,45 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 9cde3eafcc82a42a9541dd3d78c3aee0cdcefafc81d7f3c821832705fe4a2d9b
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "Estimats/des,  \n\nAmb gran interès, em presento per a les pràctiques d'estiu\
+    \ al vostre museu d'història local. Com a estudiant d'Humanitats, he col·laborat\
+    \ en l'arxiu fotogràfic del meu barri, on he après a valorar el patrimoni i la\
+    \ seva capacitat per connectar amb el públic. Aquesta experiència m'ha motivat\
+    \ a voler aprofundir en com difondre el coneixement històric de manera accessible\
+    \ i interactiva.  \n\nLes meves pràctiques al museu em permetrien aplicar aquests\
+    \ coneixements en un entorn professional, millorant les meves habilitats en gestió\
+    \ de col·leccions i comunicació cultural. Estic compromesa amb la preservació\
+    \ i difusió del patrimoni, i estic preparada per contribuir activament al vostre\
+    \ equip.  \n\nEspero amb il·lusió la possibilitat de treballar amb vosaltres.\
+    \  \n\nAtentament,  \n[Nom]  \n\n(130 paraules)"
+prompt:
+  id: generacio_5
+  path: data/prompts/v1/generacio_5.txt
+  sha256: 9cde3eafcc82a42a9541dd3d78c3aee0cdcefafc81d7f3c821832705fe4a2d9b
+reasoning:
+  content: null
+run:
+  seed: 42

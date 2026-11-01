@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 146e34c4b13d9535f6eeeaa0a65d0480cce3edadb18587a3404eb76187357882
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "Una reflexió personal sobre una ruta literària pel meu municipi m'ha permès\
+    \ descobrir carrers que apareixen en obres d'autors locals. Reconèixer aquests\
+    \ llocs m'ha connectat amb la història i la identitat del lloc, fent-me valorar\
+    \ més la meva comunitat. Aquesta experiència m'ha ensenyat que la literatura és\
+    \ un pont entre el passat i el present. L'objectiu lingüístic per al trimestre\
+    \ següent és millorar la precisió en l'ús de l'adverbi \"per tant\" en textos\
+    \ narratius. Escriure amb més fluïdesa i coherència serà el meu repte.  \n\n(110\
+    \ paraules en català central)"
+prompt:
+  id: generacio_10
+  path: data/prompts/v1/generacio_10.txt
+  sha256: 146e34c4b13d9535f6eeeaa0a65d0480cce3edadb18587a3404eb76187357882
+reasoning:
+  content: null
+run:
+  seed: 42

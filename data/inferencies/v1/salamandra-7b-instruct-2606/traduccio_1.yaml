@@ -1,0 +1,41 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 1b3f806e9d0b67bab73cf6395e0c2a867ea89c90536ee0b37b6a87b330dde853
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: 'Marta: Fa tres dies que dic al meu pare que truqui a la companyia, perquè
+    el wifi va a pedals. Nil: Una altra vegada? Si la setmana passada vas dir que
+    ja ho havien arreglat. Marta: Això va dir ell, però no me''l crec. Ahir se''m
+    va caure la videotrucada de classe dues vegades i després el grup va començar
+    a enviar-me memes com si fos culpa meva. Nil: Potser és el router, que és més
+    vell que el fil negre. Marta: Doncs si això continua així, demà em plantaré a
+    la botiga. I si cal, portaré el tècnic de l''orella.'
+prompt:
+  id: traduccio_1
+  path: data/prompts/v1/traduccio_1.txt
+  sha256: 1b3f806e9d0b67bab73cf6395e0c2a867ea89c90536ee0b37b6a87b330dde853
+reasoning:
+  content: null
+run:
+  seed: 42

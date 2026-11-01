@@ -1,0 +1,40 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 0250d29e0d94fa2f092a7788fd9d5ed3217b97244dc8b739937ac381b72d10a9
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: 'La derivada d''una funció en un punt és com el canvi ràpid que fa la funció
+    en aquell moment. La integral definida és com sumar petits trossos de la funció
+    per veure quants hi ha en un tros llarg. La derivada i la integral són com un
+    puzzle: si sumes petits trossos i després els sumes tots, tornes a la mateixa
+    funció, i si sumes la funció i després la divideixes en trossos, tornes a tenir
+    els trossos originals.'
+prompt:
+  id: reformulacio_1
+  path: data/prompts/v1/reformulacio_1.txt
+  sha256: 0250d29e0d94fa2f092a7788fd9d5ed3217b97244dc8b739937ac381b72d10a9
+reasoning:
+  content: null
+run:
+  seed: 42

@@ -1,0 +1,39 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: fffbd5058309c207ead837773dc28a9c06ad70f2cfe8796fc63bedfbb0f2786e
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "Un pioc amb barret somniava amb volar,  \nmirava les mosques i començava\
+    \ a sospirar.  \n\"Si salto molt alt, tocaré l'algodó\",  \ndeia molt seriós pujat\
+    \ en un botó.  \n\nPerò va venir una brisa, el va fer esternudar,  \ni va caure\
+    \ en una sopa sense saber nedar.  \nDes d'aquell dia viatja, feliç i formal, \
+    \ \nen mosca amb casc i bitllet rural."
+prompt:
+  id: traduccio_3
+  path: data/prompts/v1/traduccio_3.txt
+  sha256: fffbd5058309c207ead837773dc28a9c06ad70f2cfe8796fc63bedfbb0f2786e
+reasoning:
+  content: null
+run:
+  seed: 42

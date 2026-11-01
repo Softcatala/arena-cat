@@ -1,0 +1,46 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: b900189de6e4123e3cf58085c44323ad021694898741b7a1f7c3c03345b682b2
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "Introducció: La transmissió de receptes familiars catalanes entre generacions\
+    \ és un fenomen cultural que reflecteix la identitat i la memòria col·lectiva.\
+    \ Aquest treball explora com els coneixements culinaris es transmeten oralment\
+    \ i mitjançant receptaris, vinculant tradició i innovació. La pregunta de recerca\
+    \ és: com han evolucionat les receptes familiars catalanes al llarg de les generacions\
+    \ i quins factors hi han influït? Per respondre-ho, es combinaran entrevistes\
+    \ a membres de famílies amb arrels catalanes i l'anàlisi de receptaris històrics,\
+    \ com el Llibre de Coch o les obres de Josep Pla. Les entrevistes revelaran els\
+    \ processos de transmissió oral i les adaptacions als canvis socials, mentre que\
+    \ els receptaris mostraran l'evolució de les tècniques i ingredients. Aquesta\
+    \ anàlisi permetrà entendre com la gastronomia és un pont entre passat i present,\
+    \ preservant valors culturals.  \n\n(110 paraules)"
+prompt:
+  id: generacio_9
+  path: data/prompts/v1/generacio_9.txt
+  sha256: b900189de6e4123e3cf58085c44323ad021694898741b7a1f7c3c03345b682b2
+reasoning:
+  content: null
+run:
+  seed: 42

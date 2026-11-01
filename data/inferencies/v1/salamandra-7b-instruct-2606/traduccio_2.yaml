@@ -1,0 +1,38 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 3fcd454e392833db27806c414d76658ff28f854351d8b9f1d300ca09bf66f3d4
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "1. Vale, respirem: no hem perdut el tren.  \n2. L'hem deixat escapar amb\
+    \ estil.  \n3. El pla B era prendre un cafè, no?  \n4. El pla B era ja ser a Girona.\
+    \  \n5. Doncs el cafè serà a l'estació.  \n6. I la dignitat, si apareix, que ens\
+    \ cridi."
+prompt:
+  id: traduccio_2
+  path: data/prompts/v1/traduccio_2.txt
+  sha256: 3fcd454e392833db27806c414d76658ff28f854351d8b9f1d300ca09bf66f3d4
+reasoning:
+  content: null
+run:
+  seed: 42

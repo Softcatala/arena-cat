@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: f5389d3602629499aacd80ee096e3fa071f7c781a045f4f07a55957dbdc40805
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "Salutació: Benvolguts,  \n\nSolicitem l'ampliació de l'horari de la sala\
+    \ d'estudi durant les proves d'accés a la universitat, atès que aquests exàmens\
+    \ requereixen una preparació intensa i un espai adequat. La petició es basa en\
+    \ la necessitat de garantir condicions òptimes per als estudiants.  \n\nProposem\
+    \ ampliar l'horari actual de 8:00 a 21:00, amb accés prioritari per a aquest període.\
+    \ Aquesta franja cobriria les hores més demandades i permetria als usuaris conciliar\
+    \ els estudis amb altres responsabilitats.  \n\nComiat: Agraïm la vostra comprensió\
+    \ i esperem una resposta favorable.  \n\n(100 paraules)"
+prompt:
+  id: generacio_8
+  path: data/prompts/v1/generacio_8.txt
+  sha256: f5389d3602629499aacd80ee096e3fa071f7c781a045f4f07a55957dbdc40805
+reasoning:
+  content: null
+run:
+  seed: 42

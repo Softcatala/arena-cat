@@ -1,0 +1,42 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: 1465ed1a69826973ffe4e08c151b5a7c6d3e935066a27bcd1d1ba692272c7057
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "\"Bon dia a tothom. Avui us parlaré dels castells, un símbol de Catalunya\
+    \ que ens representa a Europa. Els castells són torres humanes que construïm amb\
+    \ amics i família. La pinya és el grup de persones a la base, que ens aguanta\
+    \ i ens dóna força. El tronc són els castellers que pugen, equilibrant-se amb\
+    \ braços i cames. L'enxaneta és el més petit que corona el castell, fent una aleta\
+    \ i cridant 'Puuuuc!' És el moment més emocionant. I aquests valors: força, equilibri,\
+    \ valor i seny, ens ajuden a treballar junts i no caure. Són com una recepta secreta\
+    \ per a l'èxit. Gràcies per escoltar-me.\"  \n\n(130 paraules)"
+prompt:
+  id: generacio_2
+  path: data/prompts/v1/generacio_2.txt
+  sha256: 1465ed1a69826973ffe4e08c151b5a7c6d3e935066a27bcd1d1ba692272c7057
+reasoning:
+  content: null
+run:
+  seed: 42

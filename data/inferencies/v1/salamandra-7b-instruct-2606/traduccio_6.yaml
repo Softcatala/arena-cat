@@ -1,0 +1,41 @@
+backend:
+  engine: transformers
+  torch_version: 2.12.1+cu130
+  transformers_version: 5.15.0
+fingerprint:
+  generation:
+    max_new_tokens: 1024
+    min_token_len: 50
+    system_prompt: Ets un assistent d'intel·ligència artificial útil, precís i que
+      respon exclusivament en llengua catalana. Contesta només amb el que es demana
+      sense cap explicació ni text addicional. Contesta sempre en text pla, sense
+      format Markdown o HTML ni elements com ara taules.
+    temperature: 0.7
+    top_p: 0.9
+  prompt_sha256: bf869d1adf44aaad1629ba6cf901ebf64a94b8d7960350b4620d6603277aa06b
+generation:
+  max_new_tokens: 1024
+  min_token_len: 50
+  seed: 42
+  temperature: 0.7
+  top_p: 0.9
+model:
+  id: salamandra-7b-instruct-2606
+  model_name: BSC-LT/salamandra-7b-instruct-2606
+  revision: main
+output:
+  answer: "Quan el cel es posa trist, les seues núvols s'omplin d'aigua com butxaques\
+    \ massa plenes. Primer aguanten un poquet, després un altre poc més, fins que\
+    \ ja no poden amb tantes pessigolles. Aleshores obren la mà i deixen caure gotetes\
+    \ sobre les teulades, els bassals i les fulles del parc.  \nAixò ho anomenem pluja.\
+    \ Algunes gotes corren de pressa per les finestres i altres es queden quietes,\
+    \ mirant el món a l'inrevés. Quan la núvol es queda tranquil·la, el sol torna\
+    \ a asomar i seca cada racó amb una manta de llum."
+prompt:
+  id: traduccio_6
+  path: data/prompts/v1/traduccio_6.txt
+  sha256: bf869d1adf44aaad1629ba6cf901ebf64a94b8d7960350b4620d6603277aa06b
+reasoning:
+  content: null
+run:
+  seed: 42
