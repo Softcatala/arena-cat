@@ -132,3 +132,29 @@ def test_migrations_keep_application_loggers_enabled():
     config.output_buffer = StringIO()
     command.upgrade(config, "base", sql=True)
     assert not logger.disabled
+
+
+def test_admin_migration_defaults_existing_users_and_is_reversible(ephemeral_db_url):
+    """Els usuaris existents no són administradors ni estan bloquejats."""
+    config = _alembic_config(ephemeral_db_url)
+    engine = create_engine(ephemeral_db_url)
+    try:
+        command.upgrade(config, "d9f012345678")
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO users "
+                    "(email, email_hash, password_hash, consent_version, consent_at) "
+                    "VALUES ('existing@example.com', 'hash', 'password', 'v1', now())"
+                )
+            )
+        command.upgrade(config, "head")
+        with engine.connect() as connection:
+            row = connection.execute(text("SELECT is_admin, blocked_at FROM users")).one()
+            assert row == (False, None)
+        command.check(config)
+        command.downgrade(config, "d9f012345678")
+        columns = {column["name"] for column in inspect(engine).get_columns("users")}
+        assert {"is_admin", "blocked_at"}.isdisjoint(columns)
+    finally:
+        engine.dispose()

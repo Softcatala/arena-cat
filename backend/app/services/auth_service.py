@@ -101,7 +101,7 @@ def resolve_session_user(
         raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
 
     user = db.get(User, active_session.user_id)
-    if user is None or user.deleted_at is not None:
+    if user is None or user.deleted_at is not None or user.blocked_at is not None:
         raise HTTPException(status_code=401, detail="Sessió invàlida o caducada")
 
     if (
@@ -324,7 +324,11 @@ def login_user(db: OrmSession, payload: LoginRequest) -> tuple[User, str]:
     if not verify_password(payload.password, verified_hash):
         raise HTTPException(status_code=401, detail="Correu electrònic o contrasenya incorrectes.")
 
-    # Després de la contrasenya: així només el propietari del compte veu que li cal verificar.
+    # Després de la contrasenya: així només el propietari del compte veu que el compte és
+    # bloquejat o que li cal verificar el correu.
+    if user.blocked_at is not None:
+        raise HTTPException(status_code=403, detail="Aquest compte està bloquejat.")
+
     if get_settings().require_email_verification and user.email_verified_at is None:
         raise HTTPException(
             status_code=403,
@@ -376,6 +380,7 @@ def anonymize_user_rgpd(user: User, now: datetime) -> None:
     user.password_hash = None
     user.email_verified_at = None
     user.qualified_at = None
+    user.is_admin = False
     user.consent_at = None
     user.deleted_at = now
     user.reminder_enabled = False

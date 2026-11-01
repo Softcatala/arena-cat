@@ -117,6 +117,7 @@ class User(Base):
             "password_hash IS NOT NULL AND consent_at IS NOT NULL)",
             name="ck_users_active_have_credentials",
         ),
+        CheckConstraint("NOT is_admin OR deleted_at IS NULL", name="ck_users_admin_not_deleted"),
         CheckConstraint("reminder_count BETWEEN 0 AND 3", name="ck_users_reminder_count"),
         CheckConstraint(
             "NOT reminder_enabled OR "
@@ -140,6 +141,9 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
     qualified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, server_default="false", nullable=False)
+    # Un usuari bloquejat no pot iniciar sessió ni conservar les sessions obertes.
+    blocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Últim cop que s'ha enviat el correu de verificació: limita els reenviaments.
     verification_sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

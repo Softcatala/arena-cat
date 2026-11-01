@@ -90,6 +90,20 @@ Exposa els noms dels models i les metadades d'inferència; `/api/task` manté
 les respostes anònimes. La resposta porta `Cache-Control: no-store`.
 Podeu consultar-lo amb el [CLI de consulta remota](../scripts/README.md#consulta-de-les-dades-carregades-en-remot).
 
+### `/api/admin/*`
+
+Reservats als usuaris amb `is_admin`, amb la mateixa cookie de sessió que la resta
+de l'API: 401 sense sessió, 403 si no és administrador. Per fer algú administrador,
+marqueu-lo a la base de dades: `UPDATE users SET is_admin = true WHERE email = '...'`.
+
+- `GET /api/admin/users?limit=50&offset=0`: usuaris per ordre d'`id` (`limit` de 1 a 200),
+  amb `total`. No inclou contrasenyes ni tokens. La resposta porta `Cache-Control: no-store`.
+- `POST /api/admin/users/{id}/block`: bloqueja l'usuari i revoca totes les seves sessions.
+  Idempotent. 409 si és un mateix o un compte donat de baixa; 404 si no existeix.
+- `POST /api/admin/users/{id}/unblock`: treu el bloqueig. Les sessions revocades no es recuperen.
+
+Un usuari bloquejat que encerta la contrasenya rep 403 en iniciar sessió.
+
 ### `GET /api/qualification` i `POST /api/qualification`
 
 Requereixen una sessió vàlida i la verificació del correu, si està activada.
