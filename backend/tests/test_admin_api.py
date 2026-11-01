@@ -173,3 +173,19 @@ def test_new_users_are_not_admins(create_user):
     assert user.is_admin is False
     assert user.blocked_at is None
     assert isinstance(user, User)
+
+
+def test_session_exposes_the_admin_role(client, admin, create_user, login):
+    assert client.get("/api/auth/session").json()["is_admin"] is True
+
+    other = TestClient(app, base_url="https://testserver")
+    create_user("plain@example.com")
+    other.post(
+        "/api/auth/login",
+        json={"email": "plain@example.com", "password": "ContrasenyaSegura123!"},
+    )
+    assert other.get("/api/auth/session").json()["is_admin"] is False
+
+
+def test_anonymous_session_is_not_admin(client):
+    assert client.get("/api/auth/session").json()["is_admin"] is False

@@ -25,11 +25,19 @@ Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
 La capçalera mostra el logotip i el nom, que duen a l'avaluació (`/`), i l'enllaç al rànquing.
-Amb sessió hi apareix també el **menú del compte** (recordatoris, descarregar les dades personals,
+Amb sessió hi apareix també el **menú del compte** (recordatoris, administració si s'escau,
+descarregar les dades personals,
 donar de baixa el compte i tancar la sessió).
 
 El **Rànquing** (`/ranking`) és accessible des de la capçalera amb sessió o sense.
 Amb sessió, el botó **Avalua** permet tornar a l’avaluació.
+
+La pàgina **Administració** (`/admin`) és només per a comptes amb el rol d'administrador;
+la resta són redirigits a l'inici. L'enllaç apareix al menú del compte quan
+`GET /api/auth/session` retorna `is_admin`. Té tres pestanyes: **Usuaris** (bloquejar i
+desbloquejar), **Prompts** (crear, filtrar i esborrar els que no tenen inferències) i
+**Inferències** (afegir, activar o desactivar, incloure o excloure del rànquing, i esborrar les
+que no tenen vots). Per fer algú administrador, vegeu l'[API d'administració](../backend/README.md#apiadmin).
 
 La pàgina **Activitat** (`/activitat`) requereix sessió iniciada i s’hi accedeix
 directament per la URL, sense enllaç al menú. Mostra els

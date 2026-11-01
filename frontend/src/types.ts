@@ -28,6 +28,7 @@ export interface SessionState {
   email: string | null;
   email_verified: boolean;
   qualified: boolean;
+  is_admin: boolean;
 }
 
 export type QualificationChoice = "A" | "B" | "C";
@@ -112,4 +113,45 @@ export interface ExportData {
   user: Record<string, unknown>;
   votes: Record<string, unknown>[];
   skips: Record<string, unknown>[];
+}
+
+/** Un usuari tal com el veu l'administració (`GET /api/admin/users`). */
+export interface AdminUser {
+  id: number;
+  email: string | null;
+  is_admin: boolean;
+  email_verified_at: string | null;
+  qualified_at: string | null;
+  created_at: string;
+  blocked_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface AdminPrompt {
+  id: number;
+  version: string;
+  code: string;
+  category_code: CategoryCode;
+  text: string;
+  content_sha256: string;
+  created_at: string;
+  response_count: number;
+}
+
+/** Una inferència: la resposta d'un model a un prompt. */
+export interface AdminResponse {
+  id: number;
+  prompt_id: number;
+  model: string;
+  text: string;
+  inference_metadata: Record<string, unknown> | null;
+  active: boolean;
+  included_in_ranking: boolean;
+  created_at: string;
+  vote_count: number;
+}
+
+export interface Page<T> {
+  total: number;
+  items: T[];
 }
