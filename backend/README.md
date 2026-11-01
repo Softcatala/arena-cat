@@ -105,12 +105,16 @@ marqueu-lo a la base de dades: `UPDATE users SET is_admin = true WHERE email = '
 
 Un usuari bloquejat que encerta la contrasenya rep 403 en iniciar sessió.
 
-- `GET /api/admin/prompts?limit=50&offset=0&version=v1&category_code=correccio`: prompts per
+- `GET /api/admin/prompts?limit=50&offset=0&version=v1&category_code=correccio&active=true`: prompts per
   ordre d'`id`, amb `content_sha256`, `category_code` i `response_count` (inferències).
 - `POST /api/admin/prompts` amb `{ version, code, category_code, text }`: crea un prompt (201).
   El text s'escurça de blancs i se'n desa el SHA-256. 409 si ja existeix la parella
   versió-codi o el mateix contingut dins la versió; 422 si la categoria no existeix o els
   camps no són vàlids. El mateix text sí que es pot publicar en una versió nova.
+- `PATCH /api/admin/prompts/{id}` amb `{ active }`: activa o desactiva un prompt. Un prompt
+  inactiu no es serveix i els seus vots no compten al rànquing, que només considera la
+  versió activa de cada codi: si es desactiva la més alta, hi cau la versió anterior. Serveix
+  per desfer una versió publicada amb errades sense esborrar-ne res.
 - `DELETE /api/admin/prompts/{id}`: esborra un prompt (204). 409 si té inferències associades;
   404 si no existeix.
 

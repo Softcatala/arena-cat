@@ -10,7 +10,7 @@ VERSION_PATTERN = r"^v([1-9][0-9]{0,30})$"
 
 
 def active_prompt_ids():
-    """Tria per codi la revisió més alta amb dues respostes de models diferents."""
+    """Tria per codi la revisió activa més alta amb dues respostes de models diferents."""
     number = cast(func.substring(Prompt.version, VERSION_PATTERN), Numeric)
     ranked = (
         select(
@@ -20,7 +20,7 @@ def active_prompt_ids():
             .label("position"),
         )
         .join(Response, Response.prompt_id == Prompt.id)
-        .where(number.is_not(None))
+        .where(number.is_not(None), Prompt.active)
         .group_by(Prompt.id)
         # UNIQUE(prompt_id, model) garanteix que són models diferents.
         .having(func.count(Response.id) >= 2)

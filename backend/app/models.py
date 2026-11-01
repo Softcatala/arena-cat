@@ -85,8 +85,17 @@ class Prompt(Base):
     content_sha256: Mapped[str] = mapped_column(
         String(64), default=lambda context: text_sha256(context.get_current_parameters()["text"])
     )
+    # Un prompt inactiu no es serveix ni compta al rànquing; si n'hi ha d'anteriors, hi cau.
+    active: Mapped[bool] = mapped_column(Boolean, server_default="true", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    # `clock_timestamp` canvia dins la transacció: invalida la memòria cau del rànquing.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.clock_timestamp(),
+        nullable=False,
     )
 
     category: Mapped["Category"] = relationship()

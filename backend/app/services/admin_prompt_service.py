@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session as OrmSession
 from app.models import Category, Prompt, Response, text_sha256
 from app.schemas import (
     AdminPromptCreate,
+    AdminPromptPatch,
     AdminPromptResponse,
     AdminPromptsResponse,
 )
@@ -21,6 +22,7 @@ def _to_response(prompt: Prompt, category_code: str, response_count: int) -> Adm
         category_code=category_code,
         text=prompt.text,
         content_sha256=prompt.content_sha256,
+        active=prompt.active,
         created_at=prompt.created_at,
         response_count=response_count,
     )
@@ -33,6 +35,7 @@ def list_prompts(
     offset: int,
     version: str | None,
     category_code: str | None,
+    active: bool | None,
 ) -> AdminPromptsResponse:
     """Retorna una pàgina de prompts per ordre d'identificador, amb el recompte de respostes."""
     filters = []
@@ -40,6 +43,8 @@ def list_prompts(
         filters.append(Prompt.version == version)
     if category_code is not None:
         filters.append(Category.code == category_code)
+    if active is not None:
+        filters.append(Prompt.active == active)
 
     responses = (
         select(Response.prompt_id, func.count(Response.id).label("n"))
@@ -120,3 +125,20 @@ def delete_prompt(db: OrmSession, prompt_id: int) -> None:
         raise HTTPException(
             status_code=409, detail="El prompt encara està referenciat i no es pot esborrar"
         ) from None
+
+
+def update_prompt(db: OrmSession, prompt_id: int, payload: AdminPromptPatch) -> AdminPromptResponse:
+    """Activa o desactiva un prompt; si és inactiu, no es serveix ni compta al rànquing."""
+    prompt = db.get(Prompt, prompt_id)
+    if prompt is None:
+        raise HTTPException(status_code=404, detail="Prompt no trobat")
+
+    prompt.active = payload.active
+    db.commit()
+    db.refresh(prompt)
+
+    category_code = db.scalar(select(Category.code).where(Category.id == prompt.category_id))
+    response_count = db.scalar(
+        select(func.count(Response.id)).where(Response.prompt_id == prompt_id)
+    )
+    return _to_response(prompt, category_code, response_count or 0)

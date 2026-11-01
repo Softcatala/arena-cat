@@ -136,6 +136,7 @@ export interface AdminPrompt {
   category_code: CategoryCode;
   text: string;
   content_sha256: string;
+  active: boolean;
   created_at: string;
   response_count: number;
 }
