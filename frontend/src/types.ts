@@ -158,3 +158,17 @@ export interface Page<T> {
   total: number;
   items: T[];
 }
+
+export interface ImportFileResult {
+  name: string;
+  status: "inserted" | "skipped" | "error";
+  detail: string | null;
+}
+
+/** Resultat d'importar fitxers YAML d'inferència; cada fitxer és independent. */
+export interface ImportResult {
+  inserted: number;
+  skipped: number;
+  errors: number;
+  files: ImportFileResult[];
+}

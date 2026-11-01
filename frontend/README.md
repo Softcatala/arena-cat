@@ -36,8 +36,8 @@ La pàgina **Administració** (`/admin`) és només per a comptes amb el rol d'a
 la resta són redirigits a l'inici. L'enllaç apareix al menú del compte quan
 `GET /api/auth/session` retorna `is_admin`. Té tres pestanyes: **Usuaris** (bloquejar i
 desbloquejar), **Prompts** (crear, filtrar i esborrar els que no tenen inferències) i
-**Inferències** (afegir, activar o desactivar, incloure o excloure del rànquing, i esborrar les
-que no tenen vots). Per fer algú administrador, vegeu l'[API d'administració](../backend/README.md#apiadmin).
+**Inferències** (importar els fitxers YAML de la canonada d'inferència, afegir-ne a mà, activar o
+desactivar, incloure o excloure del rànquing, i esborrar les que no tenen vots). Per fer algú administrador, vegeu l'[API d'administració](../backend/README.md#apiadmin).
 
 La pàgina **Activitat** (`/activitat`) requereix sessió iniciada i s’hi accedeix
 directament per la URL, sense enllaç al menú. Mostra els

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../../api";
 import type { AdminResponse } from "../../types";
 import { Field, INPUT } from "../Field";
+import ImportYaml from "./ImportYaml";
 import {
   ActionButton,
   Badge,
@@ -113,6 +114,13 @@ export default function AdminResponses() {
           conserva els vots però no compten. Només s'esborren les que no tenen vots.
         </p>
       </div>
+
+      <ImportYaml
+        onImported={() => {
+          setOffset(0);
+          void load();
+        }}
+      />
 
       <form
         onSubmit={(event) => void create(event)}

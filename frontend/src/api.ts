@@ -22,6 +22,7 @@ import type {
   QualificationResult,
   Questionnaire,
   Ranking,
+  ImportResult,
   Page,
   SessionState,
   Task,
@@ -86,6 +87,8 @@ function query(params: Record<string, string | number | boolean | undefined | nu
   return text ? `?${text}` : "";
 }
 
+const IMPORT_BATCH = 100;
+
 const post = (body: unknown): RequestInit => ({ method: "POST", body: JSON.stringify(body) });
 
 /** Endpoints d'administració (`/api/admin/*`): 403 si el compte no és administrador. */
@@ -132,6 +135,24 @@ const admin = {
       `/admin/responses${query({ limit, offset, ...filters })}`,
     );
     return { total: data.total, items: data.responses };
+  },
+  /** Importa fitxers YAML de la canonada d'inferència; els envia per lots perquè el servidor en limita el nombre. */
+  importResponses: async (
+    version: string,
+    files: { name: string; content: string }[],
+  ): Promise<ImportResult> => {
+    const total: ImportResult = { inserted: 0, skipped: 0, errors: 0, files: [] };
+    for (let start = 0; start < files.length; start += IMPORT_BATCH) {
+      const batch = await request<ImportResult>(
+        "/admin/responses/import",
+        post({ version, files: files.slice(start, start + IMPORT_BATCH) }),
+      );
+      total.inserted += batch.inserted;
+      total.skipped += batch.skipped;
+      total.errors += batch.errors;
+      total.files.push(...batch.files);
+    }
+    return total;
   },
   createResponse: (response: { prompt_id: number; model: string; text: string }) =>
     request<AdminResponse>("/admin/responses", post(response)),

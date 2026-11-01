@@ -16,8 +16,15 @@ from app.schemas import (
     AdminResponsesResponse,
     AdminUserResponse,
     AdminUsersResponse,
+    ImportResponsesRequest,
+    ImportResponsesResponse,
 )
-from app.services import admin_prompt_service, admin_response_service, admin_service
+from app.services import (
+    admin_import_service,
+    admin_prompt_service,
+    admin_response_service,
+    admin_service,
+)
 
 router = APIRouter()
 
@@ -123,6 +130,14 @@ def create_response(
 ) -> AdminResponseItem:
     """Afegeix la inferència d'un model a un prompt, activa i inclosa al rànquing."""
     return admin_response_service.create_response(db, payload)
+
+
+@router.post("/responses/import")
+def import_responses(
+    payload: ImportResponsesRequest, db: DbSession, _admin: CurrentAdmin
+) -> ImportResponsesResponse:
+    """Importa inferències dels fitxers YAML de la canonada; cada fitxer és independent."""
+    return admin_import_service.import_responses(db, payload)
 
 
 @router.patch("/responses/{response_id}")

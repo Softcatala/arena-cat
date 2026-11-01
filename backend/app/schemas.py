@@ -442,3 +442,26 @@ class AdminResponseItem(BaseModel):
 class AdminResponsesResponse(BaseModel):
     total: int
     responses: list[AdminResponseItem]
+
+
+class ImportFile(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    content: str = Field(max_length=200_000)
+
+
+class ImportResponsesRequest(BaseModel):
+    version: str = Field(pattern=r"^v[1-9][0-9]{0,30}$")
+    files: list[ImportFile] = Field(min_length=1, max_length=200)
+
+
+class ImportFileResult(BaseModel):
+    name: str
+    status: Literal["inserted", "skipped", "error"]
+    detail: str | None = None
+
+
+class ImportResponsesResponse(BaseModel):
+    inserted: int
+    skipped: int
+    errors: int
+    files: list[ImportFileResult]
