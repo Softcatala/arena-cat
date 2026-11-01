@@ -72,14 +72,11 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
         aria-expanded={open}
         aria-label="Menú del compte"
         title={email ?? "Compte"}
-        className="flex items-center gap-1 rounded-full p-1 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+        className={`flex items-center gap-1 rounded-md p-2 hover:bg-brand-100 hover:text-brand-600 ${
+          open ? "bg-brand-100 text-brand-600" : "text-slate-500"
+        } focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none`}
       >
-        <span
-          aria-hidden="true"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-white uppercase"
-        >
-          {email?.[0] ?? "?"}
-        </span>
+        <UserIcon />
         <ChevronIcon open={open} />
       </button>
       {open && (
@@ -121,6 +118,7 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
           >
             Dona de baixa el compte
           </button>
+          <div className="my-1 border-t border-slate-200" role="separator" />
           <button
             type="button"
             role="menuitem"
@@ -132,6 +130,24 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
         </div>
       )}
     </div>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </svg>
   );
 }
 
