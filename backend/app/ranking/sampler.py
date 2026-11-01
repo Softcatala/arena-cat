@@ -45,7 +45,7 @@ def _load_prompts_and_responses(
     prompts = session.scalars(stmt).all()
     out = []
     for prompt in prompts:
-        responses_by_model = {r.model: r for r in prompt.responses}
+        responses_by_model = {r.model: r for r in prompt.responses if r.active}
         if len(responses_by_model) >= 2:
             out.append((prompt, responses_by_model))
     return out

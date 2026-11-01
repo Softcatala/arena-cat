@@ -186,3 +186,33 @@ def test_prompt_hash_migration_backfills_existing_prompts(ephemeral_db_url):
         assert "content_sha256" not in columns
     finally:
         engine.dispose()
+
+
+def test_response_flags_migration_keeps_existing_responses_active(ephemeral_db_url):
+    """Les respostes existents queden actives i incloses al rànquing; la migració és reversible."""
+    config = _alembic_config(ephemeral_db_url)
+    engine = create_engine(ephemeral_db_url)
+    try:
+        command.upgrade(config, "b2c3d4e5f6a7")
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO categories (code, name) VALUES ('correccio', 'Correcció');"
+                    "INSERT INTO prompts (version, code, category_id, text, content_sha256) "
+                    f"SELECT 'v1', 'correccio_1', id, 'Hola', '{'a' * 64}' FROM categories;"
+                    "INSERT INTO responses (prompt_id, model, text) "
+                    "SELECT id, 'model-a', 'Resposta' FROM prompts"
+                )
+            )
+        command.upgrade(config, "head")
+        with engine.connect() as connection:
+            row = connection.execute(
+                text("SELECT active, included_in_ranking FROM responses")
+            ).one()
+            assert row == (True, True)
+        command.check(config)
+        command.downgrade(config, "b2c3d4e5f6a7")
+        columns = {column["name"] for column in inspect(engine).get_columns("responses")}
+        assert {"active", "included_in_ranking", "updated_at"}.isdisjoint(columns)
+    finally:
+        engine.dispose()
