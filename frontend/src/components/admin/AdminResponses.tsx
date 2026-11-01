@@ -237,7 +237,7 @@ export default function AdminResponses() {
                       {item.included_in_ranking ? "Al rànquing" : "Exclosa"}
                     </Badge>
                   </td>
-                  <td className={`${TD} space-x-1 text-right`}>
+                  <td className={`${TD} space-x-1 whitespace-nowrap text-right`}>
                     <ActionButton onClick={() => void change(item, { active: !item.active })}>
                       {item.active ? "Desactiva" : "Activa"}
                     </ActionButton>

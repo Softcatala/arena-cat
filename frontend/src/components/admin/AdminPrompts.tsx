@@ -247,7 +247,7 @@ export default function AdminPrompts({ categories }: { categories: Category[] })
                       {prompt.active ? "Actiu" : "Inactiu"}
                     </Badge>
                   </td>
-                  <td className={`${TD} space-x-1 text-right`}>
+                  <td className={`${TD} space-x-1 whitespace-nowrap text-right`}>
                     <ActionButton onClick={() => void toggleActive(prompt)}>
                       {prompt.active ? "Desactiva" : "Activa"}
                     </ActionButton>
