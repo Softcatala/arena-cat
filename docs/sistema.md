@@ -28,6 +28,7 @@ flowchart LR
 |---|---|---|
 | Canonada d'inferència | Executa els models sobre els prompts i desa les respostes i les metadades | [`scripts/`](../scripts/README.md) |
 | Carregador | Sincronitza categories i insereix prompts i respostes | [`carrega_inferencies.py`](../scripts/carrega_inferencies.py) |
+| Administradors | Concedeix i revoca el rol d'administrador d'un compte | [`fes_administrador.py`](../scripts/fes_administrador.py) |
 | Backend | Autenticació, qualificació, tasques, vots, omissions, progrés i rànquing | [`backend/`](../backend/README.md) |
 | Frontend | Interfície d'avaluació i consulta pública del rànquing | [`frontend/`](../frontend/README.md) |
 | Base de dades | Persistència amb SQLAlchemy i migracions Alembic sobre PostgreSQL | [Esquema de dades](db_schema.md) |

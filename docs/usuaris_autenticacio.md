@@ -39,7 +39,7 @@ restriccions. Els camps principals per al flux d’autenticació són:
 - `email` i `password_hash`: credencials del compte actiu; es buiden en donar-se de baixa.
 - `email_hash`: HMAC del correu normalitzat, es buida en donar-se de baixa.
 - `email_verified_at` i `qualified_at`: acrediten la verificació del correu i la superació de la prova lingüística.
-- `is_admin`: dona accés a `/api/admin/*`. No es pot canviar des de cap endpoint; es marca directament a la base de dades. Una restricció `CHECK` impedeix que un compte donat de baixa sigui administrador.
+- `is_admin`: dona accés a `/api/admin/*`. No es pot canviar des de cap endpoint; s'assigna amb l'script [`fes_administrador.py`](../scripts/fes_administrador.py), que exigeix un compte existent amb el correu verificat i no bloquejat. Una restricció `CHECK` impedeix que un compte donat de baixa sigui administrador.
 - `blocked_at`: data del bloqueig. Un usuari bloquejat no pot iniciar sessió i `resolve_session_user` rebutja les sessions que li quedin.
 - `verification_sent_at` i `password_reset_sent_at`: limiten la freqüència d’enviament de correus.
 - `consent_version` i `consent_at`: registren el consentiment acceptat.
