@@ -334,3 +334,21 @@ class ReminderPreferences(BaseModel):
 
 class ReminderUnsubscribe(BaseModel):
     token: str = Field(min_length=1, max_length=64)
+
+
+class AdminUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str | None
+    is_admin: bool
+    email_verified_at: datetime | None
+    qualified_at: datetime | None
+    created_at: datetime
+    blocked_at: datetime | None
+    deleted_at: datetime | None
+
+
+class AdminUsersResponse(BaseModel):
+    total: int
+    users: list[AdminUserResponse]

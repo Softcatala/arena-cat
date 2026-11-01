@@ -45,6 +45,8 @@ erDiagram
         text password_hash
         timestamptz email_verified_at
         timestamptz qualified_at
+        boolean is_admin
+        timestamptz blocked_at
         timestamptz verification_sent_at
         timestamptz password_reset_sent_at
         varchar(32) consent_version
