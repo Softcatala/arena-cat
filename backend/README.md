@@ -93,8 +93,18 @@ Podeu consultar-lo amb el [CLI de consulta remota](../scripts/README.md#consulta
 ### `/api/admin/*`
 
 Reservats als usuaris amb `is_admin`, amb la mateixa cookie de sessió que la resta
-de l'API: 401 sense sessió, 403 si no és administrador. Per fer algú administrador,
-marqueu-lo a la base de dades: `UPDATE users SET is_admin = true WHERE email = '...'`.
+de l'API: 401 sense sessió, 403 si no és administrador. El rol no es pot canviar des de l'API:
+per concedir-lo o revocar-lo, executeu des de `backend/` l'script
+[`fes_administrador.py`](../scripts/fes_administrador.py):
+
+```bash
+uv run python ../scripts/fes_administrador.py correu@exemple.cat            # concedeix
+uv run python ../scripts/fes_administrador.py correu@exemple.cat --revoca   # revoca
+```
+
+El compte ha d'existir, tenir el correu verificat i no estar bloquejat ni donat de baixa.
+L'script calcula el hash del correu amb `EMAIL_HASH_PEPPER`, així que cal executar-lo amb la
+configuració de l'entorn on es vol aplicar.
 
 - `GET /api/admin/users?limit=50&offset=0`: usuaris per ordre d'`id` (`limit` de 1 a 200),
   amb `total` i `last_activity_at` (la data més recent entre l'inici de sessió, el darrer vot i
