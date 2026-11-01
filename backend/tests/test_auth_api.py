@@ -388,6 +388,7 @@ def test_session_returns_authenticated_user(client, logged_in_user):
         "email": "session_ok@example.com",
         "email_verified": True,
         "qualified": True,
+        "is_admin": False,
     }
 
 
@@ -400,6 +401,7 @@ def test_session_without_cookie_returns_unauthenticated(client):
         "email": None,
         "email_verified": False,
         "qualified": False,
+        "is_admin": False,
     }
 
 
@@ -449,6 +451,7 @@ def test_session_reports_unverified_email(client, create_user, login):
         "email": "session_unverified@example.com",
         "email_verified": False,
         "qualified": True,
+        "is_admin": False,
     }
 
 

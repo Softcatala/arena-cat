@@ -6,6 +6,7 @@ import arenaLogo from "./assets/arena-cat-logo.svg";
 import logotip from "./assets/softcatala-logotip.png";
 import AccountMenu from "./components/AccountMenu";
 import ActivityView from "./components/ActivityView";
+import AdminView from "./components/AdminView";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
 import ForgotPasswordView from "./components/ForgotPasswordView";
 import HowItWorksView from "./components/HowItWorksView";
@@ -24,6 +25,7 @@ const UNKNOWN: SessionState = {
   email: null,
   email_verified: false,
   qualified: false,
+  is_admin: false,
 };
 
 export default function App() {
@@ -114,6 +116,7 @@ export default function App() {
             {session?.authenticated && (
               <AccountMenu
                 email={session.email}
+                isAdmin={session.is_admin}
                 onLogout={logout}
                 onDeleteAccount={() => setShowDeleteAccount(true)}
               />
@@ -260,6 +263,16 @@ export default function App() {
                   />
                 ) : (
                   <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />
+                )
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                session.is_admin ? (
+                  <AdminView email={session.email} categories={categories ?? []} />
+                ) : (
+                  <Navigate to="/" replace />
                 )
               }
             />

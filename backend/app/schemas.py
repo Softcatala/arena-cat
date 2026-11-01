@@ -197,6 +197,7 @@ class SessionResponse(BaseModel):
     email: str | None = None
     email_verified: bool = False
     qualified: bool = False
+    is_admin: bool = False
 
 
 QualificationChoice = Literal["A", "B", "C"]
