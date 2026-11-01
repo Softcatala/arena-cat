@@ -39,6 +39,8 @@ restriccions. Els camps principals per al flux d’autenticació són:
 - `email` i `password_hash`: credencials del compte actiu; es buiden en donar-se de baixa.
 - `email_hash`: HMAC del correu normalitzat, es buida en donar-se de baixa.
 - `email_verified_at` i `qualified_at`: acrediten la verificació del correu i la superació de la prova lingüística.
+- `is_admin`: dona accés a `/api/admin/*`. No es pot canviar des de cap endpoint; s'assigna amb l'script [`fes_administrador.py`](../scripts/fes_administrador.py), que exigeix un compte existent amb el correu verificat i no bloquejat. Una restricció `CHECK` impedeix que un compte donat de baixa sigui administrador.
+- `blocked_at`: data del bloqueig. Un usuari bloquejat no pot iniciar sessió i `resolve_session_user` rebutja les sessions que li quedin.
 - `verification_sent_at` i `password_reset_sent_at`: limiten la freqüència d’enviament de correus.
 - `consent_version` i `consent_at`: registren el consentiment acceptat.
 - `deleted_at`: marca la baixa; la fila es conserva.
@@ -301,6 +303,9 @@ en aquest ordre:
 Si totes les comprovacions passen, retorna l'objecte `User` per injectar-lo a l'endpoint.
 Els endpoints d'exportació i baixa reutilitzen la mateixa funció sense exigir verificació.
 
+`CurrentAdmin` exigeix usuari verificat i `is_admin` → HTTP 403 altrament. El rol és
+independent de `qualified_at`: un administrador ha de superar la prova per avaluar, com la resta.
+
 La prova de competència (`GET` i `POST /api/qualification`) exigeix una sessió
 i la verificació segons la configuració anterior. Per obtenir tasques, consultar-ne el progrés, ometre-les o votar,
 `CurrentQualifiedUser` exigeix també `qualified_at` informat; si és nul, retorna
@@ -359,7 +364,7 @@ L'endpoint `POST /auth/delete-account` fa les operacions següents:
 1. Exigeix una sessió activa i la **contrasenya actual** (reautenticació) → HTTP 401 si
    falla qualsevol de les dues.
 2. Anonimitza l'usuari amb `anonymize_user_rgpd`: buida `email`, `email_hash`, `password_hash`,
-   `email_verified_at`, `qualified_at` i `consent_at`, i estableix `deleted_at`. Es conserva `id`, però es pot
+   `email_verified_at`, `qualified_at`, `is_admin` i `consent_at`, i estableix `deleted_at`. Es conserva `id`, però es pot
    tornar a registrar el mateix correu.
 3. Revoca **totes** les sessions actives de l'usuari.
 4. S'esborra la cookie del client.

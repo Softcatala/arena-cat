@@ -90,6 +90,67 @@ Exposa els noms dels models i les metadades d'inferència; `/api/task` manté
 les respostes anònimes. La resposta porta `Cache-Control: no-store`.
 Podeu consultar-lo amb el [CLI de consulta remota](../scripts/README.md#consulta-de-les-dades-carregades-en-remot).
 
+### `/api/admin/*`
+
+Reservats als usuaris amb `is_admin`, amb la mateixa cookie de sessió que la resta
+de l'API: 401 sense sessió, 403 si no és administrador. El rol no es pot canviar des de l'API:
+per concedir-lo o revocar-lo, executeu des de `backend/` l'script
+[`fes_administrador.py`](../scripts/fes_administrador.py):
+
+```bash
+uv run python ../scripts/fes_administrador.py correu@exemple.cat            # concedeix
+uv run python ../scripts/fes_administrador.py correu@exemple.cat --revoca   # revoca
+```
+
+El compte ha d'existir, tenir el correu verificat i no estar bloquejat ni donat de baixa.
+L'script calcula el hash del correu amb `EMAIL_HASH_PEPPER`, així que cal executar-lo amb la
+configuració de l'entorn on es vol aplicar.
+
+- `GET /api/admin/users?limit=50&offset=0`: usuaris per ordre d'`id` (`limit` de 1 a 200),
+  amb `total` i `last_activity_at` (la data més recent entre l'inici de sessió, el darrer vot i
+  la darrera omissió; nul si no n'ha fet cap). No inclou contrasenyes ni tokens. La resposta porta `Cache-Control: no-store`.
+- `POST /api/admin/users/{id}/block`: bloqueja l'usuari i revoca totes les seves sessions.
+  Idempotent. 409 si és un mateix o un compte donat de baixa; 404 si no existeix.
+- `POST /api/admin/users/{id}/unblock`: treu el bloqueig. Les sessions revocades no es recuperen.
+
+Un usuari bloquejat que encerta la contrasenya rep 403 en iniciar sessió.
+
+- `GET /api/admin/prompts?limit=50&offset=0&version=v1&category_code=correccio&active=true`: prompts per
+  ordre d'`id`, amb `content_sha256`, `category_code` i `response_count` (inferències).
+- `POST /api/admin/prompts` amb `{ version, code, category_code, text }`: crea un prompt (201).
+  El text s'escurça de blancs i se'n desa el SHA-256. 409 si ja existeix la parella
+  versió-codi o el mateix contingut dins la versió; 422 si la categoria no existeix o els
+  camps no són vàlids. El mateix text sí que es pot publicar en una versió nova.
+- `PATCH /api/admin/prompts/{id}` amb `{ active }`: activa o desactiva un prompt. Un prompt
+  inactiu no es serveix i els seus vots no compten al rànquing, que només considera la
+  versió activa de cada codi: si es desactiva la més alta, hi cau la versió anterior. Serveix
+  per desfer una versió publicada amb errades sense esborrar-ne res.
+- `DELETE /api/admin/prompts/{id}`: esborra un prompt (204). 409 si té inferències associades;
+  404 si no existeix.
+
+Les inferències (`responses`) tenen dos indicadors independents:
+
+- `active`: si és fals, no es mostra als avaluadors ni compta per al progrés, però conserva
+  els vots. Un prompt amb menys de dues respostes actives deixa de servir-se.
+- `included_in_ranking`: si és fals, els vots que la inclouen (com a A o B) no compten al
+  rànquing ni a la confiança.
+
+- `GET /api/admin/responses?prompt_id=&model=&active=&included_in_ranking=&limit=&offset=`:
+  inferències per ordre d'`id`, amb `vote_count`.
+- `POST /api/admin/responses` amb `{ prompt_id, model, text, inference_metadata? }`: la crea
+  activa i inclosa (201). 404 si el prompt no existeix; 409 si el model ja hi té resposta.
+- `POST /api/admin/responses/import` amb `{ version, files: [{ name, content }] }` (1 a 200
+  fitxers de fins a 200.000 caràcters): importa els YAML que genera `scripts/inferencia.py`,
+  amb les mateixes regles que `make load_inferences`. Cada fitxer és independent: la resposta
+  porta `inserted`, `skipped` i `errors` i, per fitxer, `status` (`inserted`, `skipped` o
+  `error`) i `detail`. El prompt es busca per `version` i `prompt.id` (el codi), i si el
+  fitxer duu `prompt.sha256` s'ha de correspondre amb el text del prompt (error altrament). Una
+  resposta que ja existeix idèntica s'omet; si té un contingut diferent és un error i no es
+  modifica. Els fitxers van dins del JSON perquè el navegador els llegeix amb `file.text()`.
+- `PATCH /api/admin/responses/{id}` amb `{ active?, included_in_ranking? }`: canvia els
+  indicadors; cal indicar-ne almenys un (422 altrament).
+- `DELETE /api/admin/responses/{id}`: esborra una inferència (204). 409 si té vots o omissions.
+
 ### `GET /api/qualification` i `POST /api/qualification`
 
 Requereixen una sessió vàlida i la verificació del correu, si està activada.

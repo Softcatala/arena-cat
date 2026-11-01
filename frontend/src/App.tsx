@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, Navigate, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import { api, UNAUTHENTICATED_EVENT } from "./api";
 import arenaLogo from "./assets/arena-cat-logo.svg";
 import logotip from "./assets/softcatala-logotip.png";
 import AccountMenu from "./components/AccountMenu";
 import ActivityView from "./components/ActivityView";
+import AdminView from "./components/AdminView";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
 import ForgotPasswordView from "./components/ForgotPasswordView";
 import HowItWorksView from "./components/HowItWorksView";
@@ -24,6 +33,7 @@ const UNKNOWN: SessionState = {
   email: null,
   email_verified: false,
   qualified: false,
+  is_admin: false,
 };
 
 export default function App() {
@@ -35,6 +45,7 @@ export default function App() {
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [accountDeleted, setAccountDeleted] = useState(false);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const debugQuery = searchParams.has("debug") ? "?debug" : "";
 
@@ -114,6 +125,7 @@ export default function App() {
             {session?.authenticated && (
               <AccountMenu
                 email={session.email}
+                isAdmin={session.is_admin}
                 onLogout={logout}
                 onDeleteAccount={() => setShowDeleteAccount(true)}
               />
@@ -122,36 +134,38 @@ export default function App() {
         </div>
       </header>
 
-      <div className="border-b border-slate-200 bg-slate-50 text-slate-900">
-        <div className="mx-auto flex max-w-5xl items-start gap-3 px-4 py-3">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mt-0.5 h-5 w-5 shrink-0 text-slate-600"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 11v6M12 7h.01" />
-          </svg>
-          <div>
-            <p className="text-base font-semibold">Necessiteu ajuda?</p>
-            <p className="mt-1 text-sm">
-              Si necessiteu ajuda, hi trobeu errades o voleu proposar millores, podeu anar al{" "}
-              <a
-                href="https://t.me/+dAgCZcRS2R82OGI0"
-                className="font-semibold underline underline-offset-2 hover:no-underline"
-              >
-                grup de Telegram
-              </a>
-              .
-            </p>
+      {!pathname.startsWith("/admin") && (
+        <div className="border-b border-slate-200 bg-slate-50 text-slate-900">
+          <div className="mx-auto flex max-w-5xl items-start gap-3 px-4 py-3">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mt-0.5 h-5 w-5 shrink-0 text-slate-600"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v6M12 7h.01" />
+            </svg>
+            <div>
+              <p className="text-base font-semibold">Necessiteu ajuda?</p>
+              <p className="mt-1 text-sm">
+                Si necessiteu ajuda, hi trobeu errades o voleu proposar millores, podeu anar al{" "}
+                <a
+                  href="https://t.me/+dAgCZcRS2R82OGI0"
+                  className="font-semibold underline underline-offset-2 hover:no-underline"
+                >
+                  grup de Telegram
+                </a>
+                .
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {session?.authenticated && showDeleteAccount && (
         <DeleteAccountDialog
@@ -260,6 +274,16 @@ export default function App() {
                   />
                 ) : (
                   <CategoriesStatus error={categoriesError} onRetry={refreshCategories} />
+                )
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                session.is_admin ? (
+                  <AdminView email={session.email} categories={categories ?? []} />
+                ) : (
+                  <Navigate to="/" replace />
                 )
               }
             />

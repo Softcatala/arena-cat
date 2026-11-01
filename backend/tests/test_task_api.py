@@ -73,7 +73,7 @@ def category_tasks(session):
         category = Category(code=code, name=code)
         session.add(category)
         session.flush()
-        prompt = Prompt(version="v1", code=code, category_id=category.id, text="Text")
+        prompt = Prompt(version="v1", code=code, category_id=category.id, text=f"Text {code}")
         session.add(prompt)
         session.flush()
         responses = [Response(prompt_id=prompt.id, model=model, text=model) for model in ("a", "b")]

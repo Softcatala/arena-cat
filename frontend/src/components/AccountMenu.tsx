@@ -6,6 +6,7 @@ import { downloadJson } from "../download";
 
 interface Props {
   email: string | null;
+  isAdmin: boolean;
   onLogout: () => void;
   onDeleteAccount: () => void;
 }
@@ -14,7 +15,7 @@ const ITEM =
   "flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-brand-100 focus-visible:bg-brand-100 focus-visible:outline-none";
 
 /** Menú desplegable amb les accions del compte de la persona autenticada. */
-export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props) {
+export default function AccountMenu({ email, isAdmin, onLogout, onDeleteAccount }: Props) {
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -94,6 +95,12 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
             <BellIcon />
             Recordatoris
           </Link>
+          {isAdmin && (
+            <Link to="/admin" onClick={() => setOpen(false)} className={`${ITEM} text-slate-700`}>
+              <ShieldIcon />
+              Administració
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => void exportData()}
@@ -172,6 +179,15 @@ function DownloadIcon() {
       <path d="M12 3v12" />
       <path d="M7 10l5 5 5-5" />
       <path d="M5 21h14" />
+    </MenuIcon>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <MenuIcon>
+      <path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3" />
+      <path d="M9 12l2 2 4-4" />
     </MenuIcon>
   );
 }

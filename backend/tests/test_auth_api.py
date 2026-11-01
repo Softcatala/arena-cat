@@ -388,6 +388,7 @@ def test_session_returns_authenticated_user(client, logged_in_user):
         "email": "session_ok@example.com",
         "email_verified": True,
         "qualified": True,
+        "is_admin": False,
     }
 
 
@@ -400,6 +401,7 @@ def test_session_without_cookie_returns_unauthenticated(client):
         "email": None,
         "email_verified": False,
         "qualified": False,
+        "is_admin": False,
     }
 
 
@@ -449,6 +451,7 @@ def test_session_reports_unverified_email(client, create_user, login):
         "email": "session_unverified@example.com",
         "email_verified": False,
         "qualified": True,
+        "is_admin": False,
     }
 
 
@@ -597,7 +600,7 @@ def test_get_ranking_status_depends_on_prompt_coverage_and_confidence(
     category = session.scalar(select(Category).where(Category.code == "correccio"))
     for index, winner in enumerate(winners):
         prompt = Prompt(
-            version="v1", code=f"opposing-{index}", category_id=category.id, text="Text"
+            version="v1", code=f"opposing-{index}", category_id=category.id, text=f"Text {index}"
         )
         response_a = Response(prompt=prompt, model="model_1", text="Resposta A")
         response_b = Response(prompt=prompt, model="model_2", text="Resposta B")

@@ -15,7 +15,9 @@ def make_prompt(session):
     category_id = session.scalar(select(Category.id).where(Category.code == "correccio"))
 
     def create(code, version, n_responses=2):
-        prompt = Prompt(code=code, version=version, category_id=category_id, text=version)
+        prompt = Prompt(
+            code=code, version=version, category_id=category_id, text=f"{code} {version}"
+        )
         session.add(prompt)
         session.flush()
         responses = [

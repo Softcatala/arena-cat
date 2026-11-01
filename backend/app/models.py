@@ -8,6 +8,7 @@ Taules:
 """
 
 import enum
+import hashlib
 from datetime import datetime
 from decimal import Decimal
 
@@ -32,6 +33,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+
+
+def text_sha256(text: str) -> str:
+    """Empremta SHA-256 d'un text en UTF-8, en hexadecimal."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 class Winner(enum.Enum):
@@ -64,15 +70,32 @@ class Prompt(Base):
     """Tasca d'avaluació que es mostra a l'usuari."""
 
     __tablename__ = "prompts"
-    __table_args__ = (UniqueConstraint("version", "code", name="uq_prompts_version_code"),)
+    __table_args__ = (
+        UniqueConstraint("version", "code", name="uq_prompts_version_code"),
+        UniqueConstraint("version", "content_sha256", name="uq_prompts_version_content_sha256"),
+        CheckConstraint("content_sha256 ~ '^[0-9a-f]{64}$'", name="ck_prompts_content_sha256"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     version: Mapped[str] = mapped_column(String(32), nullable=False)
     code: Mapped[str] = mapped_column(String(64), nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    # SHA-256 del text en UTF-8: impedeix repetir el mateix contingut dins d'una versió.
+    content_sha256: Mapped[str] = mapped_column(
+        String(64), default=lambda context: text_sha256(context.get_current_parameters()["text"])
+    )
+    # Un prompt inactiu no es serveix ni compta al rànquing; si n'hi ha d'anteriors, hi cau.
+    active: Mapped[bool] = mapped_column(Boolean, server_default="true", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    # `clock_timestamp` canvia dins la transacció: invalida la memòria cau del rànquing.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.clock_timestamp(),
+        nullable=False,
     )
 
     category: Mapped["Category"] = relationship()
@@ -99,8 +122,21 @@ class Response(Base):
     text: Mapped[str] = mapped_column(Text, nullable=False)
     # Metadades de la inferència (seed, temperatura, top_p, max_new_tokens, quantization...).
     inference_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Una resposta inactiva no es mostra als avaluadors, però conserva els vots.
+    active: Mapped[bool] = mapped_column(Boolean, server_default="true", nullable=False)
+    # Els vots que impliquen una resposta exclosa no compten al rànquing.
+    included_in_ranking: Mapped[bool] = mapped_column(
+        Boolean, server_default="true", nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    # `clock_timestamp` canvia dins la transacció: invalida la memòria cau del rànquing.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.clock_timestamp(),
+        nullable=False,
     )
 
     prompt: Mapped["Prompt"] = relationship(back_populates="responses")
@@ -117,6 +153,7 @@ class User(Base):
             "password_hash IS NOT NULL AND consent_at IS NOT NULL)",
             name="ck_users_active_have_credentials",
         ),
+        CheckConstraint("NOT is_admin OR deleted_at IS NULL", name="ck_users_admin_not_deleted"),
         CheckConstraint("reminder_count BETWEEN 0 AND 3", name="ck_users_reminder_count"),
         CheckConstraint(
             "NOT reminder_enabled OR "
@@ -140,6 +177,9 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
     qualified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, server_default="false", nullable=False)
+    # Un usuari bloquejat no pot iniciar sessió ni conservar les sessions obertes.
+    blocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Últim cop que s'ha enviat el correu de verificació: limita els reenviaments.
     verification_sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

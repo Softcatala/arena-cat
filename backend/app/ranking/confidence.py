@@ -77,6 +77,7 @@ def _load_clustered_votes(
         .join(response_a, Vote.response_a_id == response_a.id)
         .join(response_b, Vote.response_b_id == response_b.id)
         .where(Prompt.id.in_(active_prompt_ids()))
+        .where(response_a.included_in_ranking, response_b.included_in_ranking)
     )
     if category_code is not None:
         stmt = stmt.where(Category.code == category_code)

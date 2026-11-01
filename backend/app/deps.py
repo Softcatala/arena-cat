@@ -56,3 +56,13 @@ def get_current_qualified_user(user: CurrentVerifiedUser) -> User:
 
 
 CurrentQualifiedUser = Annotated[User, Depends(get_current_qualified_user)]
+
+
+def get_current_admin(user: CurrentVerifiedUser) -> User:
+    """Exigeix que l'usuari autenticat sigui administrador."""
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Cal ser administrador")
+    return user
+
+
+CurrentAdmin = Annotated[User, Depends(get_current_admin)]
