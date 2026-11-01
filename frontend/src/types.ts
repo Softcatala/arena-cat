@@ -125,6 +125,8 @@ export interface AdminUser {
   created_at: string;
   blocked_at: string | null;
   deleted_at: string | null;
+  /** Darrer inici de sessió, vot o omissió; `null` si no n'ha fet cap. */
+  last_activity_at: string | null;
 }
 
 export interface AdminPrompt {

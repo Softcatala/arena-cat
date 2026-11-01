@@ -73,6 +73,7 @@ export default function AdminUsers({ selfEmail }: { selfEmail: string | null }) 
                 <th className={TH}>Correu</th>
                 <th className={TH}>Estat</th>
                 <th className={TH}>Alta</th>
+                <th className={TH}>Última activitat</th>
                 <th className={TH}>
                   <span className="sr-only">Accions</span>
                 </th>
@@ -92,6 +93,7 @@ export default function AdminUsers({ selfEmail }: { selfEmail: string | null }) 
                     {user.qualified_at && <Badge tone="ok">Acreditat</Badge>}
                   </td>
                   <td className={TD}>{formatDate(user.created_at)}</td>
+                  <td className={TD}>{formatDate(user.last_activity_at)}</td>
                   <td className={`${TD} text-right`}>
                     {!user.deleted_at && user.email !== selfEmail && (
                       <ActionButton

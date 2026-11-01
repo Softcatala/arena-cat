@@ -356,6 +356,8 @@ class AdminUserResponse(BaseModel):
     created_at: datetime
     blocked_at: datetime | None
     deleted_at: datetime | None
+    # Data més recent entre l'inici de sessió, el darrer vot i la darrera omissió.
+    last_activity_at: datetime | None = None
 
 
 class AdminUsersResponse(BaseModel):
