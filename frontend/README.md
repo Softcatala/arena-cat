@@ -25,8 +25,8 @@ Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
 La capçalera mostra el logotip i el nom, que duen a l'avaluació (`/`), i l'enllaç al rànquing.
-Amb sessió hi apareix també el **menú del compte** (recordatoris, tancar la sessió i donar de
-baixa el compte).
+Amb sessió hi apareix també el **menú del compte** (recordatoris, descarregar les dades personals,
+donar de baixa el compte i tancar la sessió).
 
 El **Rànquing** (`/ranking`) és accessible des de la capçalera amb sessió o sense.
 Amb sessió, el botó **Avalua** permet tornar a l’avaluació.
@@ -122,6 +122,7 @@ s'hagi decidit.
 |---|---|
 | `src/api.ts` | Client de l'API. `credentials: "include"` a totes les crides, imprescindible per la cookie de sessió. |
 | `src/types.ts` | Tipus alineats amb `backend/app/schemas.py`. |
+| `src/download.ts` | Baixa un objecte com a fitxer JSON (exportació de dades). |
 | `src/diff.ts` | Separa l'enunciat en instrucció i text, i calcula la diferència per paraules. És el que fa avaluable la categoria «correcció». |
 | `src/taskStore.ts` | Conserva la tasca en curs entre recàrregues i llegeix el `vote_after` del token. |
 | `src/errors.ts` | Tradueix al català els errors de validació de FastAPI, que arriben en anglès. |

@@ -344,9 +344,12 @@ L'endpoint `GET /auth/export` requereix una sessió activa i retorna:
 
 L'exportació inclou també els vots de versions antigues dels prompts.
 
+El menú del compte de la interfície l'ofereix com a «Descarrega les meves dades»,
+que baixa la resposta com a fitxer JSON.
+
 ### Baixa i anonimització (`delete_account`)
 
-La interfície ofereix una icona de baixa al costat del correu, a la capçalera.
+La interfície ofereix l'opció «Dona de baixa el compte» al menú del compte, a la capçalera.
 Obre un diàleg que demana la contrasenya actual i informa que els vots i les
 omissions es conservaran. Després de confirmar la baixa, es mostra la portada.
 

@@ -13,6 +13,7 @@ import type {
   Activity,
   Category,
   CategoryFilter,
+  ExportData,
   Progress,
   QualificationChoice,
   QualificationResult,
@@ -109,6 +110,9 @@ export const api = {
     }),
 
   logout: () => request<{ status: string }>("/auth/logout", { method: "POST" }),
+
+  /** Dades personals, vots i omissions de la persona autenticada (RGPD). */
+  exportData: () => request<ExportData>("/auth/export"),
 
   deleteAccount: async (password: string) => {
     try {

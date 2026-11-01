@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { api, ApiError } from "../api";
+import { downloadJson } from "../download";
+
 interface Props {
   email: string | null;
   onLogout: () => void;
@@ -13,6 +16,8 @@ const ITEM =
 /** Menú desplegable amb les accions del compte de la persona autenticada. */
 export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props) {
   const [open, setOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
@@ -39,6 +44,22 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
   function run(action: () => void) {
     setOpen(false);
     action();
+  }
+
+  async function exportData() {
+    setExporting(true);
+    setExportError(null);
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      downloadJson(await api.exportData(), `arena-cat-dades-${date}.json`);
+      setOpen(false);
+    } catch (err) {
+      setExportError(
+        err instanceof ApiError ? err.message : "No s'han pogut descarregar les dades.",
+      );
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -77,6 +98,20 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
           >
             Recordatoris
           </Link>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => void exportData()}
+            disabled={exporting}
+            className={`${ITEM} text-slate-700 disabled:text-slate-400`}
+          >
+            {exporting ? "Descarregant…" : "Descarrega les meves dades"}
+          </button>
+          {exportError && (
+            <p role="alert" className="px-4 pb-2 text-xs text-red-700">
+              {exportError}
+            </p>
+          )}
           <div className="my-1 border-t border-slate-200" role="separator" />
           <button
             type="button"

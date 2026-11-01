@@ -106,3 +106,10 @@ export interface Activity {
   voters: number;
   votes: number;
 }
+
+/** Resposta de `GET /auth/export`. Només es desa i es descarrega: no se'n llegeix cap camp. */
+export interface ExportData {
+  user: Record<string, unknown>;
+  votes: Record<string, unknown>[];
+  skips: Record<string, unknown>[];
+}
