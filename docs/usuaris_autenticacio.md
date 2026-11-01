@@ -342,7 +342,8 @@ L'endpoint `GET /auth/export` requereix una sessió activa i retorna:
 - Tots els vots de l'usuari (`ExportVoteResponse`), ordenats cronològicament.
 - Totes les tasques que ha omès (`ExportSkipResponse`), també per ordre cronològic.
 
-L'exportació inclou també els vots de versions antigues dels prompts.
+L'exportació inclou també els vots de versions antigues dels prompts. La resposta porta la
+capçalera `Cache-Control: no-store` perquè no es desi en memòria cau.
 
 El menú del compte de la interfície l'ofereix com a «Descarrega les meves dades»,
 que baixa la resposta com a fitxer JSON.

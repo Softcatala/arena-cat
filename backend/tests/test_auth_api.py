@@ -365,6 +365,12 @@ def test_export_data_without_skips_returns_an_empty_list(client, logged_in_user)
     assert client.get("/api/auth/export").json()["skips"] == []
 
 
+def test_export_data_is_not_cacheable(client, logged_in_user):
+    logged_in_user("export_cache@example.com")
+
+    assert client.get("/api/auth/export").headers["cache-control"] == "no-store"
+
+
 def test_export_data_requires_session(client):
     response = client.get("/api/auth/export")
 

@@ -107,7 +107,7 @@ export default function App() {
               </span>
             </span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2">
             <Link to="/ranking" className="text-sm text-brand-600 hover:underline">
               Rànquing
             </Link>

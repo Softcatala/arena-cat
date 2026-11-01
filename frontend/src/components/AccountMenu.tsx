@@ -63,12 +63,18 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
   }
 
   return (
-    <div ref={root} className="relative">
+    <div
+      ref={root}
+      className="relative"
+      onBlur={(event) => {
+        // Tanca el desplegable quan el focus surt d'aquest bloc (per exemple amb Tab).
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+    >
       <button
         ref={button}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Menú del compte"
         title={email ?? "Compte"}
@@ -80,25 +86,16 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
         <ChevronIcon open={open} />
       </button>
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-20 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-lg"
-        >
+        <div className="absolute right-0 z-20 mt-1 w-56 max-w-[calc(100vw-2rem)] rounded-md border border-slate-200 bg-white py-1 shadow-lg">
           <p className="border-b border-slate-200 px-4 py-2 text-sm break-all text-slate-500">
             {email}
           </p>
-          <Link
-            to="/reminders"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className={`${ITEM} text-slate-700`}
-          >
+          <Link to="/reminders" onClick={() => setOpen(false)} className={`${ITEM} text-slate-700`}>
             <BellIcon />
             Recordatoris
           </Link>
           <button
             type="button"
-            role="menuitem"
             onClick={() => void exportData()}
             disabled={exporting}
             className={`${ITEM} text-slate-700 disabled:text-slate-400`}
@@ -111,23 +108,17 @@ export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props)
               {exportError}
             </p>
           )}
-          <div className="my-1 border-t border-slate-200" role="separator" />
+          <div className="my-1 border-t border-slate-200" />
           <button
             type="button"
-            role="menuitem"
             onClick={() => run(onDeleteAccount)}
             className={`${ITEM} text-red-700`}
           >
             <TrashIcon />
             Dona de baixa el compte
           </button>
-          <div className="my-1 border-t border-slate-200" role="separator" />
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => run(onLogout)}
-            className={`${ITEM} text-slate-700`}
-          >
+          <div className="my-1 border-t border-slate-200" />
+          <button type="button" onClick={() => run(onLogout)} className={`${ITEM} text-slate-700`}>
             <LogoutIcon />
             Tanca la sessió
           </button>
