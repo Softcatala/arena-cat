@@ -11,16 +11,6 @@ from app.main import app
 from app.models import Session, User
 
 
-@pytest.fixture
-def admin(create_user, login, session):
-    """Administrador amb la sessió oberta al client."""
-    user = create_user("admin@example.com")
-    user.is_admin = True
-    session.commit()
-    login("admin@example.com")
-    return user
-
-
 def test_admin_endpoints_require_a_session(client):
     assert client.get("/api/admin/users").status_code == 401
     assert client.post("/api/admin/users/1/block").status_code == 401

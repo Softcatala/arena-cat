@@ -597,7 +597,7 @@ def test_get_ranking_status_depends_on_prompt_coverage_and_confidence(
     category = session.scalar(select(Category).where(Category.code == "correccio"))
     for index, winner in enumerate(winners):
         prompt = Prompt(
-            version="v1", code=f"opposing-{index}", category_id=category.id, text="Text"
+            version="v1", code=f"opposing-{index}", category_id=category.id, text=f"Text {index}"
         )
         response_a = Response(prompt=prompt, model="model_1", text="Resposta A")
         response_b = Response(prompt=prompt, model="model_2", text="Resposta B")

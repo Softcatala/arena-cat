@@ -1,5 +1,6 @@
 """Reversibilitat de la migració inicial contra una base de dades efímera."""
 
+import hashlib
 import logging
 import uuid
 from io import StringIO
@@ -156,5 +157,32 @@ def test_admin_migration_defaults_existing_users_and_is_reversible(ephemeral_db_
         command.downgrade(config, "d9f012345678")
         columns = {column["name"] for column in inspect(engine).get_columns("users")}
         assert {"is_admin", "blocked_at"}.isdisjoint(columns)
+    finally:
+        engine.dispose()
+
+
+def test_prompt_hash_migration_backfills_existing_prompts(ephemeral_db_url):
+    """Els prompts existents reben l'empremta SHA-256 del seu text i la migració és reversible."""
+    config = _alembic_config(ephemeral_db_url)
+    engine = create_engine(ephemeral_db_url)
+    try:
+        command.upgrade(config, "a1b2c3d4e5f6")
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO categories (code, name) VALUES ('correccio', 'Correcció');"
+                    "INSERT INTO prompts (version, code, category_id, text) "
+                    "SELECT 'v1', 'correccio_1', id, 'Hola' FROM categories"
+                )
+            )
+        command.upgrade(config, "head")
+        with engine.connect() as connection:
+            assert connection.scalar(text("SELECT content_sha256 FROM prompts")) == (
+                hashlib.sha256(b"Hola").hexdigest()
+            )
+        command.check(config)
+        command.downgrade(config, "a1b2c3d4e5f6")
+        columns = {column["name"] for column in inspect(engine).get_columns("prompts")}
+        assert "content_sha256" not in columns
     finally:
         engine.dispose()
