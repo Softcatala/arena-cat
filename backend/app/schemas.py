@@ -2,7 +2,7 @@ import unicodedata
 from datetime import date, datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, field_validator
 from pydantic_core import PydanticCustomError
 
 from app.models import Winner
@@ -352,3 +352,34 @@ class AdminUserResponse(BaseModel):
 class AdminUsersResponse(BaseModel):
     total: int
     users: list[AdminUserResponse]
+
+
+class AdminPromptCreate(BaseModel):
+    version: str = Field(pattern=r"^v[1-9][0-9]{0,30}$")
+    code: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
+    category_code: str
+    text: str = Field(min_length=1, max_length=20_000)
+
+    @field_validator("text")
+    @classmethod
+    def strip_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("El text no pot ser buit")
+        return value
+
+
+class AdminPromptResponse(BaseModel):
+    id: int
+    version: str
+    code: str
+    category_code: str
+    text: str
+    content_sha256: str
+    created_at: datetime
+    response_count: int
+
+
+class AdminPromptsResponse(BaseModel):
+    total: int
+    prompts: list[AdminPromptResponse]

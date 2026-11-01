@@ -144,3 +144,13 @@ def logged_in_user(create_user, login):
         return user
 
     return _make
+
+
+@pytest.fixture
+def admin(create_user, login, session) -> User:
+    """Administrador amb la sessió oberta al client."""
+    user = create_user("admin@example.com")
+    user.is_admin = True
+    session.commit()
+    login("admin@example.com")
+    return user

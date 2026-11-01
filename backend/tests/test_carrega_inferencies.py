@@ -16,9 +16,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 import carrega_inferencies as loader  # noqa: E402
 
 
-def write_prompt(prompts_dir: Path, code: str, text: str = "Tradueix aquest text.") -> None:
-    """Escriu un prompt de text pla (l'única forma acceptada per la canonada)."""
+def write_prompt(prompts_dir: Path, code: str, text: str | None = None) -> None:
+    """Escriu un prompt de text pla (l'única forma acceptada per la canonada).
+
+    Sense `text`, en genera un que depèn del codi: el contingut dels prompts no es pot repetir.
+    """
     prompts_dir.mkdir(parents=True, exist_ok=True)
+    text = text if text is not None else f"Tradueix aquest text ({code})."
     (prompts_dir / f"{code}.txt").write_text(text, encoding="utf-8")
 
 
@@ -384,3 +388,14 @@ def test_summary_total_errors_drives_exit_code(session, dirs):
     summary = loader.run_load(session, prompts_dir, inferencies_dir)
 
     assert summary.total_errors == 1
+
+
+def test_prompt_with_repeated_content_is_an_error_not_a_crash(session, dirs):
+    prompts_dir, inferencies_dir = dirs
+    write_prompt(prompts_dir, "traduccio_1", "El mateix text.")
+    write_prompt(prompts_dir, "traduccio_2", "El mateix text.")
+
+    summary = loader.run_load(session, prompts_dir, inferencies_dir)
+
+    assert summary.prompts.inserted == 1
+    assert summary.prompts.errors == 1

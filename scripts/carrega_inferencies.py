@@ -33,7 +33,7 @@ from sqlalchemy import select  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.db import get_sessionmaker  # noqa: E402
-from app.models import Category, Prompt, Response  # noqa: E402
+from app.models import Category, Prompt, Response, text_sha256  # noqa: E402
 from app.prompt_versions import VERSION_PATTERN  # noqa: E402
 from scripts.lib.prompt_versions import inference_directory, version_directories  # noqa: E402
 
@@ -312,6 +312,21 @@ def upsert_prompt(
         select(Prompt).where(Prompt.version == record.version, Prompt.code == record.code)
     )
     if existing is None:
+        repeated = session.scalar(
+            select(Prompt).where(
+                Prompt.version == record.version,
+                Prompt.content_sha256 == text_sha256(record.text),
+            )
+        )
+        if repeated is not None:
+            LOGGER.error(
+                "%s: el contingut ja existeix al prompt (%s/%s)",
+                record.source,
+                repeated.version,
+                repeated.code,
+            )
+            stats.errors += 1
+            return
         session.add(
             Prompt(
                 version=record.version,
