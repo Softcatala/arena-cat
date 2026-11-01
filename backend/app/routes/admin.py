@@ -37,13 +37,13 @@ def list_users(
 @router.post("/users/{user_id}/block")
 def block_user(user_id: int, db: DbSession, admin: CurrentAdmin) -> AdminUserResponse:
     """Bloqueja un usuari: no pot entrar i perd les sessions obertes."""
-    return AdminUserResponse.model_validate(admin_service.block_user(db, admin, user_id))
+    return admin_service.block_user(db, admin, user_id)
 
 
 @router.post("/users/{user_id}/unblock")
 def unblock_user(user_id: int, db: DbSession, _admin: CurrentAdmin) -> AdminUserResponse:
     """Desbloqueja un usuari, que podrà tornar a iniciar sessió."""
-    return AdminUserResponse.model_validate(admin_service.unblock_user(db, user_id))
+    return admin_service.unblock_user(db, user_id)
 
 
 @router.get("/prompts")

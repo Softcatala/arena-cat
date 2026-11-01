@@ -97,7 +97,8 @@ de l'API: 401 sense sessió, 403 si no és administrador. Per fer algú administ
 marqueu-lo a la base de dades: `UPDATE users SET is_admin = true WHERE email = '...'`.
 
 - `GET /api/admin/users?limit=50&offset=0`: usuaris per ordre d'`id` (`limit` de 1 a 200),
-  amb `total`. No inclou contrasenyes ni tokens. La resposta porta `Cache-Control: no-store`.
+  amb `total` i `last_activity_at` (la data més recent entre l'inici de sessió, el darrer vot i
+  la darrera omissió; nul si no n'ha fet cap). No inclou contrasenyes ni tokens. La resposta porta `Cache-Control: no-store`.
 - `POST /api/admin/users/{id}/block`: bloqueja l'usuari i revoca totes les seves sessions.
   Idempotent. 409 si és un mateix o un compte donat de baixa; 404 si no existeix.
 - `POST /api/admin/users/{id}/unblock`: treu el bloqueig. Les sessions revocades no es recuperen.

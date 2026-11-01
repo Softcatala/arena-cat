@@ -189,3 +189,82 @@ def test_session_exposes_the_admin_role(client, admin, create_user, login):
 
 def test_anonymous_session_is_not_admin(client):
     assert client.get("/api/auth/session").json()["is_admin"] is False
+
+
+def _activity(client, email):
+    users = {user["email"]: user for user in client.get("/api/admin/users").json()["users"]}
+    return users[email]["last_activity_at"]
+
+
+def test_last_activity_is_none_for_a_user_who_never_acted(client, admin, create_user):
+    create_user("idle@example.com")
+
+    assert _activity(client, "idle@example.com") is None
+
+
+def test_last_activity_is_the_latest_login_vote_or_skip(client, admin, create_user, session):
+    from datetime import timedelta
+
+    from app.models import Category, Prompt, Response, TaskSkip, Vote, Winner
+
+    user = create_user("active@example.com")
+    base = datetime(2026, 1, 1, tzinfo=UTC)
+    session.add(Session(user_id=user.id, token_hash="a" * 64, expires_at=base + timedelta(days=9)))
+    session.flush()
+    session.execute(
+        Session.__table__.update().where(Session.user_id == user.id).values(created_at=base)
+    )
+    category = session.scalar(select(Category).limit(1))
+    prompt = Prompt(version="v1", code="activity_1", category_id=category.id, text="Text")
+    session.add(prompt)
+    session.flush()
+    first = Response(prompt_id=prompt.id, model="model-a", text="A")
+    second = Response(prompt_id=prompt.id, model="model-b", text="B")
+    session.add_all([first, second])
+    session.flush()
+    vote = Vote(
+        prompt_id=prompt.id,
+        user_id=user.id,
+        response_a_id=first.id,
+        response_b_id=second.id,
+        winner=Winner.a,
+        created_at=base + timedelta(days=2),
+    )
+    skip = TaskSkip(
+        prompt_id=prompt.id,
+        user_id=user.id,
+        response_a_id=first.id,
+        response_b_id=second.id,
+        created_at=base + timedelta(days=5),
+    )
+    session.add_all([vote, skip])
+    session.commit()
+
+    assert _activity(client, "active@example.com").startswith("2026-01-06")
+
+    skip.created_at = base + timedelta(days=1)
+    session.commit()
+
+    assert _activity(client, "active@example.com").startswith("2026-01-03")
+
+
+def test_last_activity_counts_the_login(client, admin):
+    assert _activity(client, "admin@example.com") is not None
+
+
+def test_block_response_keeps_the_last_activity(client, admin, create_user, login):
+    create_user("target@example.com")
+    other = TestClient(app, base_url="https://testserver")
+    other.post(
+        "/api/auth/login",
+        json={"email": "target@example.com", "password": "ContrasenyaSegura123!"},
+    )
+    target_id = next(
+        user["id"]
+        for user in client.get("/api/admin/users").json()["users"]
+        if user["email"] == "target@example.com"
+    )
+
+    blocked = client.post(f"/api/admin/users/{target_id}/block").json()
+
+    assert blocked["last_activity_at"] is not None
