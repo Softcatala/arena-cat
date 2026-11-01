@@ -24,6 +24,10 @@ fragments d'àudio en català i valorant les transcripcions.
 Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
+La capçalera mostra el logotip i el nom, que duen a l'avaluació (`/`), i l'enllaç al rànquing.
+Amb sessió hi apareix també el **menú del compte** (recordatoris, tancar la sessió i donar de
+baixa el compte).
+
 El **Rànquing** (`/ranking`) és accessible des de la capçalera amb sessió o sense.
 Amb sessió, el botó **Avalua** permet tornar a l’avaluació.
 
@@ -122,6 +126,7 @@ s'hagi decidit.
 | `src/taskStore.ts` | Conserva la tasca en curs entre recàrregues i llegeix el `vote_after` del token. |
 | `src/errors.ts` | Tradueix al català els errors de validació de FastAPI, que arriben en anglès. |
 | `src/App.tsx` | Estat de sessió i disposició general (capçalera i peu). |
+| `src/components/AccountMenu.tsx` | Menú desplegable del compte a la capçalera. |
 | `src/components/Login.tsx` | Alta i inici de sessió. |
 | `src/components/QualificationView.tsx` | Formulari de competència lingüística, correcció i resultat. |
 | `src/components/TaskView.tsx` | Filtre de categoria, tasca, vot, omissió i final de recorregut. |
@@ -153,4 +158,4 @@ s'hagi decidit.
   Si acaben necessitant URL pròpia (compartir enllaç, botó «enrere»), caldrà
   `react-router-dom`; si no, es poden fer igual que ara, amb estat de React.
 
-La capçalera ofereix **Recordatoris** (`/reminders`) amb sessió iniciada. Als múltiples de deu vots es mostra una invitació per activar els recordatoris setmanals, com a màxim un cop cada trenta dies i només si no estan activats. Consulteu els [recordatoris per correu](../docs/usuaris_autenticacio.md#recordatoris-voluntaris) per a les preferències i la baixa sense sessió.
+El menú del compte ofereix **Recordatoris** (`/reminders`) amb sessió iniciada. Als múltiples de deu vots es mostra una invitació per activar els recordatoris setmanals, com a màxim un cop cada trenta dies i només si no estan activats. Consulteu els [recordatoris per correu](../docs/usuaris_autenticacio.md#recordatoris-voluntaris) per a les preferències i la baixa sense sessió.

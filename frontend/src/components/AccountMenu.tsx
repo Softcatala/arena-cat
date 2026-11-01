@@ -1,0 +1,118 @@
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+
+interface Props {
+  email: string | null;
+  onLogout: () => void;
+  onDeleteAccount: () => void;
+}
+
+const ITEM =
+  "block w-full px-4 py-2 text-left text-sm hover:bg-brand-100 focus-visible:bg-brand-100 focus-visible:outline-none";
+
+/** Menú desplegable amb les accions del compte de la persona autenticada. */
+export default function AccountMenu({ email, onLogout, onDeleteAccount }: Props) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      button.current?.focus();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  // Tanca el menú abans d'executar l'acció: alguna n'obre un diàleg i el menú no
+  // hauria de quedar-se obert darrere.
+  function run(action: () => void) {
+    setOpen(false);
+    action();
+  }
+
+  return (
+    <div ref={root} className="relative">
+      <button
+        ref={button}
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Menú del compte"
+        title={email ?? "Compte"}
+        className="flex items-center gap-1 rounded-full p-1 text-slate-500 hover:bg-brand-100 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+      >
+        <span
+          aria-hidden="true"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-white uppercase"
+        >
+          {email?.[0] ?? "?"}
+        </span>
+        <ChevronIcon open={open} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-20 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+        >
+          <p className="border-b border-slate-200 px-4 py-2 text-sm break-all text-slate-500">
+            {email}
+          </p>
+          <Link
+            to="/reminders"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className={`${ITEM} text-slate-700`}
+          >
+            Recordatoris
+          </Link>
+          <div className="my-1 border-t border-slate-200" role="separator" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => run(onDeleteAccount)}
+            className={`${ITEM} text-red-700`}
+          >
+            Dona de baixa el compte
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => run(onLogout)}
+            className={`${ITEM} text-slate-700`}
+          >
+            Tanca la sessió
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+      aria-hidden="true"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
