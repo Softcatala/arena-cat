@@ -102,6 +102,7 @@ export default function AccountMenu({ email, isAdmin, onLogout, onDeleteAccount 
               onClick={() => setOpen(false)}
               className={`${ITEM} text-slate-700`}
             >
+              <ShieldIcon />
               Administració
             </Link>
           )}
@@ -183,6 +184,15 @@ function DownloadIcon() {
       <path d="M12 3v12" />
       <path d="M7 10l5 5 5-5" />
       <path d="M5 21h14" />
+    </MenuIcon>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <MenuIcon>
+      <path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3" />
+      <path d="M9 12l2 2 4-4" />
     </MenuIcon>
   );
 }
