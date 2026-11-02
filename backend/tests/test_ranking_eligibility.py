@@ -19,9 +19,6 @@ def test_public_ranking_requires_both_thresholds(client, session, n_votes, n_pro
     data = client.get("/api/ranking", params={"category_code": "correccio"}).json()
     assert [item["model"] for item in data["ranked_models"]] == (MODELS[:2] if eligible else [])
     assert data["best_model"] == (MODELS[0] if eligible else None)
-    pending = {item["model"]: item for item in data["pending_models"]}
-    assert MODELS[2] in pending
-    assert pending[MODELS[2]]["n_votes_decisive"] == 0
     assert data["n_votes_total"] == n_votes
     if not eligible:
         assert data["status"] == "insufficient_data"
@@ -42,9 +39,7 @@ def test_new_winning_model_cannot_displace_eligible_leader(client, session):
     session.flush()
     data = client.get("/api/ranking").json()
     assert data["best_model"] == data["confidence"]["best_model"] == MODELS[0]
-    assert data["pending_models"][0]["n_votes_decisive"] == 1
-    assert data["pending_models"][0]["n_prompts_decisive"] == 1
-    assert data["ranked_models"][0]["n_votes_decisive"] == 31
+    assert {item["model"] for item in data["ranked_models"]} == set(MODELS[:2])
     assert data["n_votes_total"] == 91
 
 
@@ -57,7 +52,6 @@ def test_eligibility_is_scoped_to_category_and_active_versions(client, session):
     assert len(client.get("/api/ranking").json()["ranked_models"]) == 2
     data = client.get("/api/ranking", params={"category_code": "correccio"}).json()
     assert data["ranked_models"] == []
-    assert data["pending_models"][0]["n_votes_decisive"] == 15
     old, old_responses = _seed_prompts(session, "generacio", 1)[0]
     for _ in range(30):
         _record_vote(session, old, old_responses[MODELS[0]], old_responses[MODELS[1]], Winner.a)
@@ -69,8 +63,7 @@ def test_eligibility_is_scoped_to_category_and_active_versions(client, session):
         session.add(Response(prompt_id=new.id, model=model, text="Nova resposta"))
     session.flush()
     data = client.get("/api/ranking", params={"category_code": "generacio"}).json()
-    assert {item["model"] for item in data["pending_models"]} == set(MODELS[:2])
-    assert all(item["n_votes_decisive"] == 0 for item in data["pending_models"])
+    assert data["ranked_models"] == []
     assert data["n_votes_total"] == 0
 
 
@@ -86,6 +79,6 @@ def test_model_is_promoted_when_last_required_vote_arrives(client, session):
     session.flush()
     data = client.get("/api/ranking").json()
     assert data["best_model"] == MODELS[1]
-    assert [item["n_votes_decisive"] for item in data["ranked_models"]] == [30, 30]
+    assert len(data["ranked_models"]) == 2
     assert data["ranked_models"][1]["model"] == MODELS[0]
     assert data["confidence"]["best_model"] == MODELS[1]

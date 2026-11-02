@@ -512,8 +512,6 @@ def test_get_ranking_category_below_minimum(client, session):
     assert response.json()["status"] == "insufficient_data"
     assert response.json()["n_participants"] == 0
     assert response.json()["ranked_models"] == []
-    assert len(response.json()["pending_models"]) == 2
-    assert all(item["n_votes_decisive"] == 1 for item in response.json()["pending_models"])
     assert response.json()["confidence"]["best_model"] is None
     assert response.json()["confidence"]["n_decisive_votes"] == 0
     assert response.json()["confidence"]["confidence_interval"] is None
@@ -654,7 +652,6 @@ def test_get_ranking_without_category_returns_global(client, session, create_use
     assert response.json()["n_participants"] == 3
     assert response.json()["best_model"] is None
     assert response.json()["ranked_models"] == []
-    assert all(item["n_votes_decisive"] == 4 for item in response.json()["pending_models"])
     assert response.json()["confidence"]["category_code"] is None
     assert response.json()["confidence"]["best_model"] is None
     assert response.json()["confidence"]["n_decisive_votes"] == 0

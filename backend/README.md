@@ -170,13 +170,10 @@ explica la recuperació del client quan es perd la resposta del servidor.
 Retorna el rànquing actual de models. Pot filtrar per una categoria específica o
 agregar totes les categories.
 
-El rànquing públic aplica els [mínims per model](../docs/ranking_design.md#mínims-per-entrar-al-rànquing-públic).
-`pending_models` conté els models que encara recullen vots, sense posició.
-Tant aquests com els elements de `ranked_models` inclouen `n_votes_total`,
-`n_votes_decisive` i `n_prompts_decisive` per model. `min_decisive_votes` i
-`min_decisive_prompts` exposen els llindars que mostra la interfície.
-Els recomptes globals inclouen tots els models; els de `confidence` corresponen
-només a les comparacions entre models elegibles.
+Només es classifiquen els models que compleixen els
+[mínims de vots i prompts](../docs/ranking_design.md#mínims-per-model).
+Els recomptes generals conserven tots els vots; les puntuacions i la confiança
+només utilitzen comparacions entre models elegibles.
 
 `n_participants` compta els usuaris diferents amb almenys un vot dins l'àmbit
 consultat, inclosos els empats i «cap de les dues». Cada usuari compta una sola
@@ -198,16 +195,10 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
   "n_ties": 23,
   "n_neither": 9,
   "best_model": "gemma-3-4b-it",
-  "min_decisive_votes": 30,
-  "min_decisive_prompts": 10,
-  "pending_models": [],
   "ranked_models": [
     {
       "rank": 1,
       "model": "gemma-3-4b-it",
-      "n_votes_total": 260,
-      "n_votes_decisive": 240,
-      "n_prompts_decisive": 10,
       "bt_skill": 0.27,
       "ci_lo": 0.21,
       "ci_hi": 0.33
@@ -215,9 +206,6 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
     {
       "rank": 2,
       "model": "qwen-3.5-9b",
-      "n_votes_total": 260,
-      "n_votes_decisive": 238,
-      "n_prompts_decisive": 10,
       "bt_skill": -0.04,
       "ci_lo": -0.11,
       "ci_hi": 0.03
@@ -225,9 +213,6 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
     {
       "rank": 3,
       "model": "salamandra-7b-instruct",
-      "n_votes_total": 260,
-      "n_votes_decisive": 238,
-      "n_prompts_decisive": 10,
       "bt_skill": -0.23,
       "ci_lo": -0.31,
       "ci_hi": -0.15
@@ -260,8 +245,8 @@ estable. La manca de vots, una cobertura insuficient de prompts amb vots
 decisius o models desconnectats en les comparacions decisives donen
 `insufficient_data`, segons el criteri mínim enllaçat més amunt.
 
-Sense comparacions decisives entre models elegibles, `best_model` i
-`confidence.best_model` són `null` i `ranked_models` és buit. Es conserven els recomptes de participants i vots;
+Sense comparacions decisives entre models elegibles, `best_model` i `confidence.best_model` són `null` i
+`ranked_models` és buit. Es conserven els recomptes de participants i vots;
 la interfície mostra que encara no hi ha prou vots per calcular el rànquing.
 
 ## Tests

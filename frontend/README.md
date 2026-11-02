@@ -29,8 +29,6 @@ Amb sessió hi apareix també el **menú del compte** (recordatoris, descarregar
 donar de baixa el compte i tancar la sessió).
 
 El **Rànquing** (`/ranking`) és accessible des de la capçalera amb sessió o sense.
-Mostra els vots decisius per model i els models «Recollint vots», segons els
-[mínims del rànquing](../docs/ranking_design.md#mínims-per-entrar-al-rànquing-públic).
 Amb sessió, el botó **Avalua** permet tornar a l’avaluació.
 
 La pàgina **Activitat** (`/activitat`) requereix sessió iniciada i s’hi accedeix

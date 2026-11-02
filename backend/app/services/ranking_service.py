@@ -7,13 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Category, Prompt, Response, Vote
 from app.prompt_versions import active_prompt_ids
-from app.ranking.confidence import assess_confidence
-from app.ranking.eligibility import (
-    MIN_DECISIVE_PROMPTS,
-    MIN_DECISIVE_VOTES,
-    is_eligible,
-    model_coverage,
-)
+from app.ranking.confidence import assess_confidence, eligible_models
 from app.ranking.ranking import compute_ranking
 
 
@@ -87,15 +81,8 @@ def get_ranking_per_category(db: Session, category_code: str | None) -> dict:
             Prompt.category_id == category.id
         )
 
-    coverage = model_coverage(db, category_code)
-    eligible = {item["model"] for item in coverage if is_eligible(item)}
+    eligible = eligible_models(db, category_code)
     ranking = compute_ranking(db, category_code, eligible_models=eligible)
-    ranking["pending_models"] = [item for item in coverage if not is_eligible(item)]
-    ranking["min_decisive_votes"] = MIN_DECISIVE_VOTES
-    ranking["min_decisive_prompts"] = MIN_DECISIVE_PROMPTS
-    coverage_by_model = {item["model"]: item for item in coverage}
-    for item in ranking["ranked_models"]:
-        item.update(coverage_by_model[item["model"]])
     ranking["n_participants"] = db.scalar(participants_query)
     confidence = assess_confidence(db, category_code, eligible_models=eligible)
     ranking["confidence"] = _confidence_response(confidence)

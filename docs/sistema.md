@@ -241,9 +241,6 @@ La confiança s'estima amb bootstrap agrupat per prompt. El backend determina
 l'[estat del rànquing](../backend/README.md#get-apiranking) i la interfície el
 presenta com a «No hi ha prou dades» o «Provisional» quan correspon.
 Quan la confiança no està disponible, mostra «Dades insuficients».
-Els models sense prou evidència es mostren com a «Recollint vots», segons els
-[mínims per model](ranking_design.md#mínims-per-entrar-al-rànquing-públic).
-
 Els algoritmes són a [`backend/app/ranking/`](../backend/app/ranking/); el
 [document de disseny estadístic](ranking_design.md) recull la justificació
 i les limitacions, i el [dimensionament](avaluadors.md) estima l'esforç humà.

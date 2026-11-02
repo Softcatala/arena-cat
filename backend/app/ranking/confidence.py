@@ -27,6 +27,8 @@ Limitacions documentades a `docs/ranking_design.md` §5.3:
 
 from __future__ import annotations
 
+from collections import Counter, defaultdict
+
 import numpy as np
 from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
@@ -35,6 +37,7 @@ from app.models import Category, Prompt, Response, Vote, Winner
 from app.prompt_versions import active_prompt_ids
 from app.ranking.ranking import fit_bt, top_model_by_skill
 
+MIN_DECISIVE_VOTES = 30
 MIN_DECISIVE_PROMPTS = 10
 
 
@@ -91,6 +94,23 @@ def _load_clustered_votes(
             by_prompt.setdefault(prompt_id, []).append((model_b, model_a))
         # els empats i els neithers no s'inclouen al bootstrap BT.
     return by_prompt, sorted(seen_models)
+
+
+def eligible_models(session: Session, category_code: str | None) -> set[str]:
+    """Models amb prou vots decisius i prompts dins de l'àmbit consultat."""
+    by_prompt, _ = _load_clustered_votes(session, category_code)
+    counts = Counter()
+    prompts = defaultdict(set)
+    for prompt_id, votes in by_prompt.items():
+        for winner, loser in votes:
+            for model in (winner, loser):
+                counts[model] += 1
+                prompts[model].add(prompt_id)
+    return {
+        model
+        for model, count in counts.items()
+        if count >= MIN_DECISIVE_VOTES and len(prompts[model]) >= MIN_DECISIVE_PROMPTS
+    }
 
 
 def _bootstrap_run(

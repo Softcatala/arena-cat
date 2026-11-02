@@ -132,7 +132,6 @@ export default function RankingView({
                 <tr className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
                   <th className="px-5 py-2">Posició</th>
                   <th className="px-5 py-2">Model</th>
-                  <th className="px-5 py-2 text-right">Vots decisius</th>
                   <th className="px-5 py-2 text-right">Puntuació (IC 95%)</th>
                 </tr>
               </thead>
@@ -158,7 +157,6 @@ export default function RankingView({
                       </span>
                     </td>
                     <td className="px-5 py-3 font-medium text-slate-800">{item.model}</td>
-                    <td className="px-5 py-3 text-right text-slate-700">{item.n_votes_decisive}</td>
                     <td className="px-5 py-3 text-right font-mono text-slate-700">
                       {formatScore(item)}
                     </td>
@@ -166,34 +164,13 @@ export default function RankingView({
                 ))}
                 {ranking.ranked_models.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-5 py-6 text-center text-slate-500">
+                    <td colSpan={3} className="px-5 py-6 text-center text-slate-500">
                       Encara no hi ha prou vots per calcular el rànquing.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-
-            <div className="border-t border-slate-200 px-5 py-4 text-sm text-slate-600">
-              <p>
-                Per entrar al rànquing, cada model necessita almenys {ranking.min_decisive_votes}{" "}
-                vots decisius en {ranking.min_decisive_prompts} prompts diferents dins d’aquest
-                àmbit. Aquest mínim no garanteix un resultat estable.
-              </p>
-              {ranking.pending_models.length > 0 && (
-                <>
-                  <h4 className="mt-3 font-semibold text-slate-800">Recollint vots</h4>
-                  <ul className="mt-2 space-y-2">
-                    {ranking.pending_models.map((item) => (
-                      <li key={item.model}>
-                        <span className="font-medium">{item.model}</span>: {item.n_votes_decisive}{" "}
-                        vots decisius en {item.n_prompts_decisive} prompts
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
 
             <div className="grid grid-cols-2 gap-4 border-t border-slate-200 px-5 py-4 sm:grid-cols-5">
               <div title="Persones que han emès almenys un vot en aquest rànquing. Cada compte es compta una sola vegada.">

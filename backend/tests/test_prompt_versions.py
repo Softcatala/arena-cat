@@ -92,9 +92,6 @@ def test_activation_updates_tasks_progress_ranking_and_preserves_history(
         assert ranking["ranked_models"] == []
         assert ranking["confidence"]["n_decisive_votes"] == 0
         assert ranking["confidence"]["n_prompts"] == 0
-        coverage = {item["model"]: item for item in ranking["pending_models"]}
-        assert coverage["model-1"]["n_votes_decisive"] == 1
-        assert coverage["model-1"]["n_prompts_decisive"] == 1
 
     token = create_task_token(
         new.id,

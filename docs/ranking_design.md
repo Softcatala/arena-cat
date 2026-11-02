@@ -17,8 +17,7 @@ El càlcul es divideix en tres components amb objectius diferents:
 La selecció depèn dels recomptes de vots, sense utilitzar les puntuacions dels
 models. El rànquing i la confiança es calculen sobre els vots de les
 [versions actives dels prompts](sistema.md#versions-actives), globalment o
-filtrats per categoria, amb els mínims d'evidència per model que es descriuen
-més avall.
+filtrats per categoria.
 
 ## 2. Vots i taxes de victòria
 
@@ -39,26 +38,14 @@ quan hi ha tres models; la resposta pública de l'API publica el rànquing BT,
 els recomptes i la confiança. Vegeu els camps a la
 [referència de l'API](../backend/README.md#get-apiranking).
 
-### Mínims per entrar al rànquing públic
+### Mínims per model
 
-Cada model necessita almenys **30 vots decisius en 10 prompts diferents**
-per obtenir una posició. Cada comparació decisiva compta per als dos models,
-independentment de qui guanyi. Els empats i «cap de les dues» no compten per
-assolir aquests mínims. El criteri s'aplica separadament a cada categoria i al
-global, sempre sobre les versions actives dels prompts.
-
-Els models que encara no compleixen tots dos mínims es mostren com a
-«Recollint vots», amb els recomptes i sense posició ni puntuació. També s'hi
-inclouen els models amb respostes actives que encara no tenen vots.
-Els recomptes generals conserven tots els vots, però les puntuacions i la
-confiança publicades s'ajusten només amb comparacions entre models elegibles.
-Els recomptes per model inclouen també els seus enfrontaments amb models pendents.
-Sense comparacions decisives entre models elegibles no es publica cap líder.
-
-Aquests mínims són una barrera pràctica per limitar lideratges prematurs,
-no un llindar validat de significació estadística. La confiança es calcula
-separadament sobre el conjunt elegible; els models pendents encara no
-participen en aquesta estimació.
+Cada model necessita **30 vots decisius en almenys 10 prompts diferents**
+per aparèixer al rànquing públic. Cada vot decisiu compta per als dos models.
+El criteri s'aplica separadament al global i a cada categoria, sobre les versions
+actives dels prompts. Les puntuacions i la confiança només utilitzen comparacions
+entre models elegibles; els recomptes generals conserven tots els vots.
+És una barrera pràctica contra lideratges prematurs, no una garantia estadística.
 
 ## 3. Bradley–Terry
 
@@ -123,7 +110,7 @@ reemplaçament, i conserva tots els seus vots decisius.
 Calen almenys **deu prompts amb vots decisius**, dos models observats i
 comparacions decisives que connectin tots els models elegibles del rànquing per calcular
 la confiança. La connexió pot ser indirecta (A–B–C); no s'exigeix comparar
-totes les parelles ni que cada model tingui victòries. Els models pendents no participen en aquesta comprovació ni en el bootstrap. Si no es compleixen aquests criteris, `p_best_is_best` i l'interval de
+totes les parelles ni que cada model tingui victòries. Els models que no compleixen els mínims no participen en el càlcul públic. Si no es compleixen aquests criteris, `p_best_is_best` i l'interval de
 confiança són `null` a l'API i `is_stable` és fals. La interfície mostra
 «Dades insuficients» per a la confiança i presenta l'estat que retorna
 l'[API](../backend/README.md#get-apiranking), conservant les puntuacions
