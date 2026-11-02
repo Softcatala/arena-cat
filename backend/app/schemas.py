@@ -307,7 +307,14 @@ class RankingConfidence(BaseModel):
     is_stable: bool
 
 
-class RankedModel(BaseModel):
+class ModelCoverage(BaseModel):
+    model: str
+    n_votes_total: int
+    n_votes_decisive: int
+    n_prompts_decisive: int
+
+
+class RankedModel(ModelCoverage):
     rank: int
     model: str
     bt_skill: float
@@ -325,6 +332,9 @@ class RankingResponse(BaseModel):
     n_neither: int
     best_model: str | None
     ranked_models: list[RankedModel]
+    pending_models: list[ModelCoverage]
+    min_decisive_votes: int
+    min_decisive_prompts: int
     confidence: RankingConfidence
 
 

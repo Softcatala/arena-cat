@@ -124,6 +124,8 @@ def assess_confidence(
     n_bootstrap: int = 1000,
     alpha: float = 0.01,
     seed: int = 0,
+    *,
+    eligible_models: set[str] | None = None,
 ) -> dict:
     """Avalua si tenim prou confiança per declarar un guanyador.
 
@@ -169,6 +171,8 @@ def assess_confidence(
             Si és None, calcula la confiança del rànquing global.
         n_bootstrap: nombre de repliques del bootstrap. 1000 sol ser prou.
         alpha: regularització L2 per a l'ajust BT (vegeu `ranking.fit_bt`).
+        eligible_models: limita l'ajust i el bootstrap a comparacions entre
+            aquests models quan s'informa.
         seed: llavor per a reproduïbilitat.
 
     Returns:
@@ -195,6 +199,13 @@ def assess_confidence(
         vots decisius.
     """
     by_prompt, models = _load_clustered_votes(session, category_code)
+    if eligible_models is not None:
+        models = sorted(eligible_models)
+        by_prompt = {
+            prompt: [(w, loser) for w, loser in votes if w in models and loser in models]
+            for prompt, votes in by_prompt.items()
+        }
+        by_prompt = {prompt: votes for prompt, votes in by_prompt.items() if votes}
     all_decisive = [vote for votes in by_prompt.values() for vote in votes]
     n_decisive = len(all_decisive)
 

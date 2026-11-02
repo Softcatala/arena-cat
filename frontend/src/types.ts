@@ -59,7 +59,14 @@ export interface Progress {
 
 export type Winner = "a" | "b" | "tie" | "neither";
 
-export interface RankedModel {
+export interface ModelCoverage {
+  model: string;
+  n_votes_total: number;
+  n_votes_decisive: number;
+  n_prompts_decisive: number;
+}
+
+export interface RankedModel extends ModelCoverage {
   rank: number;
   model: string;
   bt_skill: number;
@@ -88,6 +95,9 @@ export interface Ranking {
   n_neither: number;
   best_model: string | null;
   ranked_models: RankedModel[];
+  pending_models: ModelCoverage[];
+  min_decisive_votes: number;
+  min_decisive_prompts: number;
   confidence: RankingConfidence;
 }
 export interface Activity {
