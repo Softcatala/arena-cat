@@ -486,7 +486,7 @@ def test_get_ranking_empty_category(client, session, create_user):
     assert "cycle_path" not in response.json()
 
 
-def test_get_ranking_full_category(client, session):
+def test_get_ranking_category_below_minimum(client, session):
     """Prova què passa quan intentem obtenir el rànquing d'una categoria amb vots."""
     # Recuperem la categoria 'correccio'
     c = session.scalar(select(Category).where(Category.code == "correccio"))
@@ -508,41 +508,14 @@ def test_get_ranking_full_category(client, session):
     # Obtenim resposta
     response = client.get(f"/api/ranking?category_code={c.code}")
     assert response.status_code == 200
-    assert response.json()["best_model"] == "model_1"
+    assert response.json()["best_model"] is None
     assert response.json()["status"] == "insufficient_data"
     assert response.json()["n_participants"] == 0
-    assert response.json()["ranked_models"] == [
-        {
-            "rank": 1,
-            "model": "model_1",
-            "bt_skill": response.json()["ranked_models"][0]["bt_skill"],
-            "ci_lo": None,
-            "ci_hi": None,
-        },
-        {
-            "rank": 2,
-            "model": "model_2",
-            "bt_skill": response.json()["ranked_models"][1]["bt_skill"],
-            "ci_lo": None,
-            "ci_hi": None,
-        },
-    ]
-    assert (
-        response.json()["ranked_models"][0]["bt_skill"]
-        > response.json()["ranked_models"][1]["bt_skill"]
-    )
-    assert "models" not in response.json()
-    assert "bt_skills" not in response.json()
-    assert "raw_pairwise" not in response.json()
-    assert "cycle_detected" not in response.json()
-    assert "cycle_path" not in response.json()
-    assert response.json()["confidence"]["best_model"] == "model_1"
-    assert response.json()["confidence"]["n_decisive_votes"] == 1
-    assert response.json()["confidence"]["p_best_is_best"] is None
+    assert response.json()["ranked_models"] == []
+    assert response.json()["confidence"]["best_model"] is None
+    assert response.json()["confidence"]["n_decisive_votes"] == 0
     assert response.json()["confidence"]["confidence_interval"] is None
     assert response.json()["confidence"]["is_stable"] is False
-    assert "ci_lo" not in response.json()["confidence"]
-    assert "ci_hi" not in response.json()["confidence"]
 
 
 @pytest.mark.parametrize("winner", [Winner.tie, Winner.neither])
@@ -603,13 +576,14 @@ def test_get_ranking_status_depends_on_prompt_coverage_and_confidence(
         response_b = Response(prompt=prompt, model="model_2", text="Resposta B")
         session.add_all([prompt, response_a, response_b])
         session.flush()
-        session.add(
+        session.add_all(
             Vote(
                 prompt_id=prompt.id,
                 response_a_id=response_a.id,
                 response_b_id=response_b.id,
                 winner=winner,
             )
+            for _ in range(3)
         )
     session.commit()
 
@@ -676,11 +650,11 @@ def test_get_ranking_without_category_returns_global(client, session, create_use
     assert response.json()["n_votes_total"] == 6
     assert response.json()["status"] == "insufficient_data"
     assert response.json()["n_participants"] == 3
-    assert response.json()["best_model"] == "model_1"
-    assert response.json()["ranked_models"][0]["model"] == "model_1"
+    assert response.json()["best_model"] is None
+    assert response.json()["ranked_models"] == []
     assert response.json()["confidence"]["category_code"] is None
-    assert response.json()["confidence"]["best_model"] == "model_1"
-    assert response.json()["confidence"]["n_decisive_votes"] == 4
+    assert response.json()["confidence"]["best_model"] is None
+    assert response.json()["confidence"]["n_decisive_votes"] == 0
     assert response.json()["confidence"]["confidence_interval"] is None
     assert response.json()["confidence"]["is_stable"] is False
 

@@ -88,9 +88,10 @@ def test_activation_updates_tasks_progress_ranking_and_preserves_history(
     for params in ({}, {"category_code": "correccio"}):
         ranking = client.get("/api/ranking", params=params).json()
         assert ranking["n_votes_total"] == ranking["n_participants"] == 1
-        assert ranking["best_model"] == "model-1"
-        assert ranking["confidence"]["n_decisive_votes"] == 1
-        assert ranking["confidence"]["n_prompts"] == 1
+        assert ranking["best_model"] is None
+        assert ranking["ranked_models"] == []
+        assert ranking["confidence"]["n_decisive_votes"] == 0
+        assert ranking["confidence"]["n_prompts"] == 0
 
     token = create_task_token(
         new.id,

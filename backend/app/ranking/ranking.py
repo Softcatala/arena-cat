@@ -206,7 +206,9 @@ def _models_for_category(
     return sorted(seen)
 
 
-def compute_ranking(session: Session, category_code: str | None) -> dict:
+def compute_ranking(
+    session: Session, category_code: str | None, *, eligible_models: set[str] | None = None
+) -> dict:
     """Calcula el rànquing actual d'una categoria o el global.
 
     Pensada per ser cridada des de `GET /api/ranking` a la microservei
@@ -238,6 +240,8 @@ def compute_ranking(session: Session, category_code: str | None) -> dict:
         session: sessió SQLAlchemy ja oberta.
         category_code: codi opcional de la categoria (e.g. "correccio").
             Si és None, calcula el rànquing global.
+        eligible_models: si s'informa, ajusta les puntuacions només amb
+            comparacions entre aquests models; conserva els recomptes globals.
 
     Returns:
         Diccionari amb la forma:
@@ -295,6 +299,9 @@ def compute_ranking(session: Session, category_code: str | None) -> dict:
         elif winner == Winner.b:
             decisive.append((model_b, model_a))
 
+    if eligible_models is not None:
+        models = sorted(eligible_models)
+        decisive = [(w, loser) for w, loser in decisive if w in models and loser in models]
     bt_skills = fit_bt(decisive, models, alpha=0.01)
     rounded_skills = {m: round(s, 4) for m, s in bt_skills.items()}
     # Ordenem per skill sense arrodonir per no perdre precisió; desempat

@@ -27,6 +27,8 @@ Limitacions documentades a `docs/ranking_design.md` §5.3:
 
 from __future__ import annotations
 
+from collections import Counter, defaultdict
+
 import numpy as np
 from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased
@@ -35,6 +37,7 @@ from app.models import Category, Prompt, Response, Vote, Winner
 from app.prompt_versions import active_prompt_ids
 from app.ranking.ranking import fit_bt, top_model_by_skill
 
+MIN_DECISIVE_VOTES = 30
 MIN_DECISIVE_PROMPTS = 10
 
 
@@ -93,6 +96,23 @@ def _load_clustered_votes(
     return by_prompt, sorted(seen_models)
 
 
+def eligible_models(session: Session, category_code: str | None) -> set[str]:
+    """Models amb prou vots decisius i prompts dins de l'àmbit consultat."""
+    by_prompt, _ = _load_clustered_votes(session, category_code)
+    counts = Counter()
+    prompts = defaultdict(set)
+    for prompt_id, votes in by_prompt.items():
+        for winner, loser in votes:
+            for model in (winner, loser):
+                counts[model] += 1
+                prompts[model].add(prompt_id)
+    return {
+        model
+        for model, count in counts.items()
+        if count >= MIN_DECISIVE_VOTES and len(prompts[model]) >= MIN_DECISIVE_PROMPTS
+    }
+
+
 def _bootstrap_run(
     by_prompt: dict[int, list[tuple[str, str]]],
     models: list[str],
@@ -124,6 +144,8 @@ def assess_confidence(
     n_bootstrap: int = 1000,
     alpha: float = 0.01,
     seed: int = 0,
+    *,
+    eligible_models: set[str] | None = None,
 ) -> dict:
     """Avalua si tenim prou confiança per declarar un guanyador.
 
@@ -169,6 +191,8 @@ def assess_confidence(
             Si és None, calcula la confiança del rànquing global.
         n_bootstrap: nombre de repliques del bootstrap. 1000 sol ser prou.
         alpha: regularització L2 per a l'ajust BT (vegeu `ranking.fit_bt`).
+        eligible_models: limita l'ajust i el bootstrap a comparacions entre
+            aquests models quan s'informa.
         seed: llavor per a reproduïbilitat.
 
     Returns:
@@ -195,6 +219,13 @@ def assess_confidence(
         vots decisius.
     """
     by_prompt, models = _load_clustered_votes(session, category_code)
+    if eligible_models is not None:
+        models = sorted(eligible_models)
+        by_prompt = {
+            prompt: [(w, loser) for w, loser in votes if w in models and loser in models]
+            for prompt, votes in by_prompt.items()
+        }
+        by_prompt = {prompt: votes for prompt, votes in by_prompt.items() if votes}
     all_decisive = [vote for votes in by_prompt.values() for vote in votes]
     n_decisive = len(all_decisive)
 

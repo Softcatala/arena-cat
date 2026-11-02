@@ -170,6 +170,11 @@ explica la recuperació del client quan es perd la resposta del servidor.
 Retorna el rànquing actual de models. Pot filtrar per una categoria específica o
 agregar totes les categories.
 
+Només es classifiquen els models que compleixen els
+[mínims de vots i prompts](../docs/ranking_design.md#mínims-per-model).
+Els recomptes generals conserven tots els vots; les puntuacions i la confiança
+només utilitzen comparacions entre models elegibles.
+
 `n_participants` compta els usuaris diferents amb almenys un vot dins l'àmbit
 consultat, inclosos els empats i «cap de les dues». Cada usuari compta una sola
 vegada, també al global si ha votat en diverses categories. Els vots sense
@@ -240,7 +245,7 @@ estable. La manca de vots, una cobertura insuficient de prompts amb vots
 decisius o models desconnectats en les comparacions decisives donen
 `insufficient_data`, segons el criteri mínim enllaçat més amunt.
 
-Sense vots decisius, `best_model` i `confidence.best_model` són `null` i
+Sense comparacions decisives entre models elegibles, `best_model` i `confidence.best_model` són `null` i
 `ranked_models` és buit. Es conserven els recomptes de participants i vots;
 la interfície mostra que encara no hi ha prou vots per calcular el rànquing.
 

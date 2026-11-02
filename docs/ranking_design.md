@@ -38,6 +38,15 @@ quan hi ha tres models; la resposta pública de l'API publica el rànquing BT,
 els recomptes i la confiança. Vegeu els camps a la
 [referència de l'API](../backend/README.md#get-apiranking).
 
+### Mínims per model
+
+Cada model necessita **30 vots decisius en almenys 10 prompts diferents**
+per aparèixer al rànquing públic. Cada vot decisiu compta per als dos models.
+El criteri s'aplica separadament al global i a cada categoria, sobre les versions
+actives dels prompts. Les puntuacions i la confiança només utilitzen comparacions
+entre models elegibles; els recomptes generals conserven tots els vots.
+És una barrera pràctica contra lideratges prematurs, no una garantia estadística.
+
 ## 3. Bradley–Terry
 
 Bradley–Terry assigna a cada model una puntuació `θ`. La probabilitat que A
@@ -99,11 +108,9 @@ reemplaçament, i conserva tots els seus vots decisius.
 ### 5.2. Seguiment del mateix model
 
 Calen almenys **deu prompts amb vots decisius**, dos models observats i
-comparacions decisives que connectin tots els models del rànquing per calcular
+comparacions decisives que connectin tots els models elegibles del rànquing per calcular
 la confiança. La connexió pot ser indirecta (A–B–C); no s'exigeix comparar
-totes les parelles ni que cada model tingui victòries. Els models observats
-només en empats o «cap de les dues» també han de quedar connectats mitjançant
-vots decisius. Si no es compleixen aquests criteris, `p_best_is_best` i l'interval de
+totes les parelles ni que cada model tingui victòries. Els models que no compleixen els mínims no participen en el càlcul públic. Si no es compleixen aquests criteris, `p_best_is_best` i l'interval de
 confiança són `null` a l'API i `is_stable` és fals. La interfície mostra
 «Dades insuficients» per a la confiança i presenta l'estat que retorna
 l'[API](../backend/README.md#get-apiranking), conservant les puntuacions
