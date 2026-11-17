@@ -1,14 +1,14 @@
 """Afegeix el rol d'administrador i el bloqueig d'usuaris.
 
 Revision ID: a1b2c3d4e5f6
-Revises: d9f012345678
+Revises: e1f2a3b4c5d6
 """
 
 import sqlalchemy as sa
 from alembic import op
 
 revision = "a1b2c3d4e5f6"
-down_revision = "d9f012345678"
+down_revision = "e1f2a3b4c5d6"
 branch_labels = None
 depends_on = None
 
