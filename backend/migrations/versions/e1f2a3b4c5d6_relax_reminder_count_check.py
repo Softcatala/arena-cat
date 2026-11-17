@@ -1,4 +1,4 @@
-"""Eleva a trenta el límit de recordatoris seguits sense vots.
+"""Treu el límit superior de `reminder_count`: el fixa el servei de recordatoris.
 
 Revision ID: e1f2a3b4c5d6
 Revises: d9f012345678
@@ -14,9 +14,7 @@ depends_on = None
 
 def upgrade() -> None:
     op.drop_constraint("ck_users_reminder_count", "users", type_="check")
-    op.create_check_constraint(
-        "ck_users_reminder_count", "users", "reminder_count BETWEEN 0 AND 30"
-    )
+    op.create_check_constraint("ck_users_reminder_count", "users", "reminder_count >= 0")
 
 
 def downgrade() -> None:
