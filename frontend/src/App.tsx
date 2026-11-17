@@ -283,7 +283,8 @@ export default function App() {
                 session.is_admin ? (
                   <AdminView email={session.email} categories={categories ?? []} />
                 ) : (
-                  <Navigate to="/" replace />
+                  // Sense sessió (per exemple en tancar-la des d'aquí) va al login, no a l'inici.
+                  <Navigate to={session.authenticated ? "/" : "/login"} replace />
                 )
               }
             />
