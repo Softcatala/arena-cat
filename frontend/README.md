@@ -25,11 +25,18 @@ Les preguntes i el llindar provenen del backend; l'acreditació queda desada a
 `users.qualified_at` i evita repetir la prova en sessions posteriors.
 
 La capçalera mostra el logotip i el nom, que duen a l'avaluació (`/`), i l'enllaç al rànquing.
-Amb sessió hi apareix també el **menú del compte** (recordatoris, descarregar les dades personals,
+Amb sessió hi apareix també el **menú del compte** (recordatoris, administració si s'escau,
+descarregar les dades personals,
 donar de baixa el compte i tancar la sessió).
 
 El **Rànquing** (`/ranking`) és accessible des de la capçalera amb sessió o sense.
 Amb sessió, el botó **Avalua** permet tornar a l’avaluació.
+
+La pàgina **Administració** (`/admin`) és només per a comptes amb el rol d'administrador;
+la resta són redirigits a l'inici. L'enllaç apareix al menú del compte quan
+`GET /api/auth/session` retorna `is_admin`. Té tres pestanyes: **Usuaris** (bloquejar i
+desbloquejar), **Prompts** (filtrar, activar i desactivar) i **Inferències** (filtrar, activar o
+desactivar, i incloure o excloure del rànquing). Per fer algú administrador, vegeu l'[API d'administració](../backend/README.md#apiadmin).
 
 La pàgina **Activitat** (`/activitat`) requereix sessió iniciada i s’hi accedeix
 directament per la URL, sense enllaç al menú. Mostra els
@@ -109,9 +116,9 @@ per a desenvolupament.
 - Si el servidor web publica el frontend i reenvia `/api` al backend sota el
   mateix origen, no cal definir cap variable: el client crida `/api`.
 - Si l'API queda en un origen diferent, cal compilar amb `VITE_API_BASE_URL`, i
-  el backend necessitarà una llista d'orígens permesos al CORS (ara hi ha
-  `allow_origin_regex=".*"`, que no és acceptable de cara enfora) i
-  `COOKIE_SECURE=true`.
+  el backend necessitarà l'origen del frontend a `CORS_ALLOWED_ORIGINS` (vegeu
+  [Orígens permesos](../docs/usuaris_autenticacio.md#orígens-permesos-cors-i-peticions-descriptura))
+  i `COOKIE_SECURE=true`.
 
 Quan es concreti la infraestructura, aquest apartat s'ha d'omplir amb el que
 s'hagi decidit.

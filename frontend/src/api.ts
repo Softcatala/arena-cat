@@ -11,6 +11,9 @@
 import { readDetail, readErrorCode, TASK_TOKEN_INVALID } from "./errors";
 import type {
   Activity,
+  AdminPrompt,
+  AdminResponse,
+  AdminUser,
   Category,
   CategoryFilter,
   ExportData,
@@ -19,6 +22,7 @@ import type {
   QualificationResult,
   Questionnaire,
   Ranking,
+  Page,
   SessionState,
   Task,
   Winner,
@@ -71,7 +75,66 @@ async function request<T>(path: string, init?: RequestInit, notifyUnauthorized =
   return response.json() as Promise<T>;
 }
 
+function query(params: Record<string, string | number | boolean | undefined | null>): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") search.set(key, String(value));
+  }
+  const text = search.toString();
+  return text ? `?${text}` : "";
+}
+
+/** Endpoints d'administració (`/api/admin/*`): 403 si el compte no és administrador. */
+const admin = {
+  users: async (limit: number, offset: number): Promise<Page<AdminUser>> => {
+    const data = await request<{ total: number; users: AdminUser[] }>(
+      `/admin/users${query({ limit, offset })}`,
+    );
+    return { total: data.total, items: data.users };
+  },
+  blockUser: (id: number) => request<AdminUser>(`/admin/users/${id}/block`, { method: "POST" }),
+  unblockUser: (id: number) => request<AdminUser>(`/admin/users/${id}/unblock`, { method: "POST" }),
+
+  prompts: async (
+    limit: number,
+    offset: number,
+    filters: { version?: string; category_code?: string; active?: boolean | "" },
+  ): Promise<Page<AdminPrompt>> => {
+    const data = await request<{ total: number; prompts: AdminPrompt[] }>(
+      `/admin/prompts${query({ limit, offset, ...filters })}`,
+    );
+    return { total: data.total, items: data.prompts };
+  },
+  updatePrompt: (id: number, changes: { active: boolean }) =>
+    request<AdminPrompt>(`/admin/prompts/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(changes),
+    }),
+
+  responses: async (
+    limit: number,
+    offset: number,
+    filters: {
+      prompt_id?: number | "";
+      model?: string;
+      active?: boolean | "";
+      included_in_ranking?: boolean | "";
+    },
+  ): Promise<Page<AdminResponse>> => {
+    const data = await request<{ total: number; responses: AdminResponse[] }>(
+      `/admin/responses${query({ limit, offset, ...filters })}`,
+    );
+    return { total: data.total, items: data.responses };
+  },
+  updateResponse: (id: number, changes: { active?: boolean; included_in_ranking?: boolean }) =>
+    request<AdminResponse>(`/admin/responses/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(changes),
+    }),
+};
+
 export const api = {
+  admin,
   reminderInvitation: () =>
     request<{ show: boolean }>("/auth/reminders/invitation", { method: "POST" }),
   reminders: () => request<{ enabled: boolean }>("/auth/reminders"),

@@ -20,7 +20,9 @@ erDiagram
         varchar(64) code
         integer category_id FK
         text text
+        boolean active
         timestamptz created_at
+        timestamptz updated_at
     }
 
     responses {
@@ -29,7 +31,10 @@ erDiagram
         varchar(128) model
         text text
         jsonb inference_metadata
+        boolean active
+        boolean included_in_ranking
         timestamptz created_at
+        timestamptz updated_at
     }
 
     users {
@@ -45,6 +50,8 @@ erDiagram
         text password_hash
         timestamptz email_verified_at
         timestamptz qualified_at
+        boolean is_admin
+        timestamptz blocked_at
         timestamptz verification_sent_at
         timestamptz password_reset_sent_at
         varchar(32) consent_version

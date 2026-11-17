@@ -95,7 +95,9 @@ def get_task_progress_for_user(user: User, db: Session) -> TaskProgressResponse:
     """Retorna el progrés global de tasques d'un usuari."""
     responses_by_prompt = defaultdict(list)
     for prompt_id, response_id in db.execute(
-        select(Response.prompt_id, Response.id).where(Response.prompt_id.in_(active_prompt_ids()))
+        select(Response.prompt_id, Response.id).where(
+            Response.prompt_id.in_(active_prompt_ids()), Response.active
+        )
     ).all():
         responses_by_prompt[prompt_id].append(response_id)
 
@@ -104,14 +106,15 @@ def get_task_progress_for_user(user: User, db: Session) -> TaskProgressResponse:
         for prompt_id, response_ids in responses_by_prompt.items()
         for response_a_id, response_b_id in combinations(sorted(response_ids), 2)
     }
-    voted_cells = _cells(
+    # Només les cel·les de `total_cells`: les que tenen una resposta desactivada no compten.
+    voted_cells = total_cells & _cells(
         db.execute(
             select(Vote.prompt_id, Vote.response_a_id, Vote.response_b_id).where(
                 Vote.user_id == user.id, Vote.prompt_id.in_(active_prompt_ids())
             )
         ).all()
     )
-    skipped_cells = _cells(
+    skipped_cells = total_cells & _cells(
         db.execute(
             select(TaskSkip.prompt_id, TaskSkip.response_a_id, TaskSkip.response_b_id).where(
                 TaskSkip.user_id == user.id, TaskSkip.prompt_id.in_(active_prompt_ids())

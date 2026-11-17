@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import func, select
 
 from app.models import Category, Prompt, Response, TaskSkip, Vote, Winner
+from app.prompt_versions import active_prompt_ids
 from app.ranking.sampler import _load_prompts_and_responses
 from app.security import create_task_token
 
@@ -15,7 +16,9 @@ def make_prompt(session):
     category_id = session.scalar(select(Category.id).where(Category.code == "correccio"))
 
     def create(code, version, n_responses=2):
-        prompt = Prompt(code=code, version=version, category_id=category_id, text=version)
+        prompt = Prompt(
+            code=code, version=version, category_id=category_id, text=f"{code} {version}"
+        )
         session.add(prompt)
         session.flush()
         responses = [
@@ -115,6 +118,15 @@ def test_versions_are_ordered_numerically_not_by_insertion(session, make_prompt)
     make_prompt("correccio_1", "v9")
     make_prompt("correccio_1", "v11", 1)
     assert [p.id for p, _ in _load_prompts_and_responses(session, "correccio")] == [latest.id]
+
+
+def test_deactivated_responses_do_not_count_towards_the_active_version(session, make_prompt):
+    old, _ = make_prompt("correccio_1", "v1")
+    _, new_responses = make_prompt("correccio_1", "v2")
+    new_responses[0].active = False
+    session.commit()
+
+    assert set(session.scalars(active_prompt_ids())) == {old.id}
 
 
 def test_mock_data_uses_valid_versions_and_cleanup_preserves_real_prompts(session, make_prompt):

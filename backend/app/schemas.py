@@ -2,7 +2,14 @@ import unicodedata
 from datetime import date, datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    model_validator,
+)
 from pydantic_core import PydanticCustomError
 
 from app.models import Winner
@@ -189,6 +196,7 @@ class SessionResponse(BaseModel):
     email: str | None = None
     email_verified: bool = False
     qualified: bool = False
+    is_admin: bool = False
 
 
 QualificationChoice = Literal["A", "B", "C"]
@@ -334,3 +342,71 @@ class ReminderPreferences(BaseModel):
 
 class ReminderUnsubscribe(BaseModel):
     token: str = Field(min_length=1, max_length=64)
+
+
+class AdminUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str | None
+    is_admin: bool
+    email_verified_at: datetime | None
+    qualified_at: datetime | None
+    created_at: datetime
+    blocked_at: datetime | None
+    deleted_at: datetime | None
+    # Data més recent entre l'inici de sessió, el darrer vot i la darrera omissió.
+    last_activity_at: datetime | None = None
+
+
+class AdminUsersResponse(BaseModel):
+    total: int
+    users: list[AdminUserResponse]
+
+
+class AdminPromptPatch(BaseModel):
+    active: bool
+
+
+class AdminPromptResponse(BaseModel):
+    id: int
+    version: str
+    code: str
+    category_code: str
+    text: str
+    active: bool
+    created_at: datetime
+    response_count: int
+
+
+class AdminPromptsResponse(BaseModel):
+    total: int
+    prompts: list[AdminPromptResponse]
+
+
+class AdminResponsePatch(BaseModel):
+    active: bool | None = None
+    included_in_ranking: bool | None = None
+
+    @model_validator(mode="after")
+    def require_a_change(self) -> "AdminResponsePatch":
+        if self.active is None and self.included_in_ranking is None:
+            raise ValueError("Cal indicar almenys un camp a canviar")
+        return self
+
+
+class AdminResponseItem(BaseModel):
+    id: int
+    prompt_id: int
+    model: str
+    text: str
+    inference_metadata: dict | None
+    active: bool
+    included_in_ranking: bool
+    created_at: datetime
+    vote_count: int
+
+
+class AdminResponsesResponse(BaseModel):
+    total: int
+    responses: list[AdminResponseItem]

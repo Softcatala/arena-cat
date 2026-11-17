@@ -90,6 +90,59 @@ Exposa els noms dels models i les metadades d'inferència; `/api/task` manté
 les respostes anònimes. La resposta porta `Cache-Control: no-store`.
 Podeu consultar-lo amb el [CLI de consulta remota](../scripts/README.md#consulta-de-les-dades-carregades-en-remot).
 
+### `/api/admin/*`
+
+Reservats als usuaris amb `is_admin`, amb la mateixa cookie de sessió que la resta
+de l'API: 401 sense sessió, 403 si no és administrador. El rol no es pot canviar des de l'API:
+per concedir-lo o revocar-lo, executeu des de `backend/` l'ordre
+[`app.cli.admin`](app/cli/admin.py):
+
+```bash
+uv run python -m app.cli.admin correu@exemple.cat            # concedeix
+uv run python -m app.cli.admin correu@exemple.cat --revoca   # revoca
+```
+
+Dins del contenidor de l'API, que ja té la configuració de l'entorn, s'executa igual:
+
+```bash
+docker compose exec api uv run python -m app.cli.admin correu@exemple.cat
+docker compose exec api uv run python -m app.cli.admin correu@exemple.cat --revoca
+```
+
+El compte ha d'existir, tenir el correu verificat i no estar bloquejat ni donat de baixa.
+L'ordre calcula el hash del correu amb `EMAIL_HASH_PEPPER`, així que cal executar-lo amb la
+configuració de l'entorn on es vol aplicar.
+
+- `GET /api/admin/users?limit=50&offset=0`: usuaris per ordre d'`id` (`limit` de 1 a 200),
+  amb `total` i `last_activity_at` (la data més recent entre l'inici de sessió, el darrer vot i
+  la darrera omissió; nul si no n'ha fet cap). No inclou contrasenyes ni tokens. La resposta porta `Cache-Control: no-store`.
+- `POST /api/admin/users/{id}/block`: bloqueja l'usuari i revoca totes les seves sessions.
+  Idempotent. 409 si és un mateix o un compte donat de baixa; 404 si no existeix.
+- `POST /api/admin/users/{id}/unblock`: treu el bloqueig. Les sessions revocades no es recuperen.
+
+Un usuari bloquejat que encerta la contrasenya rep 403 en iniciar sessió.
+
+- `GET /api/admin/prompts?limit=50&offset=0&version=v1&category_code=correccio&active=true`: prompts per
+  ordre d'`id`, amb `category_code` i `response_count` (inferències).
+- `PATCH /api/admin/prompts/{id}` amb `{ active }`: activa o desactiva un prompt. Un prompt
+  inactiu no es serveix i els seus vots no compten al rànquing, que només considera la
+  versió activa de cada codi: si es desactiva la més alta, hi cau la versió anterior. Serveix
+  per desfer una versió publicada amb errades sense esborrar-ne res. Els prompts i les
+  inferències no es creen ni s'esborren des de l'API: es carreguen amb
+  [`carrega_inferencies.py`](../scripts/carrega_inferencies.py).
+
+Les inferències (`responses`) tenen dos indicadors independents:
+
+- `active`: si és fals, no es mostra als avaluadors ni compta per al progrés, però conserva
+  els vots. Un prompt amb menys de dues respostes actives deixa de servir-se.
+- `included_in_ranking`: si és fals, els vots que la inclouen (com a A o B) no compten al
+  rànquing ni a la confiança.
+
+- `GET /api/admin/responses?prompt_id=&model=&active=&included_in_ranking=&limit=&offset=`:
+  inferències per ordre d'`id`, amb `vote_count`.
+- `PATCH /api/admin/responses/{id}` amb `{ active?, included_in_ranking? }`: canvia els
+  indicadors; cal indicar-ne almenys un (422 altrament).
+
 ### `GET /api/qualification` i `POST /api/qualification`
 
 Requereixen una sessió vàlida i la verificació del correu, si està activada.

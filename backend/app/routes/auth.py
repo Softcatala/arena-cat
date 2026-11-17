@@ -124,6 +124,7 @@ def get_session(current_user: OptionalUser) -> SessionResponse:
         email=current_user.email,
         email_verified=current_user.email_verified_at is not None,
         qualified=current_user.qualified_at is not None,
+        is_admin=current_user.is_admin,
     )
 
 

@@ -71,8 +71,17 @@ class Prompt(Base):
     code: Mapped[str] = mapped_column(String(64), nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    # Un prompt inactiu no es serveix ni compta al rànquing; si n'hi ha d'anteriors, hi cau.
+    active: Mapped[bool] = mapped_column(Boolean, server_default="true", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    # `clock_timestamp` canvia dins la transacció: invalida la memòria cau del rànquing.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.clock_timestamp(),
+        nullable=False,
     )
 
     category: Mapped["Category"] = relationship()
@@ -99,8 +108,21 @@ class Response(Base):
     text: Mapped[str] = mapped_column(Text, nullable=False)
     # Metadades de la inferència (seed, temperatura, top_p, max_new_tokens, quantization...).
     inference_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Una resposta inactiva no es mostra als avaluadors, però conserva els vots.
+    active: Mapped[bool] = mapped_column(Boolean, server_default="true", nullable=False)
+    # Els vots que impliquen una resposta exclosa no compten al rànquing.
+    included_in_ranking: Mapped[bool] = mapped_column(
+        Boolean, server_default="true", nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    # `clock_timestamp` canvia dins la transacció: invalida la memòria cau del rànquing.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.clock_timestamp(),
+        nullable=False,
     )
 
     prompt: Mapped["Prompt"] = relationship(back_populates="responses")
@@ -117,6 +139,7 @@ class User(Base):
             "password_hash IS NOT NULL AND consent_at IS NOT NULL)",
             name="ck_users_active_have_credentials",
         ),
+        CheckConstraint("NOT is_admin OR deleted_at IS NULL", name="ck_users_admin_not_deleted"),
         CheckConstraint("reminder_count >= 0", name="ck_users_reminder_count"),
         CheckConstraint(
             "NOT reminder_enabled OR "
@@ -140,6 +163,9 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
     qualified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, server_default="false", nullable=False)
+    # Un usuari bloquejat no pot iniciar sessió ni conservar les sessions obertes.
+    blocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Últim cop que s'ha enviat el correu de verificació: limita els reenviaments.
     verification_sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

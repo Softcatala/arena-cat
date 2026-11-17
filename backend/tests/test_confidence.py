@@ -27,7 +27,7 @@ def _seed_prompts(session, category_code, n_prompts, models=MODELS):
             version="v1",
             code=f"{category_code}-conf-{i:02d}",
             category_id=cat.id,
-            text=f"Prompt {i}",
+            text=f"Prompt {category_code} {i}",
         )
         session.add(prompt)
         session.flush()
