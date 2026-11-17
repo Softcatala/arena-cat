@@ -124,6 +124,48 @@ def test_qualification_migration_preserves_existing_users(ephemeral_db_url):
         engine.dispose()
 
 
+def test_reminder_count_migration_keeps_existing_counts_and_is_reversible(ephemeral_db_url):
+    """Els comptadors existents es conserven, se'n poden desar de més alts i es pot revertir."""
+    config = _alembic_config(ephemeral_db_url)
+    engine = create_engine(ephemeral_db_url)
+
+    def counts():
+        with engine.connect() as connection:
+            rows = connection.execute(text("SELECT email, reminder_count FROM users ORDER BY id"))
+            return dict(rows.all())
+
+    try:
+        command.upgrade(config, "d9f012345678")
+        with engine.begin() as connection:
+            for index, count in enumerate((0, 2, 3)):
+                connection.execute(
+                    text(
+                        "INSERT INTO users (email, email_hash, password_hash, consent_version, "
+                        "consent_at, reminder_count) "
+                        "VALUES (:email, :hash, 'password', 'v1', now(), :count)"
+                    ),
+                    {"email": f"u{index}@example.com", "hash": f"hash{index}", "count": count},
+                )
+        before = counts()
+        command.upgrade(config, "head")
+        assert counts() == before
+        with engine.begin() as connection:
+            connection.execute(
+                text("UPDATE users SET reminder_count = 30 WHERE email = 'u0@example.com'")
+            )
+        with (
+            pytest.raises(Exception, match="ck_users_reminder_count"),
+            engine.begin() as connection,
+        ):
+            connection.execute(text("UPDATE users SET reminder_count = -1"))
+        command.check(config)
+        command.downgrade(config, "d9f012345678")
+        assert counts() == {"u0@example.com": 3, "u1@example.com": 2, "u2@example.com": 3}
+        command.upgrade(config, "head")
+    finally:
+        engine.dispose()
+
+
 def test_migrations_keep_application_loggers_enabled():
     """La configuració d’Alembic conserva els logs de l’aplicació."""
     logger = logging.getLogger("app.services.reminder_service")

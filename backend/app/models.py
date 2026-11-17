@@ -117,7 +117,7 @@ class User(Base):
             "password_hash IS NOT NULL AND consent_at IS NOT NULL)",
             name="ck_users_active_have_credentials",
         ),
-        CheckConstraint("reminder_count BETWEEN 0 AND 3", name="ck_users_reminder_count"),
+        CheckConstraint("reminder_count >= 0", name="ck_users_reminder_count"),
         CheckConstraint(
             "NOT reminder_enabled OR "
             "(reminder_consent_at IS NOT NULL AND reminder_token IS NOT NULL)",

@@ -60,11 +60,15 @@ def test_send_cooldown_pause_and_resume(session, create_user, monkeypatch):
     assert reminder_service.send_due_reminders(session, now) == 1
     assert reminder_service.send_due_reminders(session, now) == 0
     assert reminder_service.send_due_reminders(session, now + timedelta(days=7)) == 1
-    assert reminder_service.send_due_reminders(session, now + timedelta(days=14)) == 1
-    assert reminder_service.send_due_reminders(session, now + timedelta(days=21)) == 0
-    vote.created_at = now + timedelta(days=22)
+    for week in range(2, reminder_service.MAX_REMINDERS):
+        assert reminder_service.send_due_reminders(session, now + timedelta(days=7 * week)) == 1
+    last_week = reminder_service.MAX_REMINDERS
+    assert reminder_service.send_due_reminders(session, now + timedelta(days=7 * last_week)) == 0
+    vote.created_at = now + timedelta(days=7 * last_week + 1)
     session.commit()
-    assert reminder_service.send_due_reminders(session, now + timedelta(days=30)) == 1
+    assert (
+        reminder_service.send_due_reminders(session, now + timedelta(days=7 * last_week + 8)) == 1
+    )
     assert "List-Unsubscribe" in messages[0]
 
 

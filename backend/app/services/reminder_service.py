@@ -20,6 +20,8 @@ from app.services.task_service import get_task_progress_for_user
 
 logger = logging.getLogger(__name__)
 REMINDER_INTERVAL = timedelta(days=7)
+# Recordatoris seguits sense cap vot nou abans de pausar-los.
+MAX_REMINDERS = 30
 REMINDER_TIMEZONE = ZoneInfo("Europe/Madrid")
 
 
@@ -113,7 +115,11 @@ def send_due_reminders(db: Session, now: datetime | None = None) -> int:
             now.astimezone(REMINDER_TIMEZONE) - baseline.astimezone(REMINDER_TIMEZONE)
             < REMINDER_INTERVAL
         )
-        if too_recent or count >= 3 or not get_task_progress_for_user(user, db).remaining:
+        if (
+            too_recent
+            or count >= MAX_REMINDERS
+            or not get_task_progress_for_user(user, db).remaining
+        ):
             db.rollback()
             continue
         base = get_settings().frontend_base_url.rstrip("/")

@@ -412,7 +412,7 @@ del registre no subscriu als correus de participació.
 Només s'envia a comptes actius, verificats i acreditats, amb almenys un vot i
 comparacions actives pendents. Cal que hagin passat set dies, en hora local,
 des del més recent entre l'últim vot, el consentiment i l'últim recordatori.
-Després de tres correus sense vots nous, es pausen fins que l'usuari torna a votar.
+Després de trenta correus sense vots nous, es pausen fins que l'usuari torna a votar.
 
 Cada correu inclou el total històric de vots i enllaços a l'avaluació, les
 preferències i la baixa. La baixa funciona sense sessió, amb un token aleatori
