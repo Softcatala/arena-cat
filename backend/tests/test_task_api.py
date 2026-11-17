@@ -208,6 +208,48 @@ def test_task_progress_counts_voted_skipped_and_remaining(client, session, logge
     }
 
 
+def test_task_progress_ignores_pairs_with_a_deactivated_response(client, session, logged_in_user):
+    """Desactivar una resposta treu del progrés les parelles que la contenen, fetes o no."""
+    c = Category(code="progress_off_cat", name="Categoria progrés")
+    session.add(c)
+    session.commit()
+    p = Prompt(version="v1", code="progress_off_p", category_id=c.id, text="El gat es blau")
+    session.add(p)
+    session.commit()
+    r1, r2, r3, r4 = (
+        Response(prompt_id=p.id, model=f"model_{i}", text=f"Resposta {i}") for i in range(1, 5)
+    )
+    session.add_all([r1, r2, r3, r4])
+    session.commit()
+    user = logged_in_user("task_progress_off@example.com")
+    session.add_all(
+        [
+            Vote(
+                prompt_id=p.id,
+                user_id=user.id,
+                response_a_id=r1.id,
+                response_b_id=r2.id,
+                winner=Winner.a,
+            ),
+            Vote(
+                prompt_id=p.id,
+                user_id=user.id,
+                response_a_id=r3.id,
+                response_b_id=r4.id,
+                winner=Winner.b,
+            ),
+            TaskSkip(prompt_id=p.id, user_id=user.id, response_a_id=r1.id, response_b_id=r3.id),
+            TaskSkip(prompt_id=p.id, user_id=user.id, response_a_id=r2.id, response_b_id=r3.id),
+        ]
+    )
+    r1.active = False
+    session.commit()
+
+    response = client.get("/api/task/progress")
+
+    assert response.json() == {"total": 3, "voted": 1, "skipped": 1, "remaining": 1}
+
+
 def test_get_task_requires_auth(client):
     response = client.get("/api/task", params={"category_code": "correccio"})
     assert response.status_code == 401
