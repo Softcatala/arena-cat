@@ -8,7 +8,6 @@ Taules:
 """
 
 import enum
-import hashlib
 from datetime import datetime
 from decimal import Decimal
 
@@ -33,11 +32,6 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
-
-
-def text_sha256(text: str) -> str:
-    """Empremta SHA-256 d'un text en UTF-8, en hexadecimal."""
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 class Winner(enum.Enum):
@@ -70,21 +64,13 @@ class Prompt(Base):
     """Tasca d'avaluació que es mostra a l'usuari."""
 
     __tablename__ = "prompts"
-    __table_args__ = (
-        UniqueConstraint("version", "code", name="uq_prompts_version_code"),
-        UniqueConstraint("version", "content_sha256", name="uq_prompts_version_content_sha256"),
-        CheckConstraint("content_sha256 ~ '^[0-9a-f]{64}$'", name="ck_prompts_content_sha256"),
-    )
+    __table_args__ = (UniqueConstraint("version", "code", name="uq_prompts_version_code"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     version: Mapped[str] = mapped_column(String(32), nullable=False)
     code: Mapped[str] = mapped_column(String(64), nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
-    # SHA-256 del text en UTF-8: impedeix repetir el mateix contingut dins d'una versió.
-    content_sha256: Mapped[str] = mapped_column(
-        String(64), default=lambda context: text_sha256(context.get_current_parameters()["text"])
-    )
     # Un prompt inactiu no es serveix ni compta al rànquing; si n'hi ha d'anteriors, hi cau.
     active: Mapped[bool] = mapped_column(Boolean, server_default="true", nullable=False)
     created_at: Mapped[datetime] = mapped_column(

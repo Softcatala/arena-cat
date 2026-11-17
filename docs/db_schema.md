@@ -20,7 +20,6 @@ erDiagram
         varchar(64) code
         integer category_id FK
         text text
-        varchar(64) content_sha256
         boolean active
         timestamptz created_at
         timestamptz updated_at

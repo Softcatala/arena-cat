@@ -3,7 +3,7 @@
 import pytest
 from sqlalchemy import select
 
-from app.models import Category, Prompt, Response, TaskSkip, Vote, Winner
+from app.models import Category, Prompt, Response, Vote, Winner
 
 
 @pytest.fixture
@@ -37,64 +37,13 @@ def vote(session, prompt, response_a, response_b, winner=Winner.a, user_id=None)
 
 def test_response_endpoints_require_a_session(client):
     assert client.get("/api/admin/responses").status_code == 401
-    assert client.post("/api/admin/responses", json={}).status_code == 401
     assert client.patch("/api/admin/responses/1", json={"active": False}).status_code == 401
-    assert client.delete("/api/admin/responses/1").status_code == 401
 
 
 def test_response_endpoints_require_an_admin(client, logged_in_user):
     logged_in_user("regular@example.com")
     assert client.get("/api/admin/responses").status_code == 403
-    assert client.post("/api/admin/responses", json={}).status_code == 403
     assert client.patch("/api/admin/responses/1", json={"active": False}).status_code == 403
-    assert client.delete("/api/admin/responses/1").status_code == 403
-
-
-def test_create_response_is_active_and_counts_in_the_ranking(client, admin, session, prompt):
-    result = client.post(
-        "/api/admin/responses",
-        json={
-            "prompt_id": prompt.id,
-            "model": "model-a",
-            "text": "  Una resposta.  ",
-            "inference_metadata": {"temperature": 0.7},
-        },
-    )
-
-    assert result.status_code == 201
-    body = result.json()
-    assert body["active"] is True
-    assert body["included_in_ranking"] is True
-    assert body["text"] == "Una resposta."
-    assert body["vote_count"] == 0
-    stored = session.get(Response, body["id"])
-    assert stored.inference_metadata == {"temperature": 0.7}
-
-
-def test_create_response_for_an_unknown_prompt(client, admin):
-    result = client.post(
-        "/api/admin/responses", json={"prompt_id": 999999, "model": "model-a", "text": "x"}
-    )
-
-    assert result.status_code == 404
-
-
-def test_create_rejects_a_second_response_of_the_same_model(client, admin, session, prompt):
-    add_response(session, prompt, "model-a")
-
-    result = client.post(
-        "/api/admin/responses",
-        json={"prompt_id": prompt.id, "model": "model-a", "text": "Una altra"},
-    )
-
-    assert result.status_code == 409
-
-
-@pytest.mark.parametrize("overrides", [{"model": ""}, {"text": "   "}, {"text": ""}])
-def test_create_validates_the_fields(client, admin, prompt, overrides):
-    body = {"prompt_id": prompt.id, "model": "model-a", "text": "Resposta", **overrides}
-
-    assert client.post("/api/admin/responses", json=body).status_code == 422
 
 
 def test_list_responses_with_vote_counts_and_filters(client, admin, session, prompt):
@@ -151,46 +100,6 @@ def test_patch_requires_at_least_one_field(client, admin, session, prompt):
 
 def test_patch_unknown_response(client, admin):
     assert client.patch("/api/admin/responses/999999", json={"active": False}).status_code == 404
-
-
-def test_delete_response_without_votes(client, admin, session, prompt):
-    response = add_response(session, prompt, "model-a")
-
-    result = client.delete(f"/api/admin/responses/{response.id}")
-
-    assert result.status_code == 204
-    assert session.get(Response, response.id) is None
-
-
-def test_delete_response_with_votes_is_refused(client, admin, session, prompt):
-    first = add_response(session, prompt, "model-a")
-    second = add_response(session, prompt, "model-b")
-    vote(session, prompt, first, second)
-
-    result = client.delete(f"/api/admin/responses/{second.id}")
-
-    assert result.status_code == 409
-    assert session.get(Response, second.id) is not None
-
-
-def test_delete_response_with_skips_is_refused(client, admin, session, prompt):
-    first = add_response(session, prompt, "model-a")
-    second = add_response(session, prompt, "model-b")
-    session.add(
-        TaskSkip(
-            prompt_id=prompt.id,
-            user_id=admin.id,
-            response_a_id=first.id,
-            response_b_id=second.id,
-        )
-    )
-    session.commit()
-
-    assert client.delete(f"/api/admin/responses/{first.id}").status_code == 409
-
-
-def test_delete_unknown_response(client, admin):
-    assert client.delete("/api/admin/responses/999999").status_code == 404
 
 
 # ---------------------------------------------------------------------------
@@ -260,3 +169,13 @@ def test_ranking_cache_follows_the_inclusion_flag(client, admin, session, prompt
     client.patch(f"/api/admin/responses/{second.id}", json={"included_in_ranking": True})
 
     assert client.get("/api/ranking").json()["n_votes_total"] == 1
+
+
+def test_responses_cannot_be_created_imported_or_deleted_from_the_api(
+    client, admin, session, prompt
+):
+    response = add_response(session, prompt, "model-a")
+
+    assert client.post("/api/admin/responses", json={}).status_code == 405
+    assert client.post("/api/admin/responses/import", json={}).status_code == 405
+    assert client.delete(f"/api/admin/responses/{response.id}").status_code == 405

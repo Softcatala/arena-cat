@@ -8,7 +8,6 @@ from pydantic import (
     ConfigDict,
     EmailStr,
     Field,
-    field_validator,
     model_validator,
 )
 from pydantic_core import PydanticCustomError
@@ -365,21 +364,6 @@ class AdminUsersResponse(BaseModel):
     users: list[AdminUserResponse]
 
 
-class AdminPromptCreate(BaseModel):
-    version: str = Field(pattern=r"^v[1-9][0-9]{0,30}$")
-    code: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
-    category_code: str
-    text: str = Field(min_length=1, max_length=20_000)
-
-    @field_validator("text")
-    @classmethod
-    def strip_text(cls, value: str) -> str:
-        value = value.strip()
-        if not value:
-            raise ValueError("El text no pot ser buit")
-        return value
-
-
 class AdminPromptPatch(BaseModel):
     active: bool
 
@@ -390,7 +374,6 @@ class AdminPromptResponse(BaseModel):
     code: str
     category_code: str
     text: str
-    content_sha256: str
     active: bool
     created_at: datetime
     response_count: int
@@ -399,21 +382,6 @@ class AdminPromptResponse(BaseModel):
 class AdminPromptsResponse(BaseModel):
     total: int
     prompts: list[AdminPromptResponse]
-
-
-class AdminResponseCreate(BaseModel):
-    prompt_id: int
-    model: str = Field(min_length=1, max_length=128)
-    text: str = Field(min_length=1, max_length=50_000)
-    inference_metadata: dict | None = None
-
-    @field_validator("text")
-    @classmethod
-    def strip_text(cls, value: str) -> str:
-        value = value.strip()
-        if not value:
-            raise ValueError("El text no pot ser buit")
-        return value
 
 
 class AdminResponsePatch(BaseModel):
@@ -442,26 +410,3 @@ class AdminResponseItem(BaseModel):
 class AdminResponsesResponse(BaseModel):
     total: int
     responses: list[AdminResponseItem]
-
-
-class ImportFile(BaseModel):
-    name: str = Field(min_length=1, max_length=255)
-    content: str = Field(max_length=200_000)
-
-
-class ImportResponsesRequest(BaseModel):
-    version: str = Field(pattern=r"^v[1-9][0-9]{0,30}$")
-    files: list[ImportFile] = Field(min_length=1, max_length=200)
-
-
-class ImportFileResult(BaseModel):
-    name: str
-    status: Literal["inserted", "skipped", "error"]
-    detail: str | None = None
-
-
-class ImportResponsesResponse(BaseModel):
-    inserted: int
-    skipped: int
-    errors: int
-    files: list[ImportFileResult]

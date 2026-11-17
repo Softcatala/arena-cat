@@ -1,14 +1,14 @@
 """Afegeix a les respostes els indicadors d'activació i de rànquing.
 
 Revision ID: c3d4e5f6a7b8
-Revises: b2c3d4e5f6a7
+Revises: a1b2c3d4e5f6
 """
 
 import sqlalchemy as sa
 from alembic import op
 
 revision = "c3d4e5f6a7b8"
-down_revision = "b2c3d4e5f6a7"
+down_revision = "a1b2c3d4e5f6"
 branch_labels = None
 depends_on = None
 

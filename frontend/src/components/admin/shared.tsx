@@ -62,38 +62,6 @@ export function ActionButton({
   );
 }
 
-/** Esborrat amb confirmació en dos passos, sense diàlegs del navegador. */
-export function ConfirmDelete({
-  onConfirm,
-  disabled,
-  title,
-  confirming,
-  setConfirming,
-}: {
-  onConfirm: () => void;
-  disabled?: boolean;
-  title?: string;
-  confirming: boolean;
-  setConfirming: (value: boolean) => void;
-}) {
-  if (!confirming) {
-    return (
-      <ActionButton danger disabled={disabled} title={title} onClick={() => setConfirming(true)}>
-        Esborra
-      </ActionButton>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap">
-      <span className="text-xs text-slate-600">Segur?</span>
-      <ActionButton danger onClick={onConfirm}>
-        Confirma
-      </ActionButton>
-      <ActionButton onClick={() => setConfirming(false)}>Cancel·la</ActionButton>
-    </span>
-  );
-}
-
 export function Pager({
   total,
   offset,

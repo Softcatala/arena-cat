@@ -135,7 +135,6 @@ export interface AdminPrompt {
   code: string;
   category_code: CategoryCode;
   text: string;
-  content_sha256: string;
   active: boolean;
   created_at: string;
   response_count: number;
@@ -157,18 +156,4 @@ export interface AdminResponse {
 export interface Page<T> {
   total: number;
   items: T[];
-}
-
-export interface ImportFileResult {
-  name: string;
-  status: "inserted" | "skipped" | "error";
-  detail: string | null;
-}
-
-/** Resultat d'importar fitxers YAML d'inferència; cada fitxer és independent. */
-export interface ImportResult {
-  inserted: number;
-  skipped: number;
-  errors: number;
-  files: ImportFileResult[];
 }

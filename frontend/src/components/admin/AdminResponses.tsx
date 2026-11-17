@@ -2,12 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 
 import { api } from "../../api";
 import type { AdminResponse } from "../../types";
-import { Field, INPUT } from "../Field";
-import ImportYaml from "./ImportYaml";
 import {
   ActionButton,
   Badge,
-  ConfirmDelete,
   ErrorNote,
   messageOf,
   PAGE_SIZE,
@@ -30,9 +27,6 @@ export default function AdminResponses() {
   const [active, setActive] = useState<Tri>("");
   const [ranked, setRanked] = useState<Tri>("");
   const [error, setError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState<number | null>(null);
-  const [form, setForm] = useState({ prompt_id: "", model: "", text: "" });
-  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -76,33 +70,6 @@ export default function AdminResponses() {
     }
   }
 
-  async function remove(item: AdminResponse) {
-    try {
-      await api.admin.deleteResponse(item.id);
-      setConfirming(null);
-      await load();
-    } catch (err) {
-      setConfirming(null);
-      setError(messageOf(err));
-    }
-  }
-
-  async function create(event: React.FormEvent) {
-    event.preventDefault();
-    if (busy) return;
-    setBusy(true);
-    try {
-      await api.admin.createResponse({ ...form, prompt_id: Number(form.prompt_id) });
-      setForm({ prompt_id: form.prompt_id, model: "", text: "" });
-      setOffset(0);
-      await load();
-    } catch (err) {
-      setError(messageOf(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <section aria-labelledby="admin-responses" className="space-y-4">
       <div>
@@ -111,59 +78,9 @@ export default function AdminResponses() {
         </h2>
         <p className="mt-1 text-sm text-slate-600">
           Una inferència desactivada no es mostra als avaluadors. Una de no inclosa al rànquing
-          conserva els vots però no compten. Només s'esborren les que no tenen vots.
+          conserva els vots però no compten.
         </p>
       </div>
-
-      <ImportYaml
-        onImported={() => {
-          setOffset(0);
-          void load();
-        }}
-      />
-
-      <form
-        onSubmit={(event) => void create(event)}
-        className="space-y-3 rounded-lg border border-slate-200 bg-white p-4"
-      >
-        <h3 className="font-semibold">Nova inferència</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Id del prompt">
-            <input
-              className={INPUT}
-              inputMode="numeric"
-              pattern="[0-9]+"
-              value={form.prompt_id}
-              onChange={(event) => setForm({ ...form, prompt_id: event.target.value })}
-              required
-            />
-          </Field>
-          <Field label="Model">
-            <input
-              className={INPUT}
-              value={form.model}
-              onChange={(event) => setForm({ ...form, model: event.target.value })}
-              required
-            />
-          </Field>
-        </div>
-        <Field label="Resposta">
-          <textarea
-            className={INPUT}
-            rows={4}
-            value={form.text}
-            onChange={(event) => setForm({ ...form, text: event.target.value })}
-            required
-          />
-        </Field>
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          Afegeix la inferència
-        </button>
-      </form>
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="text-sm font-medium">
@@ -256,13 +173,6 @@ export default function AdminResponses() {
                     >
                       {item.included_in_ranking ? "Exclou" : "Inclou"}
                     </ActionButton>
-                    <ConfirmDelete
-                      disabled={item.vote_count > 0}
-                      title={item.vote_count > 0 ? "Té vots associats" : undefined}
-                      confirming={confirming === item.id}
-                      setConfirming={(value) => setConfirming(value ? item.id : null)}
-                      onConfirm={() => void remove(item)}
-                    />
                   </td>
                 </tr>
               ))}

@@ -2,25 +2,20 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, Query, Response
 
 from app.deps import CurrentAdmin, DbSession
 from app.schemas import (
-    AdminPromptCreate,
     AdminPromptPatch,
     AdminPromptResponse,
     AdminPromptsResponse,
-    AdminResponseCreate,
     AdminResponseItem,
     AdminResponsePatch,
     AdminResponsesResponse,
     AdminUserResponse,
     AdminUsersResponse,
-    ImportResponsesRequest,
-    ImportResponsesResponse,
 )
 from app.services import (
-    admin_import_service,
     admin_prompt_service,
     admin_response_service,
     admin_service,
@@ -77,26 +72,12 @@ def list_prompts(
     )
 
 
-@router.post("/prompts", status_code=status.HTTP_201_CREATED)
-def create_prompt(
-    payload: AdminPromptCreate, db: DbSession, _admin: CurrentAdmin
-) -> AdminPromptResponse:
-    """Crea un prompt; el seu contingut no es pot repetir."""
-    return admin_prompt_service.create_prompt(db, payload)
-
-
 @router.patch("/prompts/{prompt_id}")
 def update_prompt(
     prompt_id: int, payload: AdminPromptPatch, db: DbSession, _admin: CurrentAdmin
 ) -> AdminPromptResponse:
     """Activa o desactiva un prompt, sense esborrar-ne res."""
     return admin_prompt_service.update_prompt(db, prompt_id, payload)
-
-
-@router.delete("/prompts/{prompt_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_prompt(prompt_id: int, db: DbSession, _admin: CurrentAdmin) -> None:
-    """Esborra un prompt sense inferències associades."""
-    admin_prompt_service.delete_prompt(db, prompt_id)
 
 
 @router.get("/responses")
@@ -124,31 +105,9 @@ def list_responses(
     )
 
 
-@router.post("/responses", status_code=status.HTTP_201_CREATED)
-def create_response(
-    payload: AdminResponseCreate, db: DbSession, _admin: CurrentAdmin
-) -> AdminResponseItem:
-    """Afegeix la inferència d'un model a un prompt, activa i inclosa al rànquing."""
-    return admin_response_service.create_response(db, payload)
-
-
-@router.post("/responses/import")
-def import_responses(
-    payload: ImportResponsesRequest, db: DbSession, _admin: CurrentAdmin
-) -> ImportResponsesResponse:
-    """Importa inferències dels fitxers YAML de la canonada; cada fitxer és independent."""
-    return admin_import_service.import_responses(db, payload)
-
-
 @router.patch("/responses/{response_id}")
 def update_response(
     response_id: int, payload: AdminResponsePatch, db: DbSession, _admin: CurrentAdmin
 ) -> AdminResponseItem:
     """Activa o desactiva una inferència, o la inclou o exclou del rànquing."""
     return admin_response_service.update_response(db, response_id, payload)
-
-
-@router.delete("/responses/{response_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_response(response_id: int, db: DbSession, _admin: CurrentAdmin) -> None:
-    """Esborra una inferència sense vots ni omissions."""
-    admin_response_service.delete_response(db, response_id)

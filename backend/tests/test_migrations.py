@@ -1,6 +1,5 @@
 """Reversibilitat de la migració inicial contra una base de dades efímera."""
 
-import hashlib
 import logging
 import uuid
 from io import StringIO
@@ -203,8 +202,8 @@ def test_admin_migration_defaults_existing_users_and_is_reversible(ephemeral_db_
         engine.dispose()
 
 
-def test_prompt_hash_migration_backfills_existing_prompts(ephemeral_db_url):
-    """Els prompts existents reben l'empremta SHA-256 del seu text i la migració és reversible."""
+def test_response_flags_migration_keeps_existing_responses_active(ephemeral_db_url):
+    """Les respostes existents queden actives i incloses al rànquing; la migració és reversible."""
     config = _alembic_config(ephemeral_db_url)
     engine = create_engine(ephemeral_db_url)
     try:
@@ -214,34 +213,7 @@ def test_prompt_hash_migration_backfills_existing_prompts(ephemeral_db_url):
                 text(
                     "INSERT INTO categories (code, name) VALUES ('correccio', 'Correcció');"
                     "INSERT INTO prompts (version, code, category_id, text) "
-                    "SELECT 'v1', 'correccio_1', id, 'Hola' FROM categories"
-                )
-            )
-        command.upgrade(config, "head")
-        with engine.connect() as connection:
-            assert connection.scalar(text("SELECT content_sha256 FROM prompts")) == (
-                hashlib.sha256(b"Hola").hexdigest()
-            )
-        command.check(config)
-        command.downgrade(config, "a1b2c3d4e5f6")
-        columns = {column["name"] for column in inspect(engine).get_columns("prompts")}
-        assert "content_sha256" not in columns
-    finally:
-        engine.dispose()
-
-
-def test_response_flags_migration_keeps_existing_responses_active(ephemeral_db_url):
-    """Les respostes existents queden actives i incloses al rànquing; la migració és reversible."""
-    config = _alembic_config(ephemeral_db_url)
-    engine = create_engine(ephemeral_db_url)
-    try:
-        command.upgrade(config, "b2c3d4e5f6a7")
-        with engine.begin() as connection:
-            connection.execute(
-                text(
-                    "INSERT INTO categories (code, name) VALUES ('correccio', 'Correcció');"
-                    "INSERT INTO prompts (version, code, category_id, text, content_sha256) "
-                    f"SELECT 'v1', 'correccio_1', id, 'Hola', '{'a' * 64}' FROM categories;"
+                    "SELECT 'v1', 'correccio_1', id, 'Hola' FROM categories;"
                     "INSERT INTO responses (prompt_id, model, text) "
                     "SELECT id, 'model-a', 'Resposta' FROM prompts"
                 )
@@ -253,7 +225,7 @@ def test_response_flags_migration_keeps_existing_responses_active(ephemeral_db_u
             ).one()
             assert row == (True, True)
         command.check(config)
-        command.downgrade(config, "b2c3d4e5f6a7")
+        command.downgrade(config, "a1b2c3d4e5f6")
         columns = {column["name"] for column in inspect(engine).get_columns("responses")}
         assert {"active", "included_in_ranking", "updated_at"}.isdisjoint(columns)
     finally:
@@ -270,8 +242,8 @@ def test_prompt_active_migration_keeps_existing_prompts_active(ephemeral_db_url)
             connection.execute(
                 text(
                     "INSERT INTO categories (code, name) VALUES ('correccio', 'Correcció');"
-                    "INSERT INTO prompts (version, code, category_id, text, content_sha256) "
-                    f"SELECT 'v1', 'correccio_1', id, 'Hola', '{'a' * 64}' FROM categories"
+                    "INSERT INTO prompts (version, code, category_id, text) "
+                    "SELECT 'v1', 'correccio_1', id, 'Hola' FROM categories"
                 )
             )
         command.upgrade(config, "head")

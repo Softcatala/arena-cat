@@ -123,17 +123,13 @@ configuració de l'entorn on es vol aplicar.
 Un usuari bloquejat que encerta la contrasenya rep 403 en iniciar sessió.
 
 - `GET /api/admin/prompts?limit=50&offset=0&version=v1&category_code=correccio&active=true`: prompts per
-  ordre d'`id`, amb `content_sha256`, `category_code` i `response_count` (inferències).
-- `POST /api/admin/prompts` amb `{ version, code, category_code, text }`: crea un prompt (201).
-  El text s'escurça de blancs i se'n desa el SHA-256. 409 si ja existeix la parella
-  versió-codi o el mateix contingut dins la versió; 422 si la categoria no existeix o els
-  camps no són vàlids. El mateix text sí que es pot publicar en una versió nova.
+  ordre d'`id`, amb `category_code` i `response_count` (inferències).
 - `PATCH /api/admin/prompts/{id}` amb `{ active }`: activa o desactiva un prompt. Un prompt
   inactiu no es serveix i els seus vots no compten al rànquing, que només considera la
   versió activa de cada codi: si es desactiva la més alta, hi cau la versió anterior. Serveix
-  per desfer una versió publicada amb errades sense esborrar-ne res.
-- `DELETE /api/admin/prompts/{id}`: esborra un prompt (204). 409 si té inferències associades;
-  404 si no existeix.
+  per desfer una versió publicada amb errades sense esborrar-ne res. Els prompts i les
+  inferències no es creen ni s'esborren des de l'API: es carreguen amb
+  [`carrega_inferencies.py`](../scripts/carrega_inferencies.py).
 
 Les inferències (`responses`) tenen dos indicadors independents:
 
@@ -144,19 +140,8 @@ Les inferències (`responses`) tenen dos indicadors independents:
 
 - `GET /api/admin/responses?prompt_id=&model=&active=&included_in_ranking=&limit=&offset=`:
   inferències per ordre d'`id`, amb `vote_count`.
-- `POST /api/admin/responses` amb `{ prompt_id, model, text, inference_metadata? }`: la crea
-  activa i inclosa (201). 404 si el prompt no existeix; 409 si el model ja hi té resposta.
-- `POST /api/admin/responses/import` amb `{ version, files: [{ name, content }] }` (1 a 200
-  fitxers de fins a 200.000 caràcters): importa els YAML que genera `scripts/inferencia.py`,
-  amb les mateixes regles que `make load_inferences`. Cada fitxer és independent: la resposta
-  porta `inserted`, `skipped` i `errors` i, per fitxer, `status` (`inserted`, `skipped` o
-  `error`) i `detail`. El prompt es busca per `version` i `prompt.id` (el codi), i si el
-  fitxer duu `prompt.sha256` s'ha de correspondre amb el text del prompt (error altrament). Una
-  resposta que ja existeix idèntica s'omet; si té un contingut diferent és un error i no es
-  modifica. Els fitxers van dins del JSON perquè el navegador els llegeix amb `file.text()`.
 - `PATCH /api/admin/responses/{id}` amb `{ active?, included_in_ranking? }`: canvia els
   indicadors; cal indicar-ne almenys un (422 altrament).
-- `DELETE /api/admin/responses/{id}`: esborra una inferència (204). 409 si té vots o omissions.
 
 ### `GET /api/qualification` i `POST /api/qualification`
 
