@@ -94,16 +94,23 @@ Podeu consultar-lo amb el [CLI de consulta remota](../scripts/README.md#consulta
 
 Reservats als usuaris amb `is_admin`, amb la mateixa cookie de sessió que la resta
 de l'API: 401 sense sessió, 403 si no és administrador. El rol no es pot canviar des de l'API:
-per concedir-lo o revocar-lo, executeu des de `backend/` l'script
-[`fes_administrador.py`](../scripts/fes_administrador.py):
+per concedir-lo o revocar-lo, executeu des de `backend/` l'ordre
+[`app.cli.admin`](app/cli/admin.py):
 
 ```bash
-uv run python ../scripts/fes_administrador.py correu@exemple.cat            # concedeix
-uv run python ../scripts/fes_administrador.py correu@exemple.cat --revoca   # revoca
+uv run python -m app.cli.admin correu@exemple.cat            # concedeix
+uv run python -m app.cli.admin correu@exemple.cat --revoca   # revoca
+```
+
+Dins del contenidor de l'API, que ja té la configuració de l'entorn, s'executa igual:
+
+```bash
+docker compose exec api uv run python -m app.cli.admin correu@exemple.cat
+docker compose exec api uv run python -m app.cli.admin correu@exemple.cat --revoca
 ```
 
 El compte ha d'existir, tenir el correu verificat i no estar bloquejat ni donat de baixa.
-L'script calcula el hash del correu amb `EMAIL_HASH_PEPPER`, així que cal executar-lo amb la
+L'ordre calcula el hash del correu amb `EMAIL_HASH_PEPPER`, així que cal executar-lo amb la
 configuració de l'entorn on es vol aplicar.
 
 - `GET /api/admin/users?limit=50&offset=0`: usuaris per ordre d'`id` (`limit` de 1 a 200),

@@ -1,35 +1,31 @@
 """Concedeix o revoca el rol d'administrador d'un compte.
 
-El rol no es pot canviar des de cap endpoint: aquest script és la manera d'assignar-lo,
+El rol no es pot canviar des de cap endpoint: aquesta ordre és la manera d'assignar-lo,
 sobretot per al primer administrador d'un entorn. Cal que el compte existeixi, tingui el
 correu verificat i no estigui bloquejat ni donat de baixa. Es pot executar més d'una
 vegada: si el compte ja té l'estat demanat, no canvia res.
 
 La connexió i la clau amb què es calcula el hash del correu (``EMAIL_HASH_PEPPER``) es
-resolen amb la mateixa configuració que el servei (``app.config``).
+resolen amb la mateixa configuració que el servei (``app.config``), de manera que també
+funciona dins del contenidor de l'API.
 
-Ús::
+Ús, des de ``backend/``::
 
-    uv run python ../scripts/fes_administrador.py correu@exemple.cat
-    uv run python ../scripts/fes_administrador.py correu@exemple.cat --revoca
+    uv run python -m app.cli.admin correu@exemple.cat
+    uv run python -m app.cli.admin correu@exemple.cat --revoca
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-# El model de dades i la configuració viuen al paquet backend/app.
-sys.path.insert(0, str(REPO_ROOT / "backend"))
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from sqlalchemy import select  # noqa: E402
-from sqlalchemy.orm import Session  # noqa: E402
-
-from app.db import get_sessionmaker  # noqa: E402
-from app.models import User  # noqa: E402
-from app.security import compute_email_hash  # noqa: E402
+from app.db import get_sessionmaker
+from app.models import User
+from app.security import compute_email_hash
 
 GRANTED = "granted"
 REVOKED = "revoked"
@@ -43,7 +39,7 @@ MESSAGES = {
 
 
 class AdministratorError(Exception):
-    """El compte no es pot canviar; el missatge s'ensenya a qui executa l'script."""
+    """El compte no es pot canviar; el missatge s'ensenya a qui executa l'ordre."""
 
 
 def set_administrator(session: Session, email: str, revoke: bool = False) -> str:
