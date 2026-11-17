@@ -117,9 +117,9 @@ per a desenvolupament.
 - Si el servidor web publica el frontend i reenvia `/api` al backend sota el
   mateix origen, no cal definir cap variable: el client crida `/api`.
 - Si l'API queda en un origen diferent, cal compilar amb `VITE_API_BASE_URL`, i
-  el backend necessitarà una llista d'orígens permesos al CORS (ara hi ha
-  `allow_origin_regex=".*"`, que no és acceptable de cara enfora) i
-  `COOKIE_SECURE=true`.
+  el backend necessitarà l'origen del frontend a `CORS_ALLOWED_ORIGINS` (vegeu
+  [Orígens permesos](../docs/usuaris_autenticacio.md#orígens-permesos-cors-i-peticions-descriptura))
+  i `COOKIE_SECURE=true`.
 
 Quan es concreti la infraestructura, aquest apartat s'ha d'omplir amb el que
 s'hagi decidit.

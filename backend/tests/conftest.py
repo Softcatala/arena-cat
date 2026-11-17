@@ -4,6 +4,7 @@ Cada test s'executa dins d'una transacció que es desfà al final (rollback),
 de manera que queden aïllats entre si.
 """
 
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -13,12 +14,15 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from app import models
-from app.config import get_settings
-from app.db import Base, get_db
-from app.main import app
-from app.models import User
-from app.security import compute_email_hash, hash_password
+# Els orígens permitits es llegeixen en importar l'aplicació: cal fixar-los abans.
+os.environ["CORS_ALLOWED_ORIGINS"] = "https://arena.example.org"
+
+from app import models  # noqa: E402
+from app.config import get_settings  # noqa: E402
+from app.db import Base, get_db  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models import User  # noqa: E402
+from app.security import compute_email_hash, hash_password  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CATEGORIES_FILE = REPO_ROOT / "data" / "prompts" / "categories.yaml"

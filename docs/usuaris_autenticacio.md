@@ -384,8 +384,24 @@ La cookie de sessió que estableix el login té els atributs següents:
 - `Secure` — depèn de `cookie_secure`; a `.env.example` és `false` per a HTTP local.
 
 > ⚠️ **Producció:** cal establir `cookie_secure=true` perquè la cookie només viatgi per HTTPS.
-> El backend inclou un middleware CORS permissiu per a desenvolupament a
-> [`app/main.py`](../backend/app/main.py). Les polítiques del proxy són una configuració addicional.
+
+### Orígens permesos (CORS) i peticions d'escriptura
+
+`SameSite=Lax` no aïlla els subdominis d'un mateix lloc (`softcatala.org`): una altra pàgina
+del domini podria fer que el navegador d'una persona autenticada cridés l'API. Per això
+[`app/main.py`](../backend/app/main.py) aplica dues proteccions, configurades amb
+`cors_allowed_origins` (`CORS_ALLOWED_ORIGINS`, orígens separats per comes):
+
+- **CORS:** només els orígens configurats poden llegir respostes amb credencials. Sense cap
+  origen configurat, cap pàgina d'un altre origen no hi té accés.
+- **Comprovació de l'`Origin`:** les peticions que modifiquen dades (`POST`, `PUT`, `PATCH` i
+  `DELETE`) amb un `Origin` que no és un dels configurats ni el mateix origen de l'API es
+  refusen amb `403`. Cal, perquè CORS només impedeix llegir la resposta: la petició
+  s'executa igualment. Les peticions sense `Origin` (`curl`, scripts) no s'hi veuen afectades.
+
+En producció cal posar-hi l'origen del frontend (per exemple `https://arena.softcatala.org`).
+En desenvolupament no cal configurar-ho si es fa servir el proxy de Vite, que fa que el
+navegador i l'API comparteixin origen.
 
 ### Limitacions de la v1 i notes de producció
 

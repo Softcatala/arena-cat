@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     email_from_name: str = "Arena Cat"
     # URL pública del frontend, per construir els enllaços dels correus.
     frontend_base_url: str = "http://localhost:5173"
+    # Orígens (separats per comes) des d'on un navegador pot cridar l'API amb credencials, com
+    # `https://arena.softcatala.org`. Sense cap, només s'accepten peticions del mateix origen.
+    cors_allowed_origins: str = ""
     # Configuració de la cookie i la sessió d'autenticació.
     session_ttl_hours: int
     cookie_name: str
@@ -84,6 +87,12 @@ class Settings(BaseSettings):
     def database_test_url(self) -> str:
         """Base de dades aïllada per als tests."""
         return self._url(self.postgres_user, self.postgres_password, f"{self.postgres_db}_test")
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        """Orígens de `cors_allowed_origins`, sense espais ni barra final."""
+        origins = (origin.strip().rstrip("/") for origin in self.cors_allowed_origins.split(","))
+        return [origin for origin in origins if origin]
 
     @property
     def cookie_max_age(self) -> int:
