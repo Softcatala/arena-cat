@@ -182,7 +182,7 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
 
 Cada model inclou `name`, `maker` i `url`, que es llegeixen de
 [`config/inferencia/inferencia_config.yaml`](../config/inferencia/inferencia_config.yaml)
-(`display_name`, `maker` i `model_name`). Si el model no hi és, `name` és l'identificador
+(`display_name`, `maker` i `url`). Si el model no hi és, `name` és l'identificador
 i `maker` i `url` són `null`.
 
 **Paràmetres de la URL:**

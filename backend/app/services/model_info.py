@@ -20,5 +20,5 @@ def model_presentation(model_id: str) -> dict[str, str | None]:
     return {
         "name": entry.get("display_name", model_id),
         "maker": entry.get("maker"),
-        "url": f"https://huggingface.co/{entry['model_name']}",
+        "url": entry.get("url"),
     }
