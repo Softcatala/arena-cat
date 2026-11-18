@@ -48,7 +48,7 @@ import httpx2 as httpx  # noqa: E402
 from sqlalchemy import select  # noqa: E402
 
 from app.db import get_sessionmaker  # noqa: E402
-from app.models import Category, Prompt, Response, User, Vote  # noqa: E402
+from app.models import Category, Model, Prompt, Response, User, Vote  # noqa: E402
 from app.security import compute_email_hash, create_email_verification_token  # noqa: E402
 
 # Colors ANSI per a la sortida (buits si no és un terminal).
@@ -137,6 +137,13 @@ def seed_demo_data(category_code: str) -> int:
                 text="Prompt de demostració del flux d'autenticació.",
             )
             db.add(prompt)
+            db.flush()
+            db.add_all(
+                [
+                    Model(id="demo-model-a", name="demo-model-a"),
+                    Model(id="demo-model-b", name="demo-model-b"),
+                ]
+            )
             db.flush()
             db.add_all(
                 [

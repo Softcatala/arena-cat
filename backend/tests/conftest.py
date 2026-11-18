@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 import yaml
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 
 from app import models
@@ -61,12 +61,22 @@ def engine():
     eng.dispose()
 
 
+def _register_models(session, _flush_context, _instances):
+    """Registra els models de les respostes noves perquè els tests no els hagin de declarar."""
+    known = {obj.id for obj in session.new if isinstance(obj, models.Model)}
+    for response in [obj for obj in session.new if isinstance(obj, models.Response)]:
+        if response.model not in known and session.get(models.Model, response.model) is None:
+            session.add(models.Model(id=response.model, name=response.model))
+        known.add(response.model)
+
+
 @pytest.fixture
 def session(engine):
     """Sessió embolcallada en una transacció externa que es desfà sempre."""
     connection = engine.connect()
     transaction = connection.begin()
     sess = Session(bind=connection, join_transaction_mode="create_savepoint")
+    event.listen(sess, "before_flush", _register_models)
     try:
         yield sess
     finally:

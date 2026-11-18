@@ -2,8 +2,7 @@
 
 import pytest
 
-from app.models import Prompt, Response, Winner
-from app.services.model_info import model_presentation
+from app.models import Model, Prompt, Response, Winner
 from tests.test_ranking import MODELS, _record_vote, _seed_prompts
 
 
@@ -85,11 +84,20 @@ def test_model_is_promoted_when_last_required_vote_arrives(client, session):
     assert data["confidence"]["best_model"] == MODELS[1]
 
 
-def test_model_presentation_known_and_unknown():
-    known = model_presentation("muse-glimmer-30b")
-    assert known == {
-        "name": "Muse Glimmer 30B",
-        "maker": "Meta",
-        "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
-    }
-    assert model_presentation("desconegut") == {"name": "desconegut", "maker": None, "url": None}
+def test_ranking_includes_model_presentation(client, session):
+    prompts = _seed_prompts(session, "correccio", 10)
+    for i in range(30):
+        prompt, responses = prompts[i % 10]
+        _record_vote(session, prompt, responses[MODELS[0]], responses[MODELS[1]], Winner.a)
+    session.flush()
+    model = session.get(Model, MODELS[0])
+    model.name, model.maker, model.url = "Nom visible", "Fabricant", "https://exemple.cat"
+    session.flush()
+
+    items = client.get("/api/ranking", params={"category_code": "correccio"}).json()[
+        "ranked_models"
+    ]
+    assert [(i["name"], i["maker"], i["url"]) for i in items] == [
+        ("Nom visible", "Fabricant", "https://exemple.cat"),
+        (MODELS[1], None, None),
+    ]

@@ -43,7 +43,7 @@ from sqlalchemy import select  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.db import get_sessionmaker  # noqa: E402
-from app.models import Category, Prompt, Response, Vote  # noqa: E402
+from app.models import Category, Model, Prompt, Response, Vote  # noqa: E402
 from app.prompt_versions import VERSION_PATTERN  # noqa: E402
 
 # Models ficticis per defecte. Cal com a mínim dos perquè el sampler formi parelles.
@@ -109,6 +109,11 @@ def seed_mock_tasks(
                 db.add(prompt)
                 db.flush()
                 new_prompts += 1
+
+            for model in models:
+                if db.get(Model, model) is None:
+                    db.add(Model(id=model, name=model))
+            db.flush()
 
             # Afegeix només les respostes de models que encara no tingui el prompt.
             existing_models = {r.model for r in prompt.responses}
