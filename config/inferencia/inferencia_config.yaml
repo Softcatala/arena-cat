@@ -64,7 +64,7 @@ models:
   # 5. Salamandra 7B Instruct 2606
   - id: "salamandra-7b-instruct-2606"
     display_name: "Salamandra 7B Instruct"
-    maker: "BSC"
+    maker: "Projecte Aina"
     model_name: "BSC-LT/salamandra-7b-instruct-2606"
     revision: "main"
     torch_dtype: "bfloat16"
