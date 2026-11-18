@@ -17,6 +17,7 @@ COPY backend/app/ app/
 COPY backend/migrations/ migrations/
 COPY backend/alembic.ini .
 COPY data/qualification.yaml /app/data/qualification.yaml
+COPY config/inferencia/inferencia_config.yaml /app/config/inferencia/inferencia_config.yaml
 
 # Exposem el port 8000
 EXPOSE 8000

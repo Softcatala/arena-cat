@@ -15,6 +15,8 @@ parametres_generacio:
 models:
   # 1. Qwen 3.8 27B
   - id: "qwen3.8-27b"
+    display_name: "Qwen 3.8 27B"
+    maker: "Alibaba"
     model_name: "Qwen/Qwen3.8-27B"
     revision: "main"
     torch_dtype: "bfloat16"
@@ -25,6 +27,8 @@ models:
 
   # 2. Mistral Small 3.2 24B Instruct
   - id: "mistral-small-3.2-24b-instruct-2506"
+    display_name: "Mistral Small 3.2 24B"
+    maker: "Mistral AI"
     model_name: "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     revision: "main"
     torch_dtype: "bfloat16"
@@ -35,6 +39,8 @@ models:
 
   # 3. Gemma 4 26B A4B Instruct
   - id: "gemma-4-26b-a4b-it"
+    display_name: "Gemma 4 26B A4B"
+    maker: "Google"
     model_name: "google/gemma-4-26B-A4B-it"
     revision: "main"
     torch_dtype: "bfloat16"
@@ -45,6 +51,8 @@ models:
 
   # 4. Muse Glimmer 30B
   - id: "muse-glimmer-30b"
+    display_name: "Muse Glimmer 30B"
+    maker: "Meta"
     model_name: "meta-models/Muse-Glimmer-30B"
     revision: "main"
     torch_dtype: "bfloat16"
@@ -55,6 +63,8 @@ models:
 
   # 5. Salamandra 7B Instruct 2606
   - id: "salamandra-7b-instruct-2606"
+    display_name: "Salamandra 7B Instruct"
+    maker: "BSC"
     model_name: "BSC-LT/salamandra-7b-instruct-2606"
     revision: "main"
     torch_dtype: "bfloat16"

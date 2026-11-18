@@ -9,6 +9,7 @@ from app.models import Category, Prompt, Response, Vote
 from app.prompt_versions import active_prompt_ids
 from app.ranking.confidence import assess_confidence, eligible_models
 from app.ranking.ranking import compute_ranking
+from app.services.model_info import model_presentation
 
 
 def _cache_by_max_ids(
@@ -91,6 +92,7 @@ def get_ranking_per_category(db: Session, category_code: str | None) -> dict:
         ci = per_model_ci.get(item["model"])
         item["ci_lo"] = ci["lo"] if ci else None
         item["ci_hi"] = ci["hi"] if ci else None
+        item.update(model_presentation(item["model"]))
     if ranking["confidence"]["confidence_interval"] is None:
         ranking["status"] = "insufficient_data"
     elif ranking["confidence"]["is_stable"]:

@@ -3,6 +3,7 @@
 import pytest
 
 from app.models import Prompt, Response, Winner
+from app.services.model_info import model_presentation
 from tests.test_ranking import MODELS, _record_vote, _seed_prompts
 
 
@@ -82,3 +83,13 @@ def test_model_is_promoted_when_last_required_vote_arrives(client, session):
     assert len(data["ranked_models"]) == 2
     assert data["ranked_models"][1]["model"] == MODELS[0]
     assert data["confidence"]["best_model"] == MODELS[1]
+
+
+def test_model_presentation_known_and_unknown():
+    known = model_presentation("muse-glimmer-30b")
+    assert known == {
+        "name": "Muse Glimmer 30B",
+        "maker": "Meta",
+        "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
+    }
+    assert model_presentation("desconegut") == {"name": "desconegut", "maker": None, "url": None}

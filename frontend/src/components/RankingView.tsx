@@ -156,7 +156,9 @@ export default function RankingView({
                         {item.rank}
                       </span>
                     </td>
-                    <td className="px-5 py-3 font-medium text-slate-800">{item.model}</td>
+                    <td className="px-5 py-3 font-medium text-slate-800">
+                      <ModelLabel item={item} />
+                    </td>
                     <td className="px-5 py-3 text-right font-mono text-slate-700">
                       {formatScore(item)}
                     </td>
@@ -208,5 +210,25 @@ function Stat({ label, value }: { label: string; value: number }) {
       <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{label}</p>
       <p className="text-lg font-semibold text-slate-800">{value}</p>
     </div>
+  );
+}
+
+function ModelLabel({ item }: { item: RankedModel }) {
+  return (
+    <>
+      {item.url ? (
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand-600 hover:underline"
+        >
+          {item.name}
+        </a>
+      ) : (
+        item.name
+      )}
+      {item.maker && <span className="font-normal text-slate-500"> ({item.maker})</span>}
+    </>
   );
 }

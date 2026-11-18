@@ -13,3 +13,8 @@ backend/**
 data/**
 !data/qualification.yaml
 **/__pycache__/
+!config/
+config/**
+!config/inferencia/
+config/inferencia/**
+!config/inferencia/inferencia_config.yaml

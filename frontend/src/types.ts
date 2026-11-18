@@ -62,6 +62,9 @@ export type Winner = "a" | "b" | "tie" | "neither";
 export interface RankedModel {
   rank: number;
   model: string;
+  name: string;
+  maker: string | null;
+  url: string | null;
   bt_skill: number;
   ci_lo: number | null;
   ci_hi: number | null;
