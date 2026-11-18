@@ -13,6 +13,7 @@ WORKDIR /app
 COPY backend/app /app/backend/app
 COPY scripts/carrega_inferencies.py /app/scripts/carrega_inferencies.py
 COPY scripts/lib/prompt_versions.py /app/scripts/lib/prompt_versions.py
+COPY config/inferencia/inferencia_config.yaml /app/config/inferencia/inferencia_config.yaml
 COPY data/prompts /app/data/prompts
 COPY data/inferencies /app/data/inferencies
 
