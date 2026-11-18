@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Category, Prompt, Response, Vote
+from app.models import Category, Model, Prompt, Response, Vote
 from app.prompt_versions import active_prompt_ids
 from app.ranking.confidence import assess_confidence, eligible_models
 from app.ranking.ranking import compute_ranking
@@ -87,10 +87,13 @@ def get_ranking_per_category(db: Session, category_code: str | None) -> dict:
     confidence = assess_confidence(db, category_code, eligible_models=eligible)
     ranking["confidence"] = _confidence_response(confidence)
     per_model_ci = confidence["per_model_ci"] or {}
+    presentation = {m.id: m for m in db.scalars(select(Model))}
     for item in ranking["ranked_models"]:
         ci = per_model_ci.get(item["model"])
         item["ci_lo"] = ci["lo"] if ci else None
         item["ci_hi"] = ci["hi"] if ci else None
+        model = presentation[item["model"]]
+        item.update(name=model.name, maker=model.maker, url=model.url)
     if ranking["confidence"]["confidence_interval"] is None:
         ranking["status"] = "insufficient_data"
     elif ranking["confidence"]["is_stable"]:

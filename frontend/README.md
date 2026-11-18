@@ -29,6 +29,7 @@ Amb sessió hi apareix també el **menú del compte** (recordatoris, descarregar
 donar de baixa el compte i tancar la sessió).
 
 El **Rànquing** (`/ranking`) és accessible des de la capçalera amb sessió o sense.
+Cada model es mostra amb el nom, el fabricant entre parèntesis i un enllaç al model, que serveix el backend a partir de la taula `models`.
 Amb sessió, el botó **Avalua** permet tornar a l’avaluació.
 
 La pàgina **Activitat** (`/activitat`) requereix sessió iniciada i s’hi accedeix

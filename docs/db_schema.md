@@ -14,6 +14,13 @@ erDiagram
         text evaluation_instructions
     }
 
+    models {
+        varchar(128) id PK
+        varchar(128) name
+        varchar(128) maker
+        varchar(512) url
+    }
+
     prompts {
         integer id PK
         varchar(32) version
@@ -26,7 +33,7 @@ erDiagram
     responses {
         integer id PK
         integer prompt_id FK
-        varchar(128) model
+        varchar(128) model FK
         text text
         jsonb inference_metadata
         timestamptz created_at
@@ -90,6 +97,7 @@ erDiagram
     }
 
     categories ||--o{ prompts : "category_id"
+    models ||--o{ responses : "model"
     prompts ||--o{ responses : "prompt_id"
     prompts ||--o{ votes : "prompt_id"
     prompts ||--o{ task_skips : "prompt_id"
@@ -110,6 +118,7 @@ erDiagram
 | categories | UNIQUE | — | `(code)` |
 | prompts | UNIQUE | `uq_prompts_version_code` | `(version, code)` |
 | prompts | FK | — | `category_id → categories.id` |
+| responses | FK | `fk_responses_model_models` | `model → models.id` |
 | responses | UNIQUE | `uq_responses_prompt_model` | `(prompt_id, model)` |
 | responses | UNIQUE | `uq_responses_prompt_id_id` | `(prompt_id, id)` |
 | responses | FK | — | `prompt_id → prompts.id` `ON DELETE CASCADE` |

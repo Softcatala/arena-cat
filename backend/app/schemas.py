@@ -310,6 +310,9 @@ class RankingConfidence(BaseModel):
 class RankedModel(BaseModel):
     rank: int
     model: str
+    name: str
+    maker: str | None = None
+    url: str | None = None
     bt_skill: float
     ci_lo: float | None = None
     ci_hi: float | None = None

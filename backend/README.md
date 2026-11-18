@@ -180,6 +180,13 @@ consultat, inclosos els empats i «cap de les dues». Cada usuari compta una sol
 vegada, també al global si ha votat en diverses categories. Els vots sense
 `user_id` es mantenen als recomptes de vots, però no al de participants.
 
+Cada model inclou `name`, `maker` i `url`, que es llegeixen de la taula `models`.
+El càrregador les sincronitza des de
+[`config/inferencia/inferencia_config.yaml`](../config/inferencia/inferencia_config.yaml)
+(`display_name`, `maker` i `url`) i no n'esborra cap, de manera que els models retirats
+de la configuració en conserven les dades. Si el model no té aquestes dades, `name` és
+l'identificador i `maker` i `url` són `null`.
+
 **Paràmetres de la URL:**
 - `category_code` (string, opcional): El codi de la categoria a consultar. Si s'omet,
   retorna el rànquing global agregant totes les categories.
@@ -199,6 +206,9 @@ vegada, també al global si ha votat en diverses categories. Els vots sense
     {
       "rank": 1,
       "model": "gemma-3-4b-it",
+      "name": "Gemma 3 4B",
+      "maker": "Google",
+      "url": "https://huggingface.co/google/gemma-3-4b-it",
       "bt_skill": 0.27,
       "ci_lo": 0.21,
       "ci_hi": 0.33

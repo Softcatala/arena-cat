@@ -7,7 +7,7 @@ import pytest
 import yaml
 from sqlalchemy import func, select
 
-from app.models import Category, Prompt, Response
+from app.models import Category, Model, Prompt, Response
 from app.prompt_versions import active_prompt_ids
 
 # L'script viu a scripts/ (projecte arrel), fora del paquet backend.
@@ -384,3 +384,31 @@ def test_summary_total_errors_drives_exit_code(session, dirs):
     summary = loader.run_load(session, prompts_dir, inferencies_dir)
 
     assert summary.total_errors == 1
+
+
+def test_models_are_synced_from_config_and_never_deleted(session, dirs, tmp_path):
+    config = tmp_path / "models.yaml"
+
+    def write_config(models: list[dict]) -> None:
+        config.write_text(yaml.dump({"models": models}), encoding="utf-8")
+
+    write_config([{"id": "m1", "display_name": "Model 1", "maker": "Fab", "url": "https://x/m1"}])
+    loader.load_models(session, config)
+    write_config([{"id": "m2"}])
+    loader.load_models(session, config)
+
+    m1, m2 = session.get(Model, "m1"), session.get(Model, "m2")
+    assert (m1.name, m1.maker, m1.url) == ("Model 1", "Fab", "https://x/m1")
+    assert (m2.name, m2.maker, m2.url) == ("m2", None, None)
+
+
+def test_response_of_model_missing_from_config_registers_it(session, dirs, tmp_path):
+    prompts_dir, inferencies_dir = dirs
+    config = tmp_path / "models.yaml"
+    config.write_text(yaml.dump({"models": []}), encoding="utf-8")
+    write_prompt(prompts_dir, "traduccio_1")
+    write_inference(inferencies_dir, "retirat", "traduccio_1")
+
+    loader.run_load(session, prompts_dir, inferencies_dir, "v1", models_file=config)
+
+    assert session.get(Model, "retirat").name == "retirat"

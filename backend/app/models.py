@@ -2,6 +2,7 @@
 
 Taules:
     - categories: les categories de tasca.
+    - models:     els models d'IA avaluats, amb nom visible, fabricant i enllaç.
     - prompts:    les tasques d'avaluació.
     - responses:  la resposta d'un model a un prompt.
     - votes:      el vot d'un usuari comparant dues respostes d'un prompt.
@@ -60,6 +61,17 @@ class Category(Base):
     evaluation_instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class Model(Base):
+    """Model d'IA avaluat. Es conserva encara que ja no s'hi facin inferències."""
+
+    __tablename__ = "models"
+
+    id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    maker: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
 class Prompt(Base):
     """Tasca d'avaluació que es mostra a l'usuari."""
 
@@ -95,7 +107,7 @@ class Response(Base):
     prompt_id: Mapped[int] = mapped_column(
         ForeignKey("prompts.id", ondelete="CASCADE"), nullable=False
     )
-    model: Mapped[str] = mapped_column(String(128), nullable=False)
+    model: Mapped[str] = mapped_column(ForeignKey("models.id"), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     # Metadades de la inferència (seed, temperatura, top_p, max_new_tokens, quantization...).
     inference_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

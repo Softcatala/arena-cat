@@ -3,7 +3,8 @@
 Llegeix els prompts versionats a ``data/prompts/<version>/*.txt`` (text pla, on
 el nom del fitxer és el codi) i les inferències a
 ``data/inferencies/<version>/<model_id>/*.yaml``, i en fa *upsert* a les taules
-``prompts`` i ``responses``. La clau natural d'un prompt és ``(version, code)``
+``models``, ``prompts`` i ``responses``. Els models (nom visible, fabricant i enllaç) es
+sincronitzen des de la configuració d'inferència i mai s'esborren. La clau natural d'un prompt és ``(version, code)``
 i la d'una resposta ``(prompt_id, model)``, de manera que tornar a executar
 l'script no duplica files ni en trenca les restriccions.
 
@@ -33,13 +34,14 @@ from sqlalchemy import select  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.db import get_sessionmaker  # noqa: E402
-from app.models import Category, Prompt, Response  # noqa: E402
+from app.models import Category, Model, Prompt, Response  # noqa: E402
 from app.prompt_versions import VERSION_PATTERN  # noqa: E402
 from scripts.lib.prompt_versions import inference_directory, version_directories  # noqa: E402
 
 LOGGER = logging.getLogger("carrega_inferencies")
 
 DEFAULT_CATEGORIES_FILE = REPO_ROOT / "data" / "prompts" / "categories.yaml"
+DEFAULT_MODELS_FILE = REPO_ROOT / "config" / "inferencia" / "inferencia_config.yaml"
 DEFAULT_PROMPTS_DIR = REPO_ROOT / "data" / "prompts"
 DEFAULT_INFERENCIES_DIR = REPO_ROOT / "data" / "inferencies"
 
@@ -363,6 +365,8 @@ def upsert_response(session: Session, record: ResponseRecord, stats: Stats) -> N
         select(Response).where(Response.prompt_id == prompt.id, Response.model == record.model)
     )
     if existing is None:
+        if session.get(Model, record.model) is None:
+            session.add(Model(id=record.model, name=record.model))
         session.add(
             Response(
                 prompt_id=prompt.id,
@@ -435,6 +439,25 @@ def load_categories(
     return {definition.code: categories[definition.code].id for definition in definitions}
 
 
+def load_models(session: Session, models_file: Path | str) -> None:
+    """Sincronitza nom, fabricant i enllaç dels models de la configuració d'inferència.
+
+    Mai n'esborra cap: un model retirat de la configuració conserva les dades perquè
+    les respostes i els vots existents el continuïn referenciant.
+    """
+    document = yaml.safe_load(Path(models_file).read_text(encoding="utf-8"))
+    existing = {model.id: model for model in session.scalars(select(Model))}
+    for entry in document["models"]:
+        model = existing.get(entry["id"])
+        if model is None:
+            model = existing[entry["id"]] = Model(id=entry["id"])
+            session.add(model)
+        model.name = entry.get("display_name", entry["id"])
+        model.maker = entry.get("maker")
+        model.url = entry.get("url")
+    session.flush()
+
+
 def load_responses(session: Session, inferencies_dir: Path, version: str, stats: Stats) -> None:
     """Carrega totes les inferències d'un directori (recursivament).
 
@@ -460,6 +483,7 @@ def run_load(
     inferencies_dir: Path | str,
     version: str | None = None,
     categories_file: Path | str = DEFAULT_CATEGORIES_FILE,
+    models_file: Path | str = DEFAULT_MODELS_FILE,
 ) -> Summary:
     """Carrega prompts i inferències dins de la sessió donada.
 
@@ -500,6 +524,7 @@ def run_load(
 
     categories = load_category_catalog(categories_file)
     category_ids = load_categories(session, categories)
+    load_models(session, models_file)
     summary = Summary(prompts=Stats(), responses=Stats())
     for prompt_directory, response_directory in directories:
         revision = version or prompt_directory.name
